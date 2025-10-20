@@ -1673,7 +1673,7 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
 
     // Generate WhatsApp link
     const message = generateWhatsAppMessage()
-    const whatsappNumber = '6285750777394'
+    const whatsappNumber = '6281344492934'
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`
 
     // Open WhatsApp

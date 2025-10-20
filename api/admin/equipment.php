@@ -1,6 +1,5 @@
-<?php
-// filepath: c:\xampp\htdocs\PBL - KELANA OUTDOOR\api\admin\equipment.php
 
+<?php
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
@@ -23,7 +22,6 @@ $username = "root";
 $password = "";
 
 try {
-    // Test database connection first
     $pdo = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
@@ -34,6 +32,30 @@ try {
     
     switch($method) {
         case 'GET':
+            // ✅ CHECK CODE AVAILABILITY
+            if (isset($_GET['check_code'])) {
+                $code = $_GET['check_code'];
+                $excludeId = isset($_GET['exclude_id']) ? (int)$_GET['exclude_id'] : 0;
+                
+                if ($excludeId > 0) {
+                    // Exclude specific ID (for edit mode)
+                    $stmt = $pdo->prepare("SELECT COUNT(*) FROM equipment WHERE code = ? AND equipment_id != ?");
+                    $stmt->execute([$code, $excludeId]);
+                } else {
+                    // Check all records (for add mode)
+                    $stmt = $pdo->prepare("SELECT COUNT(*) FROM equipment WHERE code = ?");
+                    $stmt->execute([$code]);
+                }
+                
+                $count = $stmt->fetchColumn();
+                
+                echo json_encode([
+                    "exists" => $count > 0,
+                    "message" => $count > 0 ? "Kode sudah digunakan" : "Kode tersedia"
+                ]);
+                break;
+            }
+            
             $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
             
             if ($id) {
@@ -112,6 +134,13 @@ try {
                 throw new Exception("Name, code, and category are required");
             }
             
+            // ✅ CHECK CODE UNIQUENESS BEFORE INSERT
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM equipment WHERE code = ?");
+            $stmt->execute([$data['code']]);
+            if ($stmt->fetchColumn() > 0) {
+                throw new Exception("Kode equipment '{$data['code']}' sudah digunakan");
+            }
+            
             $sql = "INSERT INTO equipment (
                 name, code, description, category, size_capacity, 
                 dimensions, weight, material, stock_quantity, 
@@ -152,6 +181,13 @@ try {
                 throw new Exception("Equipment ID is required for update");
             }
             
+            // ✅ CHECK CODE UNIQUENESS BEFORE UPDATE (exclude current record)
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM equipment WHERE code = ? AND equipment_id != ?");
+            $stmt->execute([$data['code'], $data['equipment_id']]);
+            if ($stmt->fetchColumn() > 0) {
+                throw new Exception("Kode equipment '{$data['code']}' sudah digunakan");
+            }
+            
             $sql = "UPDATE equipment SET 
                 name=?, code=?, description=?, category=?, size_capacity=?, 
                 dimensions=?, weight=?, material=?, stock_quantity=?, 
@@ -190,6 +226,9 @@ try {
             if (!$id) {
                 throw new Exception("Equipment ID is required for deletion");
             }
+            
+            // ✅ CHECK IF EQUIPMENT IS BEING USED (Optional safety check)
+            // You can add checks for active bookings here if needed
             
             $stmt = $pdo->prepare("DELETE FROM equipment WHERE equipment_id = ?");
             $result = $stmt->execute([$id]);
