@@ -598,7 +598,7 @@ import CartPage from "./pages/CartPage";
 import Packages from "./pages/Packages";
 import Trips from "./pages/Trips";
 import About from "./pages/About";
-
+import TambahEquipment from './pages/TambahEquipment'
 // ✅ ADMIN PAGES
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -642,7 +642,7 @@ const App = () => (
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/equipment/:id" element={<EquipmentDetail />} />
               <Route path="/booking/form" element={<BookingForm />} />
-              
+              <Route path="/tambah-equipment" element={<TambahEquipment />} />
               {/* ✅ ADMIN ROUTES - SEMUA DIGABUNG */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route 

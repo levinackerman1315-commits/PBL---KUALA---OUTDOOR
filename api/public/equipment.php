@@ -1,11 +1,21 @@
-
 <?php
+// filepath: c:\xampp\htdocs\PBL - KELANA OUTDOOR\api\public\equipment.php
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-// Database connection
+// Handle preflight OPTIONS request
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+// Enable error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Database configuration
 $host = "localhost";
 $db_name = "kuala_outdoor";
 $username = "root";
@@ -14,102 +24,119 @@ $password = "";
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    echo json_encode([
-        "error" => true,
-        "message" => "Database connection failed: " . $e->getMessage()
-    ]);
-    exit;
-}
-
-// Get method
-$method = $_SERVER['REQUEST_METHOD'];
-$equipment_id = isset($_GET['id']) ? (int)$_GET['id'] : null;
-
-if ($method === 'GET') {
-    try {
-        if ($equipment_id) {
-            // Get single equipment by ID
-            $query = "SELECT * FROM equipment WHERE equipment_id = :id";
-            $stmt = $pdo->prepare($query);
-            $stmt->bindParam(':id', $equipment_id, PDO::PARAM_INT);
-            $stmt->execute();
+    
+    $method = $_SERVER['REQUEST_METHOD'];
+    
+    // Log request for debugging
+    error_log("Public Equipment API called with method: " . $method);
+    
+    switch($method) {
+        case 'GET':
+            $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
             
-            $equipment = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($equipment) {
-                // Format the data
-                $formatted_equipment = [
-                    "equipment_id" => (int)$equipment['equipment_id'],
-                    "name" => $equipment['name'],
-                    "code" => $equipment['code'],
-                    "description" => $equipment['description'],
-                    "category" => $equipment['category'],
-                    "size_capacity" => $equipment['size_capacity'],
-                    "dimensions" => $equipment['dimensions'],
-                    "weight" => $equipment['weight'] ? (float)$equipment['weight'] : 0,
-                    "material" => $equipment['material'],
-                    "stock_quantity" => (int)$equipment['stock_quantity'],
-                    "available_stock" => (int)$equipment['stock_quantity'],
-                    "reserved_stock" => 0,
-                    "rented_stock" => 0,
-                    "price_per_day" => (float)$equipment['price_per_day'],
-                    "condition" => $equipment['condition_item'],
-                    "equipment_type" => $equipment['equipment_type'],
-                    "image_url" => $equipment['image_url'],
-                    "created_at" => $equipment['created_at']
-                ];
+            if ($id) {
+                // Get single equipment
+                $stmt = $pdo->prepare("SELECT * FROM equipment WHERE equipment_id = ?");
+                $stmt->execute([$id]);
+                $equipment = $stmt->fetch(PDO::FETCH_ASSOC);
                 
-                echo json_encode($formatted_equipment);
+                if ($equipment) {
+                    $response = [
+                        "equipment_id" => (int)$equipment['equipment_id'],
+                        "name" => $equipment['name'],
+                        "code" => $equipment['code'],
+                        "description" => $equipment['description'] ?? '',
+                        "category" => $equipment['category'],
+                        "size_capacity" => $equipment['size_capacity'] ?? '',
+                        "dimensions" => $equipment['dimensions'] ?? '',
+                        "weight" => $equipment['weight'] ? (float)$equipment['weight'] : 0,
+                        "material" => $equipment['material'] ?? '',
+                        "stock_quantity" => (int)$equipment['stock_quantity'],
+                        "available_stock" => (int)$equipment['stock_quantity'],
+                        "reserved_stock" => 0,
+                        "rented_stock" => 0,
+                        "price_per_day" => (float)$equipment['price_per_day'],
+                        "condition" => $equipment['condition_item'] ?? 'baik',
+                        "equipment_type" => $equipment['equipment_type'] ?? 'single',
+                        "image_url" => $equipment['image_url'] ?? null,
+                        "created_at" => $equipment['created_at']
+                    ];
+                    
+                    // Format image URL if exists
+                    if ($response['image_url'] && !str_starts_with($response['image_url'], 'http')) {
+                        if (!str_starts_with($response['image_url'], '/')) {
+                            $response['image_url'] = '/PBL - KELANA OUTDOOR/uploads/' . $response['image_url'];
+                        }
+                    }
+                    
+                    echo json_encode($response);
+                } else {
+                    http_response_code(404);
+                    echo json_encode(["error" => true, "message" => "Equipment not found"]);
+                }
             } else {
-                echo json_encode([
-                    "error" => true,
-                    "message" => "Equipment not found"
-                ]);
+                // Get all equipment - ONLY with available stock
+                $stmt = $pdo->prepare("SELECT * FROM equipment WHERE stock_quantity > 0 ORDER BY created_at DESC");
+                $stmt->execute();
+                $equipments = [];
+                
+                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    $item = [
+                        "equipment_id" => (int)$row['equipment_id'],
+                        "name" => $row['name'],
+                        "code" => $row['code'],
+                        "description" => $row['description'] ?? '',
+                        "category" => $row['category'],
+                        "size_capacity" => $row['size_capacity'] ?? '',
+                        "dimensions" => $row['dimensions'] ?? '',
+                        "weight" => $row['weight'] ? (float)$row['weight'] : 0,
+                        "material" => $row['material'] ?? '',
+                        "stock_quantity" => (int)$row['stock_quantity'],
+                        "available_stock" => (int)$row['stock_quantity'],
+                        "reserved_stock" => 0,
+                        "rented_stock" => 0,
+                        "price_per_day" => (float)$row['price_per_day'],
+                        "condition" => $row['condition_item'] ?? 'baik',
+                        "equipment_type" => $row['equipment_type'] ?? 'single',
+                        "image_url" => $row['image_url'] ?? null,
+                        "created_at" => $row['created_at']
+                    ];
+                    
+                    // Format image URL properly
+                    if ($item['image_url'] && !str_starts_with($item['image_url'], 'http')) {
+                        if (!str_starts_with($item['image_url'], '/')) {
+                            $item['image_url'] = '/PBL - KELANA OUTDOOR/uploads/' . $item['image_url'];
+                        }
+                    }
+                    
+                    $equipments[] = $item;
+                }
+                
+                echo json_encode($equipments);
             }
-        } else {
-            // Get all equipment
-            $query = "SELECT * FROM equipment ORDER BY equipment_id ASC";
-            $stmt = $pdo->prepare($query);
-            $stmt->execute();
+            break;
             
-            $equipment_list = [];
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                $equipment_list[] = [
-                    "equipment_id" => (int)$row['equipment_id'],
-                    "name" => $row['name'],
-                    "code" => $row['code'],
-                    "description" => $row['description'],
-                    "category" => $row['category'],
-                    "size_capacity" => $row['size_capacity'],
-                    "dimensions" => $row['dimensions'],
-                    "weight" => $row['weight'] ? (float)$row['weight'] : 0,
-                    "material" => $row['material'],
-                    "stock_quantity" => (int)$row['stock_quantity'],
-                    "available_stock" => (int)$row['stock_quantity'],
-                    "reserved_stock" => 0,
-                    "rented_stock" => 0,
-                    "price_per_day" => (float)$row['price_per_day'],
-                    "condition" => $row['condition_item'],
-                    "equipment_type" => $row['equipment_type'],
-                    "image_url" => $row['image_url'],
-                    "created_at" => $row['created_at']
-                ];
-            }
-            
-            echo json_encode($equipment_list);
-        }
-        
-    } catch(PDOException $e) {
-        echo json_encode([
-            "error" => true,
-            "message" => "Query failed: " . $e->getMessage()
-        ]);
+        default:
+            http_response_code(405);
+            echo json_encode([
+                "error" => true,
+                "message" => "Method $method not allowed for public API - Read only"
+            ]);
     }
-} else {
+    
+} catch (PDOException $e) {
+    http_response_code(500);
     echo json_encode([
         "error" => true,
-        "message" => "Method not allowed"
+        "message" => "Database connection error: " . $e->getMessage()
     ]);
+    error_log("Database error in public equipment API: " . $e->getMessage());
+} catch (Exception $e) {
+    http_response_code(400);
+    echo json_encode([
+        "error" => true,
+        "message" => $e->getMessage()
+    ]);
+    error_log("General error in public equipment API: " . $e->getMessage());
 }
 ?>
