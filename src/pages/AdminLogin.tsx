@@ -310,7 +310,7 @@ import { Lock, User, Shield } from "lucide-react";
 const AdminLogin = () => {
   const [credentials, setCredentials] = useState({
     username: "",
-    password: ""
+    password: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -325,7 +325,7 @@ const AdminLogin = () => {
 
     try {
       // 🔥 CONNECT KE API REAL
-      const response = await fetch('http://localhost/PBL - KELANA OUTDOOR/api/admin/login.php', {
+      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/login.php', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,5 +1,5 @@
 <?php
-// filepath: c:\xampp\htdocs\PBL - KELANA OUTDOOR\api\public\equipment.php
+// filepath: c:\xampp\htdocs\PBL-KELANA-OUTDOOR\api\public\equipment.php
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
@@ -56,7 +56,7 @@ try {
                         "reserved_stock" => 0,
                         "rented_stock" => 0,
                         "price_per_day" => (float)$equipment['price_per_day'],
-                        "condition" => $equipment['condition_item'] ?? 'baik',
+                        "condition" => $equipment['condition'] ?? 'baik', // ✅ FIX 1: Hapus '_item'
                         "equipment_type" => $equipment['equipment_type'] ?? 'single',
                         "image_url" => $equipment['image_url'] ?? null,
                         "created_at" => $equipment['created_at']
@@ -65,11 +65,11 @@ try {
                     // Format image URL if exists
                     if ($response['image_url'] && !str_starts_with($response['image_url'], 'http')) {
                         if (!str_starts_with($response['image_url'], '/')) {
-                            $response['image_url'] = '/PBL - KELANA OUTDOOR/uploads/' . $response['image_url'];
+                            $response['image_url'] = '/PBL-KELANA-OUTDOOR/uploads/' . $response['image_url'];
                         }
                     }
                     
-                    echo json_encode($response);
+                    echo json_encode($response); // ✅ FIX 2: Pindah ke line baru
                 } else {
                     http_response_code(404);
                     echo json_encode(["error" => true, "message" => "Equipment not found"]);
@@ -96,16 +96,16 @@ try {
                         "reserved_stock" => 0,
                         "rented_stock" => 0,
                         "price_per_day" => (float)$row['price_per_day'],
-                        "condition" => $row['condition_item'] ?? 'baik',
+                        "condition" => $row['condition'] ?? 'baik', // ✅ FIX 3: Hapus '_item'
                         "equipment_type" => $row['equipment_type'] ?? 'single',
                         "image_url" => $row['image_url'] ?? null,
                         "created_at" => $row['created_at']
                     ];
                     
-                    // Format image URL properly
+                    // Format image URL if exists  
                     if ($item['image_url'] && !str_starts_with($item['image_url'], 'http')) {
                         if (!str_starts_with($item['image_url'], '/')) {
-                            $item['image_url'] = '/PBL - KELANA OUTDOOR/uploads/' . $item['image_url'];
+                            $item['image_url'] = '/PBL-KELANA-OUTDOOR/uploads/' . $item['image_url'];
                         }
                     }
                     
@@ -132,7 +132,7 @@ try {
     ]);
     error_log("Database error in public equipment API: " . $e->getMessage());
 } catch (Exception $e) {
-    http_response_code(400);
+    http_response_code(500);
     echo json_encode([
         "error" => true,
         "message" => $e->getMessage()

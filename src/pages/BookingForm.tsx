@@ -4826,16 +4826,16 @@ const BookingForm = () => {
     // ✅ PERBAIKAN: Pastikan path yang benar
     if (item.image_url.startsWith('/uploads/')) {
       // Path sudah lengkap dari root, tambahkan base URL
-      return `http://localhost/PBL - KELANA OUTDOOR${item.image_url}`;
+      return `http://localhost/PBL-KELANA-OUTDOOR${item.image_url}`;
     }
     
     if (item.image_url.startsWith('uploads/')) {
       // Path tanpa slash di depan
-      return `http://localhost/PBL - KELANA OUTDOOR/${item.image_url}`;
+      return `http://localhost/PBL-KELANA-OUTDOOR/${item.image_url}`;
     }
     
     // Jika hanya nama file saja
-    return `http://localhost/PBL - KELANA OUTDOOR/uploads/equipment/${item.image_url}`;
+    return `http://localhost/PBL-KELANA-OUTDOOR/uploads/equipment/${item.image_url}`;
   };
 
   // ✅ TAMBAHKAN FUNCTION UNTUK HANDLE IMAGE ERROR
@@ -4934,7 +4934,7 @@ const BookingForm = () => {
       console.log('🔍 Fetching initial equipment from API:', id)
       
       const response = await fetch(
-        `http://localhost/PBL - KELANA OUTDOOR/api/public/equipment.php?id=${id}`
+        `http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php?id=${id}`
       )
       
       if (!response.ok) {

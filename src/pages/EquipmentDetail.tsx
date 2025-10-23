@@ -1383,16 +1383,16 @@ const EquipmentDetail = () => {
     // ✅ PERBAIKAN: Pastikan path yang benar
     if (item.image_url.startsWith('/uploads/')) {
       // Path sudah lengkap dari root, tambahkan base URL
-      return `http://localhost/PBL - KELANA OUTDOOR${item.image_url}`;
+      return `http://localhost/PBL-KELANA-OUTDOOR${item.image_url}`;
     }
     
     if (item.image_url.startsWith('uploads/')) {
       // Path tanpa slash di depan
-      return `http://localhost/PBL - KELANA OUTDOOR/${item.image_url}`;
+      return `http://localhost/PBL-KELANA-OUTDOOR/${item.image_url}`;
     }
     
     // Jika hanya nama file saja
-    return `http://localhost/PBL - KELANA OUTDOOR/uploads/equipment/${item.image_url}`;
+    return `http://localhost/PBL-KELANA-OUTDOOR/uploads/equipment/${item.image_url}`;
   };
 
   // ✅ ENHANCED handleImageError dengan lebih banyak fallback
@@ -1425,7 +1425,7 @@ const EquipmentDetail = () => {
       console.log('🔍 Fetching equipment detail for ID:', equipmentId)
       
       // ✅ FETCH BY ID dari API
-      const response = await fetch(`http://localhost/PBL - KELANA OUTDOOR/api/public/equipment.php?id=${equipmentId}`)
+      const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php?id=${equipmentId}`)
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)

@@ -1600,16 +1600,16 @@ const buildImageUrl = (item: Equipment) => {
   // ✅ PERBAIKAN: Pastikan path yang benar
   if (item.image_url.startsWith('/uploads/')) {
     // Path sudah lengkap dari root, tambahkan base URL
-    return `http://localhost/PBL - KELANA OUTDOOR${item.image_url}`;
+    return `http://localhost/PBL-KELANA-OUTDOOR${item.image_url}`;
   }
   
   if (item.image_url.startsWith('uploads/')) {
     // Path tanpa slash di depan
-    return `http://localhost/PBL - KELANA OUTDOOR/${item.image_url}`;
+    return `http://localhost/PBL-KELANA-OUTDOOR/${item.image_url}`;
   }
   
   // Jika hanya nama file saja
-  return `http://localhost/PBL - KELANA OUTDOOR/uploads/equipment/${item.image_url}`;
+  return `http://localhost/PBL-KELANA-OUTDOOR/uploads/equipment/${item.image_url}`;
 };
 
   // ✅ TAMBAHKAN FUNCTION UNTUK HANDLE IMAGE ERROR
@@ -1624,9 +1624,9 @@ const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>, item: Equip
   
   // Coba beberapa alternatif path
   const alternatives = [
-    `http://localhost/PBL - KELANA OUTDOOR/uploads/${item.image_url}`,
-    `http://localhost/PBL - KELANA OUTDOOR/images/equipment/${item.image_url}`,
-    `http://localhost/PBL - KELANA OUTDOOR/assets/images/${item.image_url}`,
+    `http://localhost/PBL-KELANA-OUTDOOR/uploads/${item.image_url}`,
+    `http://localhost/PBL-KELANA-OUTDOOR/images/equipment/${item.image_url}`,
+    `http://localhost/PBL-KELANA-OUTDOOR/assets/images/${item.image_url}`,
   ];
   
   // Hide failed image and show fallback
@@ -1649,7 +1649,7 @@ const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>, item: Equip
       
       console.log("🔍 Fetching equipment from database...")
       
-      const response = await fetch('http://localhost/PBL - KELANA OUTDOOR/api/public/equipment.php', {
+      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',

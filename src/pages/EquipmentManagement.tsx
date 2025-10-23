@@ -11376,7 +11376,7 @@ const fetchEquipments = async () => {
     setError(null);
     
     // ✅ FIX URL - HAPUS SPASI EKSTRA DAN PASTIKAN KONSISTEN
-    const response = await fetch('http://localhost/PBL - KELANA OUTDOOR/api/admin/equipment.php');
+    const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php');
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -11440,8 +11440,8 @@ const checkCodeAvailability = useCallback(
 
     try {
       const url = excludeId 
-        ? `http://localhost/PBL - KELANA OUTDOOR/api/admin/equipment.php?check_code=${encodeURIComponent(code)}&exclude_id=${excludeId}`
-        : `http://localhost/PBL - KELANA OUTDOOR/api/admin/equipment.php?check_code=${encodeURIComponent(code)}`;
+        ? `http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php?check_code=${encodeURIComponent(code)}&exclude_id=${excludeId}`
+        : `http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php?check_code=${encodeURIComponent(code)}`;
       
       const response = await fetch(url);
       const result = await response.json();
@@ -11567,7 +11567,7 @@ const checkCodeAvailability = useCallback(
       
       // Make upload request
       console.log('🌐 Sending upload request...');
-      const response = await fetch('http://localhost/PBL - KELANA OUTDOOR/api/upload/image.php', {
+      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/upload/image.php', {
         method: 'POST',
         body: uploadFormData
         // Don't set Content-Type header, let browser set it with boundary for FormData
@@ -11740,7 +11740,7 @@ const checkCodeAvailability = useCallback(
       console.log('📤 Final equipment data to send:', equipmentData);
 
       // Send to API
-      const apiUrl = 'http://localhost/PBL - KELANA OUTDOOR/api/admin/equipment.php';
+      const apiUrl = 'http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php';
       let response;
       
       if (editingEquipment) {
@@ -11809,7 +11809,7 @@ const checkCodeAvailability = useCallback(
     try {
       setLoading(true);
       
-      const response = await fetch(`http://localhost/PBL - KELANA OUTDOOR/api/admin/equipment.php?id=${equipment.equipment_id}`, {
+      const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php?id=${equipment.equipment_id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -11913,7 +11913,7 @@ const checkCodeAvailability = useCallback(
     }
     
     // Build full URL with cache busting
-    const baseUrl = 'http://localhost/PBL - KELANA OUTDOOR';
+    const baseUrl = 'http://localhost/PBL-KELANA-OUTDOOR';
     const timestamp = forceRefresh ? `?t=${Date.now()}` : '';
     return `${baseUrl}/${imagePath}${timestamp}`;
   };
@@ -11930,10 +11930,10 @@ const checkCodeAvailability = useCallback(
       // Try alternative URLs with cache busting
       const timestamp = `?t=${Date.now()}`;
       const alternatives = [
-        `http://localhost/PBL - KELANA OUTDOOR${equipment.image_url}${timestamp}`,
+        `http://localhost/PBL-KELANA-OUTDOOR${equipment.image_url}${timestamp}`,
         `http://localhost${equipment.image_url}${timestamp}`,
-        `http://localhost/PBL - KELANA OUTDOOR/uploads/images/${equipment.code.toLowerCase()}.jpg${timestamp}`,
-        `http://localhost/PBL - KELANA OUTDOOR/uploads/images/${equipment.code.toLowerCase()}.png${timestamp}`
+        `http://localhost/PBL-KELANA-OUTDOOR/uploads/images/${equipment.code.toLowerCase()}.jpg${timestamp}`,
+        `http://localhost/PBL-KELANA-OUTDOOR/uploads/images/${equipment.code.toLowerCase()}.png${timestamp}`
       ];
       
       if (alternatives[retryCount]) {
