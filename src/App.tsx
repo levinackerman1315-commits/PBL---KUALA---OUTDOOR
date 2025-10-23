@@ -329,7 +329,7 @@
 //       <Sonner />
 //       <BrowserRouter>
 //         <AuthProvider>
-//           <CartProvider> {/* ✅ WRAP DENGAN CARTPROVIDER */}
+//           <CartProvider> {/* ✅ HARUS ADA DAN TIDAK DI-COMMENT */}
 //             <Routes>
 //               <Route path="/" element={<Index />} />
 //               <Route path="/auth" element={<Auth />} />
@@ -340,8 +340,11 @@
 //               <Route path="/cart" element={<Cart />} />
 //               <Route path="/profile" element={<Profile />} />
 //               <Route path="/bookings" element={<Bookings />} />
+            
+//               {/* ✅ TAMBAHKAN ROUTES INI */}
 //               <Route path="/equipment/:id" element={<EquipmentDetail />} />
 //               <Route path="/booking/form" element={<BookingForm />} />
+            
 //               <Route path="*" element={<NotFound />} />
 //             </Routes>
 //           </CartProvider>
@@ -352,6 +355,7 @@
 // );
 
 // export default App;
+
 
 
 // import { Toaster } from "@/components/ui/toaster";
@@ -473,7 +477,7 @@
 // import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// ✅ CONTEXTS
+// // ✅ CONTEXTS
 // import { AuthProvider } from "./contexts/AuthContext";
 // import { CartProvider } from "./contexts/CartContext";
 
@@ -576,17 +580,125 @@
 // export default App;
 
 
+
+// import { Toaster } from "@/components/ui/toaster";
+// import { Toaster as Sonner } from "@/components/ui/sonner";
+// import { TooltipProvider } from "@/components/ui/tooltip";
+// import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+// import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+// // ✅ CONTEXTS
+// import { AuthProvider } from "./contexts/AuthContext";
+// import { CartProvider } from "./contexts/CartContext";
+
+// // ✅ PUBLIC PAGES
+// import Index from "./pages/Index";
+// import Auth from "./pages/Auth";
+// import Browse from "./pages/Browse";
+// import Profile from "./pages/Profile";
+// import NotFound from "./pages/NotFound";
+// import EquipmentDetail from "./pages/EquipmentDetail";
+// import BookingForm from "./pages/BookingForm";
+// import CartPage from "./pages/CartPage";
+// import Packages from "./pages/Packages";
+// import Trips from "./pages/Trips";
+// import About from "./pages/About";
+
+// // ✅ ADMIN PAGES
+// import AdminLogin from "./pages/AdminLogin";
+// import AdminDashboard from "./pages/AdminDashboard";
+// import BookingManagement from "./pages/BookingManagement";
+// import EquipmentManagement from "./pages/EquipmentManagement";
+// import { ProtectedRoute } from "./components/ProtectedRoute";
+
+// // ✅ TEMPORARY BOOKINGS COMPONENT
+// const Bookings = () => (
+//   <div className="min-h-screen bg-gray-50">
+//     <div className="container mx-auto px-4 py-8">
+//       <h1 className="text-4xl font-bold text-gray-900 mb-4">Riwayat Booking</h1>
+//       <div className="bg-white rounded-lg shadow p-8 text-center">
+//         <p className="text-gray-500">Belum ada riwayat booking</p>
+//         <p className="text-gray-400 text-sm mt-2">Booking pertama Anda akan muncul di sini</p>
+//       </div>
+//     </div>
+//   </div>
+// );
+
+// const queryClient = new QueryClient();
+
+// const App = () => (
+//   <QueryClientProvider client={queryClient}>
+//     <TooltipProvider>
+//       <Toaster />
+//       <Sonner />
+//       <BrowserRouter>
+//         <AuthProvider>
+//           <CartProvider>
+//             <Routes>
+//               {/* ✅ PUBLIC ROUTES */}
+//               <Route path="/" element={<Index />} />
+//               <Route path="/auth" element={<Auth />} />
+//               <Route path="/browse" element={<Browse />} />
+//               <Route path="/packages" element={<Packages />} />
+//               <Route path="/trips" element={<Trips />} />
+//               <Route path="/about" element={<About />} />
+//               <Route path="/cart" element={<CartPage />} />
+//               <Route path="/profile" element={<Profile />} />
+//               <Route path="/bookings" element={<Bookings />} />
+//               <Route path="/equipment/:id" element={<EquipmentDetail />} />
+//               <Route path="/booking/form" element={<BookingForm />} />
+              
+//               {/* ✅ CUSTOMER LOGIN */}
+//               <Route path="/customer/login" element={<Auth />} />
+              
+//               {/* ✅ ADMIN ROUTES - SEMUA DIGABUNG */}
+//               <Route path="/admin/login" element={<AdminLogin />} />
+//               <Route 
+//                 path="/admin/dashboard" 
+//                 element={
+//                   <ProtectedRoute>
+//                     <AdminDashboard />
+//                   </ProtectedRoute>
+//                 } 
+//               />
+//               <Route 
+//                 path="/admin/bookings" 
+//                 element={
+//                   <ProtectedRoute>
+//                     <BookingManagement />
+//                   </ProtectedRoute>
+//                 } 
+//               />
+//               <Route 
+//                 path="/admin/equipment" 
+//                 element={
+//                   <ProtectedRoute>
+//                     <EquipmentManagement />
+//                   </ProtectedRoute>
+//                 } 
+//               />
+              
+//               {/* ✅ 404 PAGE */}
+//               <Route path="*" element={<NotFound />} />
+//             </Routes>
+//           </CartProvider>
+//         </AuthProvider>
+//       </BrowserRouter>
+//     </TooltipProvider>
+//   </QueryClientProvider>
+// );
+
+// export default App;
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// ✅ CONTEXTS
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 
-// ✅ PUBLIC PAGES
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Browse from "./pages/Browse";
@@ -599,14 +711,12 @@ import Packages from "./pages/Packages";
 import Trips from "./pages/Trips";
 import About from "./pages/About";
 
-// ✅ ADMIN PAGES
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import BookingManagement from "./pages/BookingManagement";
 import EquipmentManagement from "./pages/EquipmentManagement";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
-// ✅ TEMPORARY BOOKINGS COMPONENT
 const Bookings = () => (
   <div className="min-h-screen bg-gray-50">
     <div className="container mx-auto px-4 py-8">
@@ -628,9 +738,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <CartProvider>
+          <CartProvider>  {/* ✅ HARUS ADA DAN TIDAK DI-COMMENT */}
             <Routes>
-              {/* ✅ PUBLIC ROUTES */}
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/browse" element={<Browse />} />
@@ -642,11 +751,7 @@ const App = () => (
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/equipment/:id" element={<EquipmentDetail />} />
               <Route path="/booking/form" element={<BookingForm />} />
-              
-              {/* ✅ CUSTOMER LOGIN */}
               <Route path="/customer/login" element={<Auth />} />
-              
-              {/* ✅ ADMIN ROUTES - SEMUA DIGABUNG */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route 
                 path="/admin/dashboard" 
@@ -672,8 +777,6 @@ const App = () => (
                   </ProtectedRoute>
                 } 
               />
-              
-              {/* ✅ 404 PAGE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </CartProvider>

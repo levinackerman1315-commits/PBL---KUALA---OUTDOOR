@@ -581,9 +581,15 @@ const Browse = () => {
       return
     }
     
-    addToCart(item, 1)
-    alert(`✅ ${item.name} berhasil ditambahkan ke keranjang!`)
-  }
+    addToCart({
+    equipmentId: item.equipment_id.toString(),
+    name: item.name,
+    price: item.price_per_day,
+    image: item.image_url
+  })
+  
+  alert(`✅ ${item.name} berhasil ditambahkan ke keranjang!`)
+}
 
   return (
     <div className="min-h-screen bg-gray-50">

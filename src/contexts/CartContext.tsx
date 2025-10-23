@@ -1,134 +1,127 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// ✅ EXPORT INTERFACE
 export interface Equipment {
-  equipment_id: number
-  name: string
-  code: string
-  category: string
-  price_per_day: number
-  stock_quantity: number
-  condition: string
-  image_url?: string | null
-  description?: string
-  size_capacity?: string
-  dimensions?: string
-  weight?: number
-  material?: string
-  available_stock?: number
-  reserved_stock?: number
-  rented_stock?: number
-  equipment_type?: string
-  created_at?: string
+  equipmentId: string;
+  name: string;
+  price: number;
+  image?: string;
 }
 
 export interface CartItem {
-  equipment: Equipment
-  quantity: number
+  equipmentId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
 }
 
-interface CartContextType {
-  cartItems: CartItem[]
-  addToCart: (equipment: Equipment, quantity?: number) => void
-  updateQuantity: (equipmentId: number, quantity: number) => void
-  removeFromCart: (equipmentId: number) => void
-  clearCart: () => void
-  getTotalItems: () => number
-  getCartCount: () => number
-  isInCart: (equipmentId: number) => boolean // ✅ TAMBAH INI
-  getCartItem: (equipmentId: number) => CartItem | undefined // ✅ TAMBAH INI
+export interface CartContextType {
+  cart: CartItem[];
+  addToCart: (equipment: Equipment) => void;
+  removeFromCart: (equipmentId: string) => void;
+  updateQuantity: (equipmentId: string, quantity: number) => void;
+  clearCart: () => void;
+  getCartCount: () => number;
+  isInCart: (equipmentId: string) => boolean;
+  getCartItem: (equipmentId: string) => CartItem | undefined;
+  getTotalPrice: () => number;
 }
 
-const CartContext = createContext<CartContextType | undefined>(undefined)
+const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    // Load from localStorage
-    const saved = localStorage.getItem('cart')
-    return saved ? JSON.parse(saved) : []
-  })
+export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    const savedCart = localStorage.getItem('cart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
 
-  // Save to localStorage whenever cart changes
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems))
-  }, [cartItems])
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }, [cart]);
 
-  const addToCart = (equipment: Equipment, quantity: number = 1) => {
-    setCartItems(prev => {
-      const existing = prev.find(item => item.equipment.equipment_id === equipment.equipment_id)
+  const addToCart = (equipment: Equipment) => {
+    setCart(prevCart => {
+      const existingItem = prevCart.find(item => item.equipmentId === equipment.equipmentId);
       
-      if (existing) {
-        return prev.map(item =>
-          item.equipment.equipment_id === equipment.equipment_id
-            ? { ...item, quantity: Math.min(item.quantity + quantity, equipment.stock_quantity) }
+      if (existingItem) {
+        return prevCart.map(item =>
+          item.equipmentId === equipment.equipmentId
+            ? { ...item, quantity: item.quantity + 1 }
             : item
-        )
+        );
       }
       
-      return [...prev, { equipment, quantity }]
-    })
-  }
+      return [...prevCart, { ...equipment, quantity: 1 }];
+    });
+  };
 
-  const updateQuantity = (equipmentId: number, quantity: number) => {
-    if (quantity < 1) return
+  const removeFromCart = (equipmentId: string) => {
+    setCart(prevCart => prevCart.filter(item => item.equipmentId !== equipmentId));
+  };
+
+  const updateQuantity = (id: string, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      removeFromCart(id);
+      return;
+    }
     
-    setCartItems(prev =>
-      prev.map(item =>
-        item.equipment.equipment_id === equipmentId
-          ? { ...item, quantity: Math.min(quantity, item.equipment.stock_quantity) }
-          : item
-      )
-    )
-  }
-
-  const removeFromCart = (equipmentId: number) => {
-    setCartItems(prev => prev.filter(item => item.equipment.equipment_id !== equipmentId))
-  }
+    setCart(prevCart => prevCart.map(item => 
+      item.equipmentId === id
+        ? { ...item, quantity: newQuantity }
+        : item
+    ));
+  };
 
   const clearCart = () => {
-    setCartItems([])
-  }
+    setCart([]);
+    localStorage.removeItem('cart');
+  };
 
-  const getTotalItems = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0)
-  }
+  const getCartCount = (): number => {
+    return cart.length;
+  };
 
-  // ✅ FUNGSI UNTUK MENDAPATKAN JUMLAH JENIS BARANG (BUKAN TOTAL QUANTITY)
-  const getCartCount = () => {
-    return cartItems.length
-  }
+  const isInCart = (equipmentId: string): boolean => {
+    return cart.some(item => item.equipmentId === equipmentId);
+  };
 
-  // ✅ TAMBAH FUNGSI INI - Cek apakah equipment ada di cart
-  const isInCart = (equipmentId: number): boolean => {
-    return cartItems.some(item => item.equipment.equipment_id === equipmentId)
-  }
+  const getCartItem = (equipmentId: string): CartItem | undefined => {
+    return cart.find(item => item.equipmentId === equipmentId);
+  };
 
-  // ✅ TAMBAH FUNGSI INI - Ambil item dari cart by ID
-  const getCartItem = (equipmentId: number) => {
-    return cartItems.find(item => item.equipment.equipment_id === equipmentId)
-  }
+  const getTotalPrice = (): number => {
+    if (!cart || cart.length === 0) {
+      return 0;
+    }
+    
+    return cart.reduce((total, item) => {
+      const price = typeof item.price === 'number' ? item.price : 0;
+      const quantity = typeof item.quantity === 'number' ? item.quantity : 0;
+      return total + (price * quantity);
+    }, 0);
+  };
 
   return (
     <CartContext.Provider value={{
-      cartItems,
+      cart,
       addToCart,
-      updateQuantity,
       removeFromCart,
+      updateQuantity,
       clearCart,
-      getTotalItems,
       getCartCount,
-      isInCart, // ✅ EXPOSE FUNGSI BARU
-      getCartItem // ✅ EXPOSE FUNGSI BARU
+      isInCart,
+      getCartItem,
+      getTotalPrice
     }}>
       {children}
     </CartContext.Provider>
-  )
-}
+  );
+};
 
 export const useCart = () => {
-  const context = useContext(CartContext)
-  if (!context) {
-    throw new Error('useCart must be used within CartProvider')
+  const context = useContext(CartContext);
+  if (context === undefined) {
+    throw new Error('useCart must be used within a CartProvider');
   }
-  return context
-}
+  return context;
+};

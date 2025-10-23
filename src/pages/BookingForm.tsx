@@ -1383,47 +1383,620 @@
 
 // export default BookingForm
 
+// import { useState, useEffect } from 'react'
+// import { useSearchParams, Link } from 'react-router-dom'
+// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+// import { Button } from '@/components/ui/button'
+// import { Input } from '@/components/ui/input'
+// import { Label } from '@/components/ui/label'
+// import { Textarea } from '@/components/ui/textarea'
+// import { Badge } from '@/components/ui/badge'
+// import { ArrowLeft, MessageCircle, Calendar, Plus, Minus, Trash2 } from 'lucide-react'
+
+// interface Equipment {
+//   equipment_id: number;
+//   name: string;
+//   code: string;
+//   description?: string;
+//   category: string;
+//   size_capacity?: string;
+//   dimensions?: string;
+//   weight?: number;
+//   material?: string;
+//   stock_quantity: number;
+//   available_stock: number;
+//   reserved_stock: number;
+//   rented_stock: number;
+//   price_per_day: number;
+//   condition: string;
+//   equipment_type?: string;
+//   image_url?: string;
+//   created_at: string;
+// }
+
+// interface BookingItem {
+//   equipment: Equipment
+//   quantity: number
+// }
+
+// const BookingForm = () => {
+//   const [searchParams] = useSearchParams()
+  
+//   const [bookingItems, setBookingItems] = useState<BookingItem[]>([])
+//   const [loading, setLoading] = useState(true)
+  
+//   // Form data
+//   const [formData, setFormData] = useState({
+//     name: '',
+//     phone: '',
+//     email: '',
+//     identity_number: '',
+//     start_date: '',
+//     end_date: '',
+//     duration: 1,
+//     notes: ''
+//   })
+
+//   const equipmentId = searchParams.get('equipment_id')
+//   const additionalEquipmentId = searchParams.get('additional_equipment_id')
+
+//   useEffect(() => {
+//     if (equipmentId) {
+//       fetchEquipmentDetail(parseInt(equipmentId))
+//     }
+//   }, [equipmentId])
+
+//   useEffect(() => {
+//     if (additionalEquipmentId && bookingItems.length > 0) {
+//       fetchAndAddAdditionalEquipment(parseInt(additionalEquipmentId))
+//     }
+//   }, [additionalEquipmentId, bookingItems.length])
+
+//   const fetchEquipmentDetail = async (id: number) => {
+//   try {
+//     setLoading(true)
+//     console.log('🔍 Fetching equipment ID:', id) // ✅ DEBUG LOG
+    
+//     const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php?id=${id}`)
+    
+//     console.log('📡 Response status:', response.status) // ✅ DEBUG LOG
+    
+//     if (!response.ok) {
+//       throw new Error(`HTTP error! status: ${response.status}`)
+//     }
+    
+//     const data = await response.json()
+//     console.log('📦 API Response:', data) // ✅ DEBUG LOG
+    
+//     let foundEquipment = null
+    
+//     // ✅ CEK BERBAGAI FORMAT RESPONSE
+//     if (data.status === 'success' && data.data) {
+//       // Format: { status: "success", data: {...} }
+//       foundEquipment = data.data
+//     } else if (data.equipment_id) {
+//       // Format: { equipment_id: 1, name: "...", ... }
+//       foundEquipment = data
+//     } else if (Array.isArray(data)) {
+//       // Format: [{ equipment_id: 1, ... }, ...]
+//       foundEquipment = data.find((item: Equipment) => item.equipment_id === id)
+//     } else if (data.message) {
+//       // Format error: { status: "error", message: "..." }
+//       throw new Error(data.message)
+//     }
+    
+//     if (foundEquipment) {
+//       console.log('✅ Equipment found:', foundEquipment.name)
+//       setBookingItems([{
+//         equipment: foundEquipment,
+//         quantity: 1
+//       }])
+//     } else {
+//       console.error('❌ Equipment tidak ditemukan di response')
+//       throw new Error('Equipment tidak ditemukan')
+//     }
+    
+//   } catch (err) {
+//     console.error('❌ Error fetching equipment:', err)
+    
+//     // ✅ GUNAKAN FALLBACK DATA
+//     console.log('🔄 Using fallback data...')
+    
+//     const fallbackEquipment: Equipment = {
+//       equipment_id: id,
+//       name: "Tenda Dome 4 Orang",
+//       code: "TENDA-001",
+//       description: "Tenda camping untuk 4 orang dengan material waterproof",
+//       category: "tenda",
+//       size_capacity: "4 orang",
+//       dimensions: "300x200x150 cm",
+//       weight: 4.5,
+//       material: "Polyester",
+//       stock_quantity: 5,
+//       available_stock: 5,
+//       reserved_stock: 0,
+//       rented_stock: 0,
+//       price_per_day: 60000,
+//       condition: "baik",
+//       equipment_type: "single",
+//       image_url: null,
+//       created_at: new Date().toISOString()
+//     }
+    
+//     setBookingItems([{
+//       equipment: fallbackEquipment,
+//       quantity: 1
+//     }])
+    
+//     alert('⚠️ Menggunakan data fallback karena API error. Silakan cek console untuk detail.')
+    
+//   } finally {
+//     setLoading(false) // ✅ PENTING! Selalu set loading false
+//     console.log('🏁 Loading finished')
+//   }
+// }
+
+//   const fetchAndAddAdditionalEquipment = async (id: number) => {
+//     try {
+//       const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php?id=${id}`)
+      
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! status: ${response.status}`)
+//       }
+      
+//       const data = await response.json()
+      
+//       let newEquipment = null
+//       if (data.equipment_id) {
+//         newEquipment = data
+//       } else if (Array.isArray(data)) {
+//         newEquipment = data.find(item => item.equipment_id === id)
+//       }
+      
+//       if (newEquipment) {
+//         // Check if equipment already exists
+//         const existingIndex = bookingItems.findIndex(
+//           item => item.equipment.equipment_id === newEquipment.equipment_id
+//         )
+
+//         if (existingIndex >= 0) {
+//           // If exists, increase quantity
+//           setBookingItems(prev => 
+//             prev.map((item, index) => 
+//               index === existingIndex 
+//                 ? { ...item, quantity: Math.min(item.quantity + 1, item.equipment.stock_quantity) }
+//                 : item
+//             )
+//           )
+//           alert(`Quantity ${newEquipment.name} ditambah 1`)
+//         } else {
+//           // If new, add to list
+//           setBookingItems(prev => [...prev, {
+//             equipment: newEquipment,
+//             quantity: 1
+//           }])
+//           alert(`${newEquipment.name} berhasil ditambahkan ke booking`)
+//         }
+
+//         // Clean up URL params
+//         const newSearchParams = new URLSearchParams(searchParams)
+//         newSearchParams.delete('additional_equipment_id')
+//         window.history.replaceState({}, '', `${window.location.pathname}?${newSearchParams}`)
+//       }
+//     } catch (err) {
+//       console.error('Error:', err)
+//       alert('Gagal menambah equipment')
+//     }
+//   }
+
+//   const updateQuantity = (index: number, newQuantity: number) => {
+//     if (newQuantity < 1) return
+    
+//     setBookingItems(prev => 
+//       prev.map((item, i) => 
+//         i === index ? { ...item, quantity: Math.min(newQuantity, item.equipment.stock_quantity) } : item
+//       )
+//     )
+//   }
+
+//   const removeItem = (index: number) => {
+//     setBookingItems(prev => prev.filter((_, i) => i !== index))
+//   }
+
+//   const getExistingEquipmentIds = () => {
+//     return bookingItems.map(item => item.equipment.equipment_id).join(',')
+//   }
+
+//   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+//     const { name, value } = e.target
+//     setFormData(prev => ({
+//       ...prev,
+//       [name]: value
+//     }))
+
+//     // Auto calculate duration when dates change
+//     if (name === 'start_date' || name === 'end_date') {
+//       const start = name === 'start_date' ? new Date(value) : new Date(formData.start_date)
+//       const end = name === 'end_date' ? new Date(value) : new Date(formData.end_date)
+      
+//       if (start && end && end > start) {
+//         const diffTime = Math.abs(end.getTime() - start.getTime())
+//         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+//         setFormData(prev => ({ ...prev, duration: diffDays }))
+//       }
+//     }
+//   }
+
+//   const calculateTotalCost = () => {
+//     return bookingItems.reduce((total, item) => {
+//       return total + (item.equipment.price_per_day * item.quantity * formData.duration)
+//     }, 0)
+//   }
+
+//   const generateWhatsAppMessage = () => {
+//     if (bookingItems.length === 0) return ''
+
+//     const totalCost = calculateTotalCost()
+
+//     const itemsList = bookingItems.map(item => 
+//       `• ${item.equipment.name} (${item.equipment.code}) - ${item.quantity}x - Rp ${(item.equipment.price_per_day * item.quantity).toLocaleString('id-ID')}/hari`
+//     ).join('\n')
+
+//     const message = `
+// ⛰️ *BOOKING KELANA OUTDOOR*
+
+// 👤 *DATA PENYEWA:*
+// • Nama: ${formData.name}
+// • HP: ${formData.phone}
+// • Email: ${formData.email}
+// • No. KTP: ${formData.identity_number}
+
+// 🛍️ *PERALATAN:*
+// ${itemsList}
+
+// 🗓️ *PERIODE SEWA:*
+// • Mulai: ${formData.start_date}
+// • Selesai: ${formData.end_date} 
+// • Durasi: ${formData.duration} hari
+
+// 💰 *ESTIMASI BIAYA TOTAL:*
+// Rp ${totalCost.toLocaleString('id-ID')}
+
+// 📒 *CATATAN:*
+// ${formData.notes || 'Tidak ada catatan khusus'}
+
+// ---
+// Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
+//     `.trim()
+
+//     return encodeURIComponent(message)
+//   }
+
+//   const handleSubmit = (e: React.FormEvent) => {
+//     e.preventDefault()
+
+//     // Validation
+//     if (!formData.name || !formData.phone || !formData.start_date || !formData.end_date) {
+//       alert('Mohon lengkapi semua data yang diperlukan')
+//       return
+//     }
+
+//     if (bookingItems.length === 0) {
+//       alert('Pilih minimal satu peralatan untuk disewa')
+//       return
+//     }
+
+//     if (new Date(formData.end_date) <= new Date(formData.start_date)) {
+//       alert('Tanggal selesai harus setelah tanggal mulai')
+//       return
+//     }
+
+//     // Generate WhatsApp link
+//     const message = generateWhatsAppMessage()
+//     const whatsappNumber = '6281258599058'
+//     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`
+
+//     // Open WhatsApp
+//     window.open(whatsappUrl, '_blank')
+//     alert('Anda akan diarahkan ke WhatsApp untuk konfirmasi booking')
+//   }
+
+//   if (loading) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center">
+//         <div className="text-center">
+//           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+//           <p className="mt-4 text-gray-600">Memuat form booking...</p>
+//         </div>
+//       </div>
+//     )
+//   }
+
+//   if (bookingItems.length === 0) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center">
+//         <div className="text-center">
+//           <p className="text-red-600 text-lg mb-4">Tidak ada equipment yang dipilih</p>
+//           <Link to="/browse">
+//             <Button>Kembali ke Browse</Button>
+//           </Link>
+//         </div>
+//       </div>
+//     )
+//   }
+
+//   return (
+//     <div className="min-h-screen bg-gray-50">
+//       <div className="container mx-auto px-4 py-8">
+//         {/* Back Button */}
+//         <Link to="/browse">
+//           <Button variant="ghost" className="mb-6">
+//             <ArrowLeft className="h-4 w-4 mr-2" />
+//             Kembali ke Browse
+//           </Button>
+//         </Link>
+
+//         <div className="max-w-6xl mx-auto">
+//           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+//             {/* Equipment Summary */}
+//             <Card>
+//               <CardHeader>
+//                 <CardTitle>Peralatan yang Dipilih</CardTitle>
+//               </CardHeader>
+//               <CardContent className="space-y-4">
+//                 {bookingItems.map((item, index) => (
+//                   <div key={index} className="border rounded-lg p-4 space-y-3">
+//                     <div className="flex justify-between items-start">
+//                       <div className="flex-1">
+//                         <h4 className="font-semibold">{item.equipment.name}</h4>
+//                         <div className="flex items-center gap-2 mt-1">
+//                           <Badge variant="secondary" className="text-xs">
+//                             {item.equipment.category.toUpperCase()}
+//                           </Badge>
+//                           <span className="text-xs text-gray-500">{item.equipment.code}</span>
+//                         </div>
+//                         <p className="text-lg font-bold text-green-600 mt-2">
+//                           Rp {item.equipment.price_per_day.toLocaleString('id-ID')}/hari
+//                         </p>
+//                       </div>
+                      
+//                       <Button
+//                         variant="ghost"
+//                         size="sm"
+//                         onClick={() => removeItem(index)}
+//                         className="text-red-500 hover:text-red-700"
+//                       >
+//                         <Trash2 className="h-4 w-4" />
+//                       </Button>
+//                     </div>
+
+//                     {/* Quantity Controls */}
+//                     <div className="flex items-center gap-3">
+//                       <span className="text-sm font-medium">Jumlah:</span>
+//                       <div className="flex items-center gap-2">
+//                         <Button
+//                           variant="outline"
+//                           size="sm"
+//                           onClick={() => updateQuantity(index, item.quantity - 1)}
+//                           disabled={item.quantity <= 1}
+//                         >
+//                           <Minus className="h-3 w-3" />
+//                         </Button>
+                        
+//                         <span className="w-8 text-center font-medium">{item.quantity}</span>
+                        
+//                         <Button
+//                           variant="outline"
+//                           size="sm"
+//                           onClick={() => updateQuantity(index, item.quantity + 1)}
+//                           disabled={item.quantity >= item.equipment.stock_quantity}
+//                         >
+//                           <Plus className="h-3 w-3" />
+//                         </Button>
+//                       </div>
+                      
+//                       <span className="text-xs text-gray-500">
+//                         (Stok: {item.equipment.stock_quantity})
+//                       </span>
+//                     </div>
+
+//                     {formData.duration > 0 && (
+//                       <div className="bg-gray-50 p-3 rounded text-sm">
+//                         <p className="font-medium">
+//                           Subtotal: Rp {(item.equipment.price_per_day * item.quantity * formData.duration).toLocaleString('id-ID')}
+//                         </p>
+//                         <p className="text-gray-600">
+//                           {item.quantity}x untuk {formData.duration} hari
+//                         </p>
+//                       </div>
+//                     )}
+//                   </div>
+//                 ))}
+
+//                 {/* Total Cost */}
+//                 {formData.duration > 0 && (
+//                   <div className="bg-green-50 p-4 rounded-lg border-t-2 border-green-600">
+//                     <p className="font-bold text-green-800 text-lg">Total Estimasi:</p>
+//                     <p className="text-3xl font-bold text-green-600">
+//                       Rp {calculateTotalCost().toLocaleString('id-ID')}
+//                     </p>
+//                     <p className="text-sm text-green-600">untuk {formData.duration} hari</p>
+//                   </div>
+//                 )}
+
+//                 {/* Add More Equipment */}
+//                 <Link to={`/add-equipment-to-booking?from=booking&existing_ids=${getExistingEquipmentIds()}`}>
+//                   <Button variant="outline" className="w-full">
+//                     <Plus className="h-4 w-4 mr-2" />
+//                     Tambah Peralatan Lain
+//                   </Button>
+//                 </Link>
+//               </CardContent>
+//             </Card>
+
+//             {/* Booking Form */}
+//             <Card>
+//               <CardHeader>
+//                 <CardTitle>Form Booking</CardTitle>
+//                 <p className="text-sm text-gray-600">
+//                   Isi data di bawah untuk melanjutkan ke WhatsApp
+//                 </p>
+//               </CardHeader>
+//               <CardContent>
+//                 <form onSubmit={handleSubmit} className="space-y-4">
+//                   {/* Personal Data */}
+//                   <div className="space-y-4">
+//                     <div>
+//                       <Label htmlFor="name">Nama Lengkap *</Label>
+//                       <Input
+//                         id="name"
+//                         name="name"
+//                         type="text"
+//                         required
+//                         value={formData.name}
+//                         onChange={handleInputChange}
+//                         placeholder="Nama sesuai KTP"
+//                       />
+//                     </div>
+
+//                     <div>
+//                       <Label htmlFor="phone">Nomor WhatsApp *</Label>
+//                       <Input
+//                         id="phone"
+//                         name="phone"
+//                         type="tel"
+//                         required
+//                         value={formData.phone}
+//                         onChange={handleInputChange}
+//                         placeholder="08xxxxxxxxxx"
+//                       />
+//                     </div>
+
+//                     <div>
+//                       <Label htmlFor="email">Email</Label>
+//                       <Input
+//                         id="email"
+//                         name="email"
+//                         type="email"
+//                         value={formData.email}
+//                         onChange={handleInputChange}
+//                         placeholder="email@contoh.com"
+//                       />
+//                     </div>
+
+//                     <div>
+//                       <Label htmlFor="identity_number">Nomor KTP</Label>
+//                       <Input
+//                         id="identity_number"
+//                         name="identity_number"
+//                         type="text"
+//                         value={formData.identity_number}
+//                         onChange={handleInputChange}
+//                         placeholder="3201xxxxxxxxxxxxxx"
+//                       />
+//                     </div>
+//                   </div>
+
+//                   {/* Rental Period */}
+//                   <div className="space-y-4 pt-4 border-t">
+//                     <h4 className="font-medium flex items-center gap-2">
+//                       <Calendar className="h-4 w-4" />
+//                       Periode Sewa
+//                     </h4>
+
+//                     <div className="grid grid-cols-2 gap-4">
+//                       <div>
+//                         <Label htmlFor="start_date">Tanggal Mulai *</Label>
+//                         <Input
+//                           id="start_date"
+//                           name="start_date"
+//                           type="date"
+//                           required
+//                           value={formData.start_date}
+//                           onChange={handleInputChange}
+//                           min={new Date().toISOString().split('T')[0]}
+//                         />
+//                       </div>
+
+//                       <div>
+//                         <Label htmlFor="end_date">Tanggal Selesai *</Label>
+//                         <Input
+//                           id="end_date"
+//                           name="end_date"
+//                           type="date"
+//                           required
+//                           value={formData.end_date}
+//                           onChange={handleInputChange}
+//                           min={formData.start_date || new Date().toISOString().split('T')[0]}
+//                         />
+//                       </div>
+//                     </div>
+
+//                     {formData.duration > 0 && (
+//                       <p className="text-sm text-gray-600">
+//                         Durasi: <span className="font-medium">{formData.duration} hari</span>
+//                       </p>
+//                     )}
+//                   </div>
+
+//                   {/* Notes */}
+//                   <div>
+//                     <Label htmlFor="notes">Catatan Tambahan</Label>
+//                     <Textarea
+//                       id="notes"
+//                       name="notes"
+//                       rows={3}
+//                       value={formData.notes}
+//                       onChange={handleInputChange}
+//                       placeholder="Catatan khusus untuk penyewaan ini..."
+//                     />
+//                   </div>
+                  
+//                   <p className="text-xs text-gray-500 text-center">
+//                     Notes, ketika datang ke Kelana - Outdoor jangan lupa membawa kartu identitas (KTP) sebagai syarat dan kebijakan booking
+//                   </p>
+
+//                   {/* Submit Button */}
+//                   <Button
+//                     type="submit"
+//                     className="w-full bg-green-600 hover:bg-green-700 text-lg py-3"
+//                   >
+//                     <MessageCircle className="h-5 w-5 mr-2" />
+//                     Booking Sekarang!
+//                   </Button>
+
+//                   <p className="text-xs text-gray-500 text-center">
+//                     Dengan melanjutkan, Anda akan diarahkan ke WhatsApp untuk konfirmasi booking
+//                   </p>
+//                 </form>
+//               </CardContent>
+//             </Card>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   )
+// }
+
+// export default BookingForm
+
 import { useState, useEffect } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, MessageCircle, Calendar, Plus, Minus, Trash2 } from 'lucide-react'
-
-interface Equipment {
-  equipment_id: number;
-  name: string;
-  code: string;
-  description?: string;
-  category: string;
-  size_capacity?: string;
-  dimensions?: string;
-  weight?: number;
-  material?: string;
-  stock_quantity: number;
-  available_stock: number;
-  reserved_stock: number;
-  rented_stock: number;
-  price_per_day: number;
-  condition: string;
-  equipment_type?: string;
-  image_url?: string;
-  created_at: string;
-}
-
-interface BookingItem {
-  equipment: Equipment
-  quantity: number
-}
+import { ArrowLeft, MessageCircle, Calendar, ShoppingCart } from 'lucide-react'
+import { useCart } from '@/contexts/CartContext'
 
 const BookingForm = () => {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const { cart, getTotalPrice, clearCart } = useCart() // ✅ AMBIL DATA DARI CART CONTEXT
   
-  const [bookingItems, setBookingItems] = useState<BookingItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   
   // Form data
   const [formData, setFormData] = useState({
@@ -1437,155 +2010,19 @@ const BookingForm = () => {
     notes: ''
   })
 
-  const equipmentId = searchParams.get('equipment_id')
-  const additionalEquipmentId = searchParams.get('additional_equipment_id')
-
+  // ✅ CEK APAKAH ADA BARANG DI CART
   useEffect(() => {
-    if (equipmentId) {
-      fetchEquipmentDetail(parseInt(equipmentId))
-    }
-  }, [equipmentId])
-
-  useEffect(() => {
-    if (additionalEquipmentId && bookingItems.length > 0) {
-      fetchAndAddAdditionalEquipment(parseInt(additionalEquipmentId))
-    }
-  }, [additionalEquipmentId, bookingItems.length])
-
-  const fetchEquipmentDetail = async (id: number) => {
-    try {
-      setLoading(true)
-      
-      // ✅ SIMPLE FETCH TANPA equipmentAPI
-      const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php?id=${id}`)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const data = await response.json()
-      
-      let foundEquipment = null
-      if (data.equipment_id) {
-        foundEquipment = data
-      } else if (Array.isArray(data)) {
-        foundEquipment = data.find(item => item.equipment_id === id)
-      }
-      
-      if (foundEquipment) {
-        setBookingItems([{
-          equipment: foundEquipment,
-          quantity: 1
-        }])
-      } else {
-        throw new Error('Equipment tidak ditemukan')
-      }
-      
-    } catch (err) {
-      console.error('Error:', err)
-      
-      // ✅ FALLBACK DATA
-      const fallbackEquipment: Equipment = {
-        equipment_id: id,
-        name: "Tenda Dome 4 Orang (Fallback)",
-        code: "TENDA-001",
-        description: "Data fallback untuk testing",
-        category: "tenda",
-        size_capacity: "4 orang",
-        dimensions: "300x200x150 cm",
-        weight: 4.5,
-        material: "Polyester",
-        stock_quantity: 5,
-        available_stock: 5,
-        reserved_stock: 0,
-        rented_stock: 0,
-        price_per_day: 60000,
-        condition: "baik",
-        equipment_type: "single",
-        image_url: null,
-        created_at: new Date().toISOString()
-      }
-      
-      setBookingItems([{
-        equipment: fallbackEquipment,
-        quantity: 1
-      }])
-      
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchAndAddAdditionalEquipment = async (id: number) => {
-    try {
-      const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php?id=${id}`)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const data = await response.json()
-      
-      let newEquipment = null
-      if (data.equipment_id) {
-        newEquipment = data
-      } else if (Array.isArray(data)) {
-        newEquipment = data.find(item => item.equipment_id === id)
-      }
-      
-      if (newEquipment) {
-        // Check if equipment already exists
-        const existingIndex = bookingItems.findIndex(
-          item => item.equipment.equipment_id === newEquipment.equipment_id
-        )
-
-        if (existingIndex >= 0) {
-          // If exists, increase quantity
-          setBookingItems(prev => 
-            prev.map((item, index) => 
-              index === existingIndex 
-                ? { ...item, quantity: Math.min(item.quantity + 1, item.equipment.stock_quantity) }
-                : item
-            )
-          )
-          alert(`Quantity ${newEquipment.name} ditambah 1`)
-        } else {
-          // If new, add to list
-          setBookingItems(prev => [...prev, {
-            equipment: newEquipment,
-            quantity: 1
-          }])
-          alert(`${newEquipment.name} berhasil ditambahkan ke booking`)
-        }
-
-        // Clean up URL params
-        const newSearchParams = new URLSearchParams(searchParams)
-        newSearchParams.delete('additional_equipment_id')
-        window.history.replaceState({}, '', `${window.location.pathname}?${newSearchParams}`)
-      }
-    } catch (err) {
-      console.error('Error:', err)
-      alert('Gagal menambah equipment')
-    }
-  }
-
-  const updateQuantity = (index: number, newQuantity: number) => {
-    if (newQuantity < 1) return
+    console.log('🛒 Cart items:', cart)
+    console.log('💰 Total price:', getTotalPrice())
     
-    setBookingItems(prev => 
-      prev.map((item, i) => 
-        i === index ? { ...item, quantity: Math.min(newQuantity, item.equipment.stock_quantity) } : item
-      )
-    )
-  }
-
-  const removeItem = (index: number) => {
-    setBookingItems(prev => prev.filter((_, i) => i !== index))
-  }
-
-  const getExistingEquipmentIds = () => {
-    return bookingItems.map(item => item.equipment.equipment_id).join(',')
-  }
+    if (cart.length === 0) {
+      const equipmentId = searchParams.get('equipment_id')
+      if (!equipmentId) {
+        // Jika tidak ada equipment_id dan cart kosong, redirect
+        console.log('⚠️ Cart kosong dan tidak ada equipment_id, redirect ke browse')
+      }
+    }
+  }, [cart])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -1608,18 +2045,18 @@ const BookingForm = () => {
   }
 
   const calculateTotalCost = () => {
-    return bookingItems.reduce((total, item) => {
-      return total + (item.equipment.price_per_day * item.quantity * formData.duration)
+    return cart.reduce((total, item) => {
+      return total + (item.price * item.quantity * formData.duration)
     }, 0)
   }
 
   const generateWhatsAppMessage = () => {
-    if (bookingItems.length === 0) return ''
+    if (cart.length === 0) return ''
 
     const totalCost = calculateTotalCost()
 
-    const itemsList = bookingItems.map(item => 
-      `• ${item.equipment.name} (${item.equipment.code}) - ${item.quantity}x - Rp ${(item.equipment.price_per_day * item.quantity).toLocaleString('id-ID')}/hari`
+    const itemsList = cart.map(item => 
+      `• ${item.name} - ${item.quantity}x - Rp ${(item.price * item.quantity).toLocaleString('id-ID')}/hari`
     ).join('\n')
 
     const message = `
@@ -1661,8 +2098,9 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
       return
     }
 
-    if (bookingItems.length === 0) {
-      alert('Pilih minimal satu peralatan untuk disewa')
+    if (cart.length === 0) {
+      alert('Keranjang belanja kosong! Silakan tambah equipment terlebih dahulu.')
+      navigate('/browse')
       return
     }
 
@@ -1673,32 +2111,33 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
 
     // Generate WhatsApp link
     const message = generateWhatsAppMessage()
-    const whatsappNumber = '6281344492934'
+    const whatsappNumber = '6281345708472'
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`
 
     // Open WhatsApp
     window.open(whatsappUrl, '_blank')
-    alert('Anda akan diarahkan ke WhatsApp untuk konfirmasi booking')
+    
+    // ✅ CLEAR CART SETELAH BOOKING
+    if (confirm('Booking berhasil dikirim ke WhatsApp. Hapus keranjang?')) {
+      clearCart()
+      alert('Keranjang berhasil dikosongkan. Terima kasih!')
+    }
   }
 
-  if (loading) {
+  // ✅ JIKA CART KOSONG
+  if (cart.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Memuat form booking...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (bookingItems.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 text-lg mb-4">Tidak ada equipment yang dipilih</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md mx-auto p-8">
+          <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold mb-2">Keranjang Belanja Kosong</h2>
+          <p className="text-gray-600 mb-6">
+            Silakan tambahkan equipment terlebih dahulu sebelum booking
+          </p>
           <Link to="/browse">
-            <Button>Kembali ke Browse</Button>
+            <Button className="bg-green-600 hover:bg-green-700">
+              Browse Equipment
+            </Button>
           </Link>
         </div>
       </div>
@@ -1709,10 +2148,10 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Back Button */}
-        <Link to="/browse">
+        <Link to="/cart">
           <Button variant="ghost" className="mb-6">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Kembali ke Browse
+            Kembali ke Keranjang
           </Button>
         </Link>
 
@@ -1721,69 +2160,29 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
             {/* Equipment Summary */}
             <Card>
               <CardHeader>
-                <CardTitle>Peralatan yang Dipilih</CardTitle>
+                <CardTitle>Ringkasan Pesanan</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {bookingItems.map((item, index) => (
-                  <div key={index} className="border rounded-lg p-4 space-y-3">
+                {/* ✅ TAMPILKAN SEMUA ITEM DARI CART */}
+                {cart.map((item, index) => (
+                  <div key={item.equipmentId} className="border rounded-lg p-4 space-y-3">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h4 className="font-semibold">{item.equipment.name}</h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="secondary" className="text-xs">
-                            {item.equipment.category.toUpperCase()}
-                          </Badge>
-                          <span className="text-xs text-gray-500">{item.equipment.code}</span>
-                        </div>
+                        <h4 className="font-semibold">{item.name}</h4>
                         <p className="text-lg font-bold text-green-600 mt-2">
-                          Rp {item.equipment.price_per_day.toLocaleString('id-ID')}/hari
+                          Rp {item.price.toLocaleString('id-ID')}/hari
                         </p>
                       </div>
                       
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeItem(index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    {/* Quantity Controls */}
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium">Jumlah:</span>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateQuantity(index, item.quantity - 1)}
-                          disabled={item.quantity <= 1}
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        
-                        <span className="w-8 text-center font-medium">{item.quantity}</span>
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => updateQuantity(index, item.quantity + 1)}
-                          disabled={item.quantity >= item.equipment.stock_quantity}
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      
-                      <span className="text-xs text-gray-500">
-                        (Stok: {item.equipment.stock_quantity})
-                      </span>
+                      <Badge variant="secondary">
+                        {item.quantity}x
+                      </Badge>
                     </div>
 
                     {formData.duration > 0 && (
                       <div className="bg-gray-50 p-3 rounded text-sm">
                         <p className="font-medium">
-                          Subtotal: Rp {(item.equipment.price_per_day * item.quantity * formData.duration).toLocaleString('id-ID')}
+                          Subtotal: Rp {(item.price * item.quantity * formData.duration).toLocaleString('id-ID')}
                         </p>
                         <p className="text-gray-600">
                           {item.quantity}x untuk {formData.duration} hari
@@ -1793,7 +2192,7 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
                   </div>
                 ))}
 
-                {/* Total Cost */}
+                {/* ✅ TOTAL COST */}
                 {formData.duration > 0 && (
                   <div className="bg-green-50 p-4 rounded-lg border-t-2 border-green-600">
                     <p className="font-bold text-green-800 text-lg">Total Estimasi:</p>
@@ -1804,11 +2203,11 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
                   </div>
                 )}
 
-                {/* Add More Equipment */}
-                <Link to={`/add-equipment-to-booking?from=booking&existing_ids=${getExistingEquipmentIds()}`}>
+                {/* ✅ LINK KE CART */}
+                <Link to="/cart">
                   <Button variant="outline" className="w-full">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Tambah Peralatan Lain
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Edit Keranjang
                   </Button>
                 </Link>
               </CardContent>
@@ -1933,13 +2332,14 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
                   </div>
                   
                   <p className="text-xs text-gray-500 text-center">
-                    Notes, ketika datang ke Kelana - Outdoor jangan lupa membawa kartu identitas (KTP) sebagai syarat dan kebijakan booking
+                    Notes: Ketika datang ke Kelana Outdoor jangan lupa membawa kartu identitas (KTP) sebagai syarat dan kebijakan booking
                   </p>
 
                   {/* Submit Button */}
                   <Button
                     type="submit"
                     className="w-full bg-green-600 hover:bg-green-700 text-lg py-3"
+                    disabled={loading}
                   >
                     <MessageCircle className="h-5 w-5 mr-2" />
                     Booking Sekarang!
