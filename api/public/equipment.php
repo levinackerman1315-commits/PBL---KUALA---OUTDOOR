@@ -1,5 +1,4 @@
 <?php
-// filepath: c:\xampp\htdocs\PBL - KELANA OUTDOOR\api\public\equipment.php
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
@@ -24,11 +23,10 @@ $password = "";
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_TIMEOUT, 30);
+    $pdo->setAttribute(PDO::ATTR_PERSISTENT, false);
     
     $method = $_SERVER['REQUEST_METHOD'];
-    
-    // Log request for debugging
-    error_log("Public Equipment API called with method: " . $method);
     
     switch($method) {
         case 'GET':
@@ -56,16 +54,17 @@ try {
                         "reserved_stock" => 0,
                         "rented_stock" => 0,
                         "price_per_day" => (float)$equipment['price_per_day'],
-                        "condition" => $equipment['condition_item'] ?? 'baik',
+                        "condition" => $equipment['condition'] ?? 'baik', // ✅ FIXED: Hapus '_item'
                         "equipment_type" => $equipment['equipment_type'] ?? 'single',
                         "image_url" => $equipment['image_url'] ?? null,
                         "created_at" => $equipment['created_at']
                     ];
                     
-                    // Format image URL if exists
-                    if ($response['image_url'] && !str_starts_with($response['image_url'], 'http')) {
-                        if (!str_starts_with($response['image_url'], '/')) {
-                            $response['image_url'] = '/PBL - KELANA OUTDOOR/uploads/' . $response['image_url'];
+                    // ✅ FIXED: Format image URL properly
+                    if ($response['image_url']) {
+                        if (!str_starts_with($response['image_url'], 'http')) {
+                            $clean_path = ltrim($response['image_url'], '/');
+                            $response['image_url'] = 'http://localhost/PBL-KELANA-OUTDOOR/uploads/equipment/' . basename($clean_path);
                         }
                     }
                     
@@ -75,7 +74,7 @@ try {
                     echo json_encode(["error" => true, "message" => "Equipment not found"]);
                 }
             } else {
-                // Get all equipment - ONLY with available stock
+                // Get all equipment
                 $stmt = $pdo->prepare("SELECT * FROM equipment WHERE stock_quantity > 0 ORDER BY created_at DESC");
                 $stmt->execute();
                 $equipments = [];
@@ -96,16 +95,17 @@ try {
                         "reserved_stock" => 0,
                         "rented_stock" => 0,
                         "price_per_day" => (float)$row['price_per_day'],
-                        "condition" => $row['condition_item'] ?? 'baik',
+                        "condition" => $row['condition'] ?? 'baik', // ✅ FIXED: Hapus '_item'
                         "equipment_type" => $row['equipment_type'] ?? 'single',
                         "image_url" => $row['image_url'] ?? null,
                         "created_at" => $row['created_at']
                     ];
                     
-                    // Format image URL properly
-                    if ($item['image_url'] && !str_starts_with($item['image_url'], 'http')) {
-                        if (!str_starts_with($item['image_url'], '/')) {
-                            $item['image_url'] = '/PBL - KELANA OUTDOOR/uploads/' . $item['image_url'];
+                    // ✅ FIXED: Format image URL properly
+                    if ($item['image_url']) {
+                        if (!str_starts_with($item['image_url'], 'http')) {
+                            $clean_path = ltrim($item['image_url'], '/');
+                            $item['image_url'] = 'http://localhost/PBL-KELANA-OUTDOOR/uploads/equipment/' . basename($clean_path);
                         }
                     }
                     
@@ -130,13 +130,11 @@ try {
         "error" => true,
         "message" => "Database connection error: " . $e->getMessage()
     ]);
-    error_log("Database error in public equipment API: " . $e->getMessage());
 } catch (Exception $e) {
-    http_response_code(400);
+    http_response_code(500);
     echo json_encode([
         "error" => true,
         "message" => $e->getMessage()
     ]);
-    error_log("General error in public equipment API: " . $e->getMessage());
 }
 ?>
