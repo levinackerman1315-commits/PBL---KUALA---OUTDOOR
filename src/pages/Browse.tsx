@@ -2181,7 +2181,7 @@ const Browse = () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch('http://localhost/PBL - KELANA OUTDOOR/api/public/equipment.php', {
+      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',

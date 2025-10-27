@@ -2502,7 +2502,7 @@ const TambahEquipment = () => {
     try {
       setLoading(true)
       
-      const response = await fetch('http://localhost/PBL - KELANA OUTDOOR/api/public/equipment.php')
+      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php')
       
       if (response.ok) {
         const data = await response.json()

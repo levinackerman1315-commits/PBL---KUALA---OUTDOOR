@@ -1867,9 +1867,9 @@ const EquipmentDetail = () => {
   const buildImageUrl = (item: Equipment) => {
     if (!item.image_url) return null
     if (item.image_url.startsWith('http')) return item.image_url
-    if (item.image_url.startsWith('/uploads/')) return `http://localhost/PBL - KELANA OUTDOOR${item.image_url}`
-    if (item.image_url.startsWith('uploads/')) return `http://localhost/PBL - KELANA OUTDOOR/${item.image_url}`
-    return `http://localhost/PBL - KELANA OUTDOOR/uploads/equipment/${item.image_url}`
+    if (item.image_url.startsWith('/uploads/')) return `http://localhost/PBL-KELANA-OUTDOOR${item.image_url}`
+    if (item.image_url.startsWith('uploads/')) return `http://localhost/PBL-KELANA-OUTDOOR/${item.image_url}`
+    return `http://localhost/PBL-KELANA-OUTDOOR/uploads/equipment/${item.image_url}`
   }
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>, item: Equipment) => {

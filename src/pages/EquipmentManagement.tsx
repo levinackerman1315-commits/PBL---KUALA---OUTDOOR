@@ -11376,7 +11376,7 @@ const fetchEquipments = async () => {
     setError(null);
     
     // ✅ FIX URL - HAPUS SPASI EKSTRA DAN PASTIKAN KONSISTEN
-    const response = await fetch('http://localhost/PBL - KELANA OUTDOOR/api/admin/equipment.php');
+    const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php');
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
