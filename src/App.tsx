@@ -609,6 +609,10 @@ import BookingManagement from "./pages/BookingManagement";
 import EquipmentManagement from "./pages/EquipmentManagement";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
+// Open Trip dan Trip Management
+import TripManagement from "./pages/TripManagement";
+import TripForm from "./pages/TripForm";
+
 // ✅ TEMPORARY BOOKINGS COMPONENT
 const Bookings = () => (
   <div className="min-h-screen bg-gray-50">
@@ -649,6 +653,10 @@ const App = () => (
               <Route path="/store" element={<Store />} />
               <Route path="/merchandise" element={<Merchandise />} />
               
+              <Route path="/admin/trips" element={<TripManagement />} />
+              <Route path="/admin/trips/new" element={<TripForm />} />
+              <Route path="/admin/trips/:id/edit" element={<TripForm />} />
+
               {/* ✅ ADMIN ROUTES - SEMUA DIGABUNG */}
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route 

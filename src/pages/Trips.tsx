@@ -28,6 +28,8 @@ export interface TripMock {
   coverImage?: string
   requiredGear: string[]
   rules: string[]
+  // Kata kunci untuk pencarian yang lebih baik
+  searchTags?: string[]
   contact: {
     name: string
     whatsapp: string
@@ -49,6 +51,7 @@ export const MOCK_TRIPS: TripMock[] = [
     difficulty: 'Sedang',
   category: 'Mendaki',
     shortDescription: 'Pendakian gunung tertinggi di Bengkayang dengan pemandangan spektakuler Kalimantan Barat',
+    searchTags: ['gunung', 'mendaki', 'hiking', 'camping', 'summit', 'puncak', 'petualangan', 'alam', 'bengkayang', 'bawang', 'trekking', 'outdoor', 'mountain', 'pendakian', '2 hari'],
     itinerary: [
       'Hari 1: Berkumpul di basecamp, briefing, start pendakian, camping',
       'Hari 2: Summit attack subuh, turun gunung, penutupan'
@@ -103,6 +106,7 @@ export const MOCK_TRIPS: TripMock[] = [
     difficulty: 'Mudah',
   category: 'Wisata',
     shortDescription: 'Wisata alam danau dengan aktivitas camping dan memancing di tengah hutan',
+    searchTags: ['danau', 'lake', 'wisata', 'memancing', 'fishing', 'camping', 'bbq', 'api unggun', 'singkawang', 'riam', 'keluarga', 'santai', 'alam', 'hutan', '1 hari', 'pemula'],
     itinerary: [
       'Pagi: Berkumpul, perjalanan ke lokasi',
       'Siang: Aktivitas memancing dan eksplorasi danau',
@@ -157,6 +161,7 @@ export const MOCK_TRIPS: TripMock[] = [
     difficulty: 'Berat',
   category: 'Petualangan',
     shortDescription: 'Petualangan air terjun dan arung jeram di Riam Merasap yang menantang',
+    searchTags: ['riam', 'air terjun', 'waterfall', 'arung jeram', 'rafting', 'petualangan', 'ekstrem', 'adventure', 'bengkayang', 'merasap', 'sungai', 'river', 'camping', 'adrenalin', '2 hari'],
     itinerary: [
       'Hari 1: Meeting point, perjalanan ke lokasi, camping dan eksplorasi air terjun',
       'Hari 2: Arung jeram, makan siang, kembali ke kota'
@@ -211,6 +216,7 @@ export const MOCK_TRIPS: TripMock[] = [
     difficulty: 'Mudah',
   category: 'Pantai',
     shortDescription: 'Beach camping dan snorkeling di pantai tersembunyi Kalimantan Barat',
+    searchTags: ['pantai', 'beach', 'camping', 'snorkeling', 'laut', 'sea', 'diving', 'kura-kura', 'sunset', 'pasir putih', 'bengkayang', 'keluarga', 'santai', 'pemula', '2 hari', 'berenang'],
     itinerary: [
       'Hari 1: Kumpul siang, perjalanan ke pantai, setup camp, sunset watching',
       'Hari 2: Snorkeling, eksplorasi pantai, pulang sore'
@@ -252,6 +258,241 @@ export const MOCK_TRIPS: TripMock[] = [
       whatsapp: '083456789013',
       role: 'Pemandu Wisata Pantai'
     }
+  },
+  {
+    id: 'gp-005',
+    title: 'Pendakian Gunung Poteng',
+    location: 'Sanggau, Kalimantan Barat',
+    mapUrl: 'https://maps.google.com/?q=Gunung+Poteng+Sanggau',
+    startDate: '2025-11-15',
+    startTime: '05:00',
+    durationDays: 3,
+    remainingQuota: 8,
+    totalQuota: 12,
+    difficulty: 'Berat',
+    category: 'Mendaki',
+    shortDescription: 'Pendakian gunung dengan track menantang dan pemandangan sunrise spektakuler di puncak Kalimantan Barat',
+    searchTags: ['gunung', 'mendaki', 'hiking', 'poteng', 'sanggau', 'summit', 'sunrise', 'puncak', 'camping', 'trekking', 'ekstrem', 'petualangan', 'tantangan', '3 hari', 'mountain'],
+    itinerary: [
+      'Hari 1: Kumpul di basecamp, registrasi, perjalanan ke pos 1, camping',
+      'Hari 2: Lanjut pendakian ke pos 2, eksplorasi area puncak, camping',
+      'Hari 3: Summit attack subuh, enjoy sunrise, turun gunung, penutupan'
+    ],
+    coverImage: 'https://picsum.photos/id/1020/800/600',
+    images: [
+      'https://picsum.photos/id/1050/800/600',
+      'https://picsum.photos/id/1051/800/600',
+      'https://picsum.photos/id/1052/800/600',
+      'https://picsum.photos/id/1053/800/600'
+    ],
+    meetingPoint: {
+      name: 'Kantor Desa Setanduk',
+      address: 'Desa Setanduk, Kec. Bonti, Sanggau',
+      mapUrl: 'https://maps.google.com/?q=Desa+Setanduk+Sanggau'
+    },
+    requiredGear: [
+      'Carrier 50-70L',
+      'Sleeping bag suhu dingin',
+      'Matras tebal',
+      'Tenda 4 season',
+      'Headlamp dengan baterai cadangan',
+      'Raincoat/Ponco',
+      'Pakaian hangat berlapis',
+      'Sepatu gunung high cut',
+      'Trekking pole',
+      'Sarung tangan',
+      'Masker/buff',
+      'Bekal makanan 3 hari',
+      'Kompor portable & gas',
+      'Obat-obatan pribadi'
+    ],
+    rules: [
+      'Wajib medical check-up sebelum pendakian',
+      'Wajib mengikuti briefing dan peraturan guide',
+      'Dilarang membawa minuman beralkohol dan narkoba',
+      'Wajib membawa sampah turun',
+      'Tidak boleh membunyikan musik keras',
+      'Wajib membawa perlengkapan standar gunung',
+      'Mendahulukan keselamatan, guide berhak membatalkan summit jika cuaca buruk'
+    ],
+    contact: {
+      name: 'Pak Agung',
+      whatsapp: '084567890124',
+      role: 'Guide Profesional Gunung Poteng'
+    }
+  },
+  {
+    id: 'ps-006',
+    title: 'Island Hopping Pantai Simping',
+    location: 'Singkawang, Kalimantan Barat',
+    mapUrl: 'https://maps.google.com/?q=Pantai+Simping+Singkawang',
+    startDate: '2025-12-20',
+    startTime: '07:00',
+    durationDays: 1,
+    remainingQuota: 18,
+    totalQuota: 20,
+    difficulty: 'Mudah',
+    category: 'Pantai',
+    shortDescription: 'Jelajahi pulau-pulau cantik di sekitar Pantai Simping dengan perahu, snorkeling, dan wisata kuliner seafood',
+    searchTags: ['pantai', 'beach', 'island hopping', 'pulau', 'snorkeling', 'simping', 'singkawang', 'laut', 'perahu', 'boat', 'seafood', 'kuliner', 'pasir putih', 'keluarga', '1 hari', 'pemula', 'berenang'],
+    itinerary: [
+      'Pagi: Kumpul di pantai, sarapan, berangkat island hopping',
+      'Siang: Snorkeling di spot terbaik, makan siang seafood di pulau',
+      'Sore: Bermain di pantai pasir putih, foto-foto, kembali ke kota'
+    ],
+    coverImage: 'https://picsum.photos/id/1021/800/600',
+    images: [
+      'https://picsum.photos/id/1054/800/600',
+      'https://picsum.photos/id/1055/800/600',
+      'https://picsum.photos/id/1056/800/600',
+      'https://picsum.photos/id/1057/800/600'
+    ],
+    meetingPoint: {
+      name: 'Dermaga Pantai Simping',
+      address: 'Jl. Pantai Simping, Sedau, Singkawang Selatan',
+      mapUrl: 'https://maps.google.com/?q=Pantai+Simping+Singkawang'
+    },
+    requiredGear: [
+      'Pakaian renang',
+      'Pakaian ganti',
+      'Handuk',
+      'Sunscreen SPF 50+',
+      'Topi/Topi pantai',
+      'Kacamata hitam',
+      'Sandal/Sepatu air',
+      'Dry bag (opsional)',
+      'Kamera underwater (opsional)',
+      'Obat-obatan pribadi'
+    ],
+    rules: [
+      'Wajib menggunakan pelampung saat di perahu',
+      'Tidak boleh menginjak karang',
+      'Dilarang mengambil biota laut',
+      'Menjaga kebersihan pantai dan laut',
+      'Mengikuti instruksi guide dan kapten kapal',
+      'Memberitahu kondisi kesehatan sebelum berangkat'
+    ],
+    contact: {
+      name: 'Bang Roni',
+      whatsapp: '085678901235',
+      role: 'Kapten Kapal & Tour Guide Pantai'
+    }
+  },
+  {
+    id: 'dl-007',
+    title: 'Camping & Fishing Danau Lait',
+    location: 'Landak, Kalimantan Barat',
+    mapUrl: 'https://maps.google.com/?q=Danau+Lait+Landak',
+    startDate: '2025-12-10',
+    startTime: '06:00',
+    durationDays: 2,
+    remainingQuota: 10,
+    totalQuota: 15,
+    difficulty: 'Mudah',
+    category: 'Wisata',
+    shortDescription: 'Nikmati ketenangan Danau Lait dengan camping, memancing ikan air tawar, dan menikmati kuliner ikan bakar',
+    searchTags: ['danau', 'lake', 'camping', 'fishing', 'memancing', 'lait', 'landak', 'ikan', 'bbq', 'bakar', 'sunrise', 'wisata', 'santai', 'keluarga', 'alam', 'pemula', '2 hari'],
+    itinerary: [
+      'Hari 1: Berangkat pagi, setup camp di tepi danau, fishing competition, BBQ ikan hasil tangkapan',
+      'Hari 2: Sunrise di danau, sarapan, eksplorasi sekitar danau, packing, pulang'
+    ],
+    coverImage: 'https://picsum.photos/id/1022/800/600',
+    images: [
+      'https://picsum.photos/id/1058/800/600',
+      'https://picsum.photos/id/1059/800/600',
+      'https://picsum.photos/id/1060/800/600',
+      'https://picsum.photos/id/1061/800/600'
+    ],
+    meetingPoint: {
+      name: 'Pasar Ngabang',
+      address: 'Jl. Ahmad Yani, Ngabang, Landak',
+      mapUrl: 'https://maps.google.com/?q=Pasar+Ngabang+Landak'
+    },
+    requiredGear: [
+      'Tenda camping (bisa sewa)',
+      'Sleeping bag',
+      'Matras',
+      'Alat pancing (bisa sewa)',
+      'Pakaian ganti 2 set',
+      'Jaket/Pakaian hangat',
+      'Sendal/Sepatu santai',
+      'Peralatan mandi',
+      'Senter/Headlamp',
+      'Obat-obatan pribadi',
+      'Alat masak portable (opsional)'
+    ],
+    rules: [
+      'Menjaga kebersihan danau',
+      'Dilarang menggunakan bahan peledak untuk memancing',
+      'Tidak membuat keributan',
+      'Mengikuti aturan lokal',
+      'Api unggun hanya di area yang ditentukan',
+      'Membawa pulang sampah masing-masing'
+    ],
+    contact: {
+      name: 'Pak Budi',
+      whatsapp: '086789012346',
+      role: 'Pengelola Wisata Danau Lait'
+    }
+  },
+  {
+    id: 'rb-008',
+    title: 'Canyoning Riam Berasap',
+    location: 'Sintang, Kalimantan Barat',
+    mapUrl: 'https://maps.google.com/?q=Riam+Berasap+Sintang',
+    startDate: '2025-11-28',
+    startTime: '06:30',
+    durationDays: 2,
+    remainingQuota: 6,
+    totalQuota: 10,
+    difficulty: 'Berat',
+    category: 'Petualangan',
+    shortDescription: 'Tantangan canyoning ekstrem di aliran sungai berbatu dengan rappelling air terjun dan body rafting',
+    searchTags: ['canyoning', 'riam', 'air terjun', 'waterfall', 'rappelling', 'berasap', 'sintang', 'ekstrem', 'petualangan', 'adventure', 'rafting', 'sungai', 'tantangan', 'adrenalin', '2 hari'],
+    itinerary: [
+      'Hari 1: Safety briefing, perjalanan ke start point, canyoning dimulai, camping di riverside',
+      'Hari 2: Lanjut canyoning, rappelling air terjun besar, finish point, makan siang, pulang'
+    ],
+    coverImage: 'https://picsum.photos/id/1023/800/600',
+    images: [
+      'https://picsum.photos/id/1062/800/600',
+      'https://picsum.photos/id/1063/800/600',
+      'https://picsum.photos/id/1064/800/600',
+      'https://picsum.photos/id/1065/800/600'
+    ],
+    meetingPoint: {
+      name: 'Base Camp Riam Berasap',
+      address: 'Desa Sei Tebelian, Kec. Sintang, Sintang',
+      mapUrl: 'https://maps.google.com/?q=Riam+Berasap+Sintang'
+    },
+    requiredGear: [
+      'Wetsuit (disediakan)',
+      'Helm canyoning (disediakan)',
+      'Harness & karabiner (disediakan)',
+      'Sepatu canyoning/sepatu gunung yang kuat',
+      'Pakaian cepat kering',
+      'Pakaian ganti 3 set',
+      'Dry bag waterproof',
+      'Sleeping bag',
+      'Matras',
+      'Tenda (disediakan)',
+      'Obat-obatan pribadi',
+      'Energy bar/snack'
+    ],
+    rules: [
+      'WAJIB kondisi fisik prima dan bisa berenang',
+      'Wajib mengikuti safety briefing dan training',
+      'Wajib menggunakan full equipment keselamatan',
+      'Mengikuti instruksi instruktur tanpa kecuali',
+      'Memberitahu riwayat penyakit sebelumnya',
+      'Dilarang melakukan gerakan berbahaya',
+      'Guide berhak membatalkan aktivitas jika kondisi tidak aman'
+    ],
+    contact: {
+      name: 'Bang Eko',
+      whatsapp: '087890123457',
+      role: 'Instruktur Canyoning Bersertifikat'
+    }
   }
 ]
 
@@ -265,7 +506,17 @@ export default function Trips() {
     return MOCK_TRIPS
     .filter(t => categoryFilter === 'All' ? true : t.category === categoryFilter)
     .filter(t => difficultyFilter === 'All' ? true : t.difficulty === difficultyFilter)
-      .filter(t=> t.title.toLowerCase().includes(query.toLowerCase()) || t.location.toLowerCase().includes(query.toLowerCase()))
+      .filter(t=> {
+        if (!query) return true;
+        const searchQuery = query.toLowerCase();
+        // Cari di title, location, description, dan searchTags
+        return (
+          t.title.toLowerCase().includes(searchQuery) || 
+          t.location.toLowerCase().includes(searchQuery) ||
+          t.shortDescription.toLowerCase().includes(searchQuery) ||
+          (t.searchTags && t.searchTags.some(tag => tag.toLowerCase().includes(searchQuery)))
+        );
+      })
   },[query,difficultyFilter,categoryFilter])
 
   // Initialize filters from URL params on mount
