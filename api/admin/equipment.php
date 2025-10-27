@@ -1,6 +1,5 @@
 <?php
 // filepath: c:\xampp\htdocs\PBL - KELANA OUTDOOR\api\admin\equipment.php
-
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
@@ -23,7 +22,6 @@ $username = "root";
 $password = "";
 
 try {
-    // Test database connection first
     $pdo = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
@@ -34,6 +32,30 @@ try {
     
     switch($method) {
         case 'GET':
+            // ✅ CHECK CODE AVAILABILITY
+            if (isset($_GET['check_code'])) {
+                $code = $_GET['check_code'];
+                $excludeId = isset($_GET['exclude_id']) ? (int)$_GET['exclude_id'] : 0;
+                
+                if ($excludeId > 0) {
+                    // Exclude specific ID (for edit mode)
+                    $stmt = $pdo->prepare("SELECT COUNT(*) FROM equipment WHERE code = ? AND equipment_id != ?");
+                    $stmt->execute([$code, $excludeId]);
+                } else {
+                    // Check all records (for add mode)
+                    $stmt = $pdo->prepare("SELECT COUNT(*) FROM equipment WHERE code = ?");
+                    $stmt->execute([$code]);
+                }
+                
+                $count = $stmt->fetchColumn();
+                
+                echo json_encode([
+                    "exists" => $count > 0,
+                    "message" => $count > 0 ? "Kode sudah digunakan" : "Kode tersedia"
+                ]);
+                break;
+            }
+            
             $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
             
             if ($id) {
@@ -43,6 +65,9 @@ try {
                 $equipment = $stmt->fetch(PDO::FETCH_ASSOC);
                 
                 if ($equipment) {
+                    // ✅ DEBUG LOG IMAGE URL
+                    error_log("🔍 Single equipment image_url from DB: " . ($equipment['image_url'] ?? 'NULL'));
+                    
                     echo json_encode([
                         "equipment_id" => (int)$equipment['equipment_id'],
                         "name" => $equipment['name'],
@@ -68,11 +93,17 @@ try {
                     echo json_encode(["error" => true, "message" => "Equipment not found"]);
                 }
             } else {
-                // Get all equipment
+                // Get all equipment with DEBUG LOG
+                error_log("📋 Fetching all equipment from database...");
                 $stmt = $pdo->query("SELECT * FROM equipment ORDER BY created_at DESC");
                 $equipments = [];
                 
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                    // ✅ DEBUG LOG EACH IMAGE URL
+                    if ($row['image_url']) {
+                        error_log("🖼️ Equipment {$row['code']} has image_url: " . $row['image_url']);
+                    }
+                    
                     $equipments[] = [
                         "equipment_id" => (int)$row['equipment_id'],
                         "name" => $row['name'],
@@ -95,6 +126,7 @@ try {
                     ];
                 }
                 
+                error_log("📊 Total equipment found: " . count($equipments));
                 echo json_encode($equipments);
             }
             break;
@@ -112,11 +144,19 @@ try {
                 throw new Exception("Name, code, and category are required");
             }
             
+            // ✅ CHECK CODE UNIQUENESS BEFORE INSERT
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM equipment WHERE code = ?");
+            $stmt->execute([$data['code']]);
+            if ($stmt->fetchColumn() > 0) {
+                throw new Exception("Kode equipment '{$data['code']}' sudah digunakan");
+            }
+            
+            // ✅ INCLUDE IMAGE_URL IN INSERT
             $sql = "INSERT INTO equipment (
                 name, code, description, category, size_capacity, 
                 dimensions, weight, material, stock_quantity, 
-                price_per_day, condition_item, equipment_type, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'single', NOW())";
+                price_per_day, condition_item, equipment_type, image_url, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'single', ?, NOW())";
             
             $stmt = $pdo->prepare($sql);
             $result = $stmt->execute([
@@ -130,14 +170,22 @@ try {
                 $data['material'] ?? '',
                 (int)($data['stock_quantity'] ?? 0),
                 (float)($data['price_per_day'] ?? 0),
-                $data['condition'] ?? 'baik'
+                $data['condition'] ?? 'baik',
+                $data['image_url'] ?? null  // ✅ ADD IMAGE URL
             ]);
             
             if ($result) {
+                $equipment_id = (int)$pdo->lastInsertId();
+                
+                // ✅ LOG IMAGE URL SAVE
+                if (!empty($data['image_url'])) {
+                    error_log("✅ Equipment {$equipment_id} created with image: " . $data['image_url']);
+                }
+                
                 echo json_encode([
                     "success" => true,
                     "message" => "Equipment berhasil ditambahkan",
-                    "equipment_id" => (int)$pdo->lastInsertId()
+                    "equipment_id" => $equipment_id
                 ]);
             } else {
                 throw new Exception("Failed to insert equipment");
@@ -152,10 +200,22 @@ try {
                 throw new Exception("Equipment ID is required for update");
             }
             
+            // ✅ DEBUG LOG RECEIVED DATA
+            error_log("📝 UPDATE Equipment ID: " . $data['equipment_id']);
+            error_log("🖼️ Image URL in update data: " . ($data['image_url'] ?? 'NULL'));
+            
+            // ✅ CHECK CODE UNIQUENESS BEFORE UPDATE (exclude current record)
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM equipment WHERE code = ? AND equipment_id != ?");
+            $stmt->execute([$data['code'], $data['equipment_id']]);
+            if ($stmt->fetchColumn() > 0) {
+                throw new Exception("Kode equipment '{$data['code']}' sudah digunakan");
+            }
+            
+            // ✅ INCLUDE IMAGE_URL IN UPDATE
             $sql = "UPDATE equipment SET 
                 name=?, code=?, description=?, category=?, size_capacity=?, 
                 dimensions=?, weight=?, material=?, stock_quantity=?, 
-                price_per_day=?, condition_item=? 
+                price_per_day=?, condition_item=?, image_url=? 
                 WHERE equipment_id=?";
             
             $stmt = $pdo->prepare($sql);
@@ -171,13 +231,28 @@ try {
                 (int)($data['stock_quantity'] ?? 0),
                 (float)($data['price_per_day'] ?? 0),
                 $data['condition'] ?? 'baik',
+                $data['image_url'] ?? null,  // ✅ UPDATE IMAGE URL
                 (int)$data['equipment_id']
             ]);
             
             if ($result) {
+                // ✅ LOG IMAGE URL UPDATE
+                if (!empty($data['image_url'])) {
+                    error_log("✅ Equipment {$data['equipment_id']} updated with image: " . $data['image_url']);
+                } else {
+                    error_log("⚠️ Equipment {$data['equipment_id']} updated without image URL");
+                }
+                
+                // ✅ VERIFY UPDATE BY FETCHING UPDATED RECORD
+                $verify_stmt = $pdo->prepare("SELECT image_url FROM equipment WHERE equipment_id = ?");
+                $verify_stmt->execute([$data['equipment_id']]);
+                $updated_image_url = $verify_stmt->fetchColumn();
+                error_log("🔍 Verified image_url in DB after update: " . ($updated_image_url ?? 'NULL'));
+                
                 echo json_encode([
                     "success" => true,
-                    "message" => "Equipment berhasil diupdate"
+                    "message" => "Equipment berhasil diupdate",
+                    "image_url" => $updated_image_url  // ✅ RETURN UPDATED IMAGE URL
                 ]);
             } else {
                 throw new Exception("Failed to update equipment");
@@ -191,10 +266,22 @@ try {
                 throw new Exception("Equipment ID is required for deletion");
             }
             
+            // ✅ GET IMAGE URL BEFORE DELETE (for cleanup)
+            $stmt = $pdo->prepare("SELECT image_url FROM equipment WHERE equipment_id = ?");
+            $stmt->execute([$id]);
+            $image_url = $stmt->fetchColumn();
+            
+            // ✅ DELETE EQUIPMENT
             $stmt = $pdo->prepare("DELETE FROM equipment WHERE equipment_id = ?");
             $result = $stmt->execute([$id]);
             
             if ($result) {
+                // ✅ TODO: DELETE IMAGE FILE FROM SERVER IF EXISTS
+                if ($image_url) {
+                    error_log("📝 Equipment deleted with image: " . $image_url);
+                    // You can add image file deletion logic here
+                }
+                
                 echo json_encode([
                     "success" => true,
                     "message" => "Equipment berhasil dihapus"
@@ -214,12 +301,14 @@ try {
     
 } catch (PDOException $e) {
     http_response_code(500);
+    error_log("❌ Database error: " . $e->getMessage());
     echo json_encode([
         "error" => true,
         "message" => "Database error: " . $e->getMessage()
     ]);
 } catch (Exception $e) {
     http_response_code(400);
+    error_log("❌ General error: " . $e->getMessage());
     echo json_encode([
         "error" => true,
         "message" => $e->getMessage()

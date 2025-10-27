@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> c5ef5ea8188626933cbbde49f5b8bf7f117af2c9
 <?php
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");

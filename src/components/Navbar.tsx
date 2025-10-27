@@ -1,35 +1,246 @@
+// import { Link } from "react-router-dom";
+// import { Button } from "@/components/ui/button";
+// import { useAuth } from "@/contexts/AuthContext";
+// import { Mountain, ShoppingCart, User, LogOut, Menu } from "lucide-react";
+// import {
+//   DropdownMenu,
+//   DropdownMenuContent,
+//   DropdownMenuItem,
+//   DropdownMenuTrigger,
+// } from "@/components/ui/dropdown-menu";
+
+// export const Navbar = () => {
+//   const { user, signOut } = useAuth();
+
+//   return (
+//     <nav className="border-b bg-white shadow-sm sticky top-0 z-50">
+//       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+//         {/* Logo */}
+//         <Link to="/" className="flex items-center gap-2 font-bold text-xl text-green-600 hover:text-green-700">
+//           <Mountain className="h-7 w-7" />
+//           Kelana Outdoor
+//         </Link>
+        
+//         {/* Navigation Links - Desktop */}
+//         <div className="hidden md:flex items-center gap-6">
+//           <Link to="/browse">
+//             <Button variant="ghost" className="hover:text-green-600">
+//               Browse Equipment
+//             </Button>
+//           </Link>
+          
+//           <Link to="/packages">
+//             <Button variant="ghost" className="hover:text-green-600">
+//               Rental Packages
+//             </Button>
+//           </Link>
+          
+//           <Link to="/trips">
+//             <Button variant="ghost" className="hover:text-green-600">
+//               Open Trip
+//             </Button>
+//           </Link>
+          
+//           <Link to="/about">
+//             <Button variant="ghost" className="hover:text-green-600">
+//               About Us
+//             </Button>
+//           </Link>
+//         </div>
+        
+//         {/* User Actions */}
+//         <div className="flex items-center gap-3">
+//           {/* Cart Icon (always visible) */}
+//           <Link to="/cart">
+//             <Button variant="outline" size="icon" className="relative">
+//               <ShoppingCart className="h-4 w-4" />
+//               {/* Cart count badge - nanti kita tambahkan */}
+//               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+//                 0
+//               </span>
+//             </Button>
+//           </Link>
+          
+//           {user ? (
+//             /* User is logged in */
+//             <DropdownMenu>
+//               <DropdownMenuTrigger asChild>
+//                 <Button variant="outline" className="flex items-center gap-2">
+//                   <User className="h-4 w-4" />
+//                   <span className="hidden sm:inline">{user.name || 'User'}</span>
+//                 </Button>
+//               </DropdownMenuTrigger>
+//               <DropdownMenuContent align="end" className="w-48">
+//                 <DropdownMenuItem asChild>
+//                   <Link to="/profile" className="cursor-pointer">
+//                     <User className="h-4 w-4 mr-2" />
+//                     Profile Saya
+//                   </Link>
+//                 </DropdownMenuItem>
+//                 <DropdownMenuItem asChild>
+//                   <Link to="/bookings" className="cursor-pointer">
+//                     <ShoppingCart className="h-4 w-4 mr-2" />
+//                     Riwayat Booking
+//                   </Link>
+//                 </DropdownMenuItem>
+//                 <DropdownMenuItem 
+//                   onClick={signOut}
+//                   className="cursor-pointer text-red-600 hover:text-red-700"
+//                 >
+//                   <LogOut className="h-4 w-4 mr-2" />
+//                   Keluar
+//                 </DropdownMenuItem>
+//               </DropdownMenuContent>
+//             </DropdownMenu>
+//           ) : (
+//             /* User not logged in */
+//             <div className="flex gap-2">
+//               <Link to="/auth?mode=login">
+//                 <Button variant="outline">
+//                   Masuk
+//                 </Button>
+//               </Link>
+//               <Link to="/auth?mode=register">
+//                 <Button className="bg-green-600 hover:bg-green-700">
+//                   Daftar
+//                 </Button>
+//               </Link>
+//             </div>
+//           )}
+          
+//           {/* Mobile Menu */}
+//           <div className="md:hidden">
+//             <DropdownMenu>
+//               <DropdownMenuTrigger asChild>
+//                 <Button variant="outline" size="icon">
+//                   <Menu className="h-4 w-4" />
+//                 </Button>
+//               </DropdownMenuTrigger>
+//               <DropdownMenuContent align="end" className="w-48">
+//                 <DropdownMenuItem asChild>
+//                   <Link to="/browse" className="cursor-pointer">Browse Equipment</Link>
+//                 </DropdownMenuItem>
+//                 <DropdownMenuItem asChild>
+//                   <Link to="/packages" className="cursor-pointer">Rental Packages</Link>
+//                 </DropdownMenuItem>
+//                 <DropdownMenuItem asChild>
+//                   <Link to="/trips" className="cursor-pointer">Open Trip</Link>
+//                 </DropdownMenuItem>
+//                 <DropdownMenuItem asChild>
+//                   <Link to="/about" className="cursor-pointer">About Us</Link>
+//                 </DropdownMenuItem>
+//               </DropdownMenuContent>
+//             </DropdownMenu>
+//           </div>
+//         </div>
+//       </div>
+//     </nav>
+//   );
+// };
+
+// import { Link } from "react-router-dom";
+// import { Button } from "@/components/ui/button";
+// import { Mountain, ShoppingCart } from "lucide-react";
+
+// export const Navbar = () => {
+//   return (
+//     <nav className="border-b bg-white shadow-sm sticky top-0 z-50">
+//       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+//         {/* ✅ LOGO SIMPLE */}
+//         <Link to="/" className="flex items-center gap-2 font-bold text-xl text-green-600 hover:text-green-700">
+//           <Mountain className="h-7 w-7" />
+//           Kuala Outdoor
+//         </Link>
+        
+//         {/* ✅ NAVIGATION SIMPLE */}
+//         <div className="hidden md:flex items-center gap-6">
+//           <Link to="/browse">
+//             <Button variant="ghost" className="hover:text-green-600">
+//               Browse Equipment
+//             </Button>
+//           </Link>
+          
+//           <Link to="/packages">
+//             <Button variant="ghost" className="hover:text-green-600">
+//               Paket Rental
+//             </Button>
+//           </Link>
+          
+//           <Link to="/trips">
+//             <Button variant="ghost" className="hover:text-green-600">
+//               Open Trip
+//             </Button>
+//           </Link>
+          
+//           <Link to="/about">
+//             <Button variant="ghost" className="hover:text-green-600">
+//               Tentang Kami
+//             </Button>
+//           </Link>
+//         </div>
+        
+        
+//         {/* ✅ USER ACTIONS SIMPLE */}
+//         <div className="flex items-center gap-3">
+//           {/* Cart Icon */}
+//           <Link to="/cart">
+//             <Button variant="outline" size="icon" className="relative">
+//               <ShoppingCart className="h-4 w-4" />
+//               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+//                 0
+//               </span>
+//             </Button>
+//           </Link>
+          
+//           {/* ✅ SIMPLE AUTH BUTTONS */}
+//           <div className="hidden md:flex gap-2">
+//             <Link to="/auth">
+//               <Button variant="outline">
+//                 Masuk
+//               </Button>
+//             </Link>
+//             <a 
+//               href="https://wa.me/6289692854470"
+//               target="_blank"
+//               rel="noopener noreferrer"
+//             >
+//               <Button className="bg-green-600 hover:bg-green-700">
+//                 WhatsApp
+//               </Button>
+//             </a>
+//           </div>
+          
+//           {/* ✅ MOBILE MENU SIMPLE */}
+//           <div className="md:hidden">
+//             <Link to="/browse">
+//               <Button variant="outline" size="sm">
+//                 Menu
+//               </Button>
+//             </Link>
+//           </div>
+//         </div>
+//       </div>
+//     </nav>
+//   );
+// };
+
+
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useCart } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { Mountain, ShoppingCart, User, LogOut, Settings, Menu, X, Shield } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { Mountain, ShoppingCart, Shield } from "lucide-react";
 
-const Navbar = () => {
-  const { user, signOut } = useAuth();
-  const { getCartCount } = useCart();
-  const cartCount = getCartCount();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+export const Navbar = () => {
   return (
     <nav className="border-b bg-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo */}
+        {/* ✅ LOGO SIMPLE */}
         <Link to="/" className="flex items-center gap-2 font-bold text-xl text-green-600 hover:text-green-700">
           <Mountain className="h-7 w-7" />
-          Kelana Outdoor
+          Kuala Outdoor
         </Link>
         
-        {/* Navigation Links - Desktop */}
+        {/* ✅ NAVIGATION SIMPLE */}
         <div className="hidden md:flex items-center gap-6">
           <Link to="/browse">
             <Button variant="ghost" className="hover:text-green-600">
@@ -54,108 +265,39 @@ const Navbar = () => {
               Tentang Kami
             </Button>
           </Link>
-
-          {/* ✅ MENU ADMIN (MERAH) - SELALU TAMPIL */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                <Shield className="mr-2 h-4 w-4" />
-                Admin
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {user ? (
-                // ✅ Jika Admin Sudah Login
-                <>
-                  <DropdownMenuLabel>Admin Panel</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/dashboard" className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/equipment" className="cursor-pointer">
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      Kelola Equipment
-                    </Link>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/bookings" className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Kelola Booking
-                    </Link>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/customers" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Kelola Customer
-                    </Link>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem onClick={signOut} className="cursor-pointer text-red-600">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout Admin
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                // ✅ Jika Admin Belum Login - ARAHKAN KE /admin/login
-                <>
-                  <DropdownMenuLabel>Admin Login</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/login" className="cursor-pointer">
-                      <Shield className="mr-2 h-4 w-4" />
-                      Login sebagai Admin
-                    </Link>
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          
+          {/* 🆕 ADMIN LINK */}
+          <Link to="/admin/login">
+            <Button 
+              variant="ghost" 
+              className="hover:text-red-600 text-red-500 font-medium"
+              title="Admin Portal"
+            >
+              <Shield className="h-4 w-4 mr-1" />
+              Admin
+            </Button>
+          </Link>
         </div>
         
-        {/* User Actions */}
+        {/* ✅ USER ACTIONS SIMPLE */}
         <div className="flex items-center gap-3">
-          {/* Cart Icon with Realtime Badge */}
+          {/* Cart Icon */}
           <Link to="/cart">
             <Button variant="outline" size="icon" className="relative">
               <ShoppingCart className="h-4 w-4" />
-              {cartCount > 0 && (
-                <Badge 
-                  variant="destructive"
-                  className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                >
-                  {cartCount}
-                </Badge>
-              )}
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                0
+              </span>
             </Button>
           </Link>
           
-          {/* ✅ TOMBOL MASUK (UNTUK CUSTOMER) - ARAHKAN KE /customer/login */}
+          {/* ✅ SIMPLE AUTH BUTTONS */}
           <div className="hidden md:flex gap-2">
-            <Link to="/customer/login">
+            <Link to="/auth">
               <Button variant="outline">
-                <User className="mr-2 h-4 w-4" />
                 Masuk
               </Button>
             </Link>
-            
-            {/* WhatsApp Button */}
             <a 
               href="https://wa.me/6289692854470"
               target="_blank"
@@ -167,145 +309,23 @@ const Navbar = () => {
             </a>
           </div>
           
-          {/* Mobile Menu Button */}
+          {/* ✅ MOBILE MENU DENGAN ADMIN */}
           <div className="md:hidden">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* ✅ MOBILE MENU */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t bg-white">
-          <div className="container mx-auto px-4 py-4 space-y-3">
-            <Link 
-              to="/browse" 
-              className="block py-2 hover:text-green-600"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Browse Equipment
-            </Link>
-            <Link 
-              to="/packages" 
-              className="block py-2 hover:text-green-600"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Paket Rental
-            </Link>
-            <Link 
-              to="/trips" 
-              className="block py-2 hover:text-green-600"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Open Trip
-            </Link>
-            <Link 
-              to="/about" 
-              className="block py-2 hover:text-green-600"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Tentang Kami
-            </Link>
-
-            <div className="border-t pt-3 mt-3">
-              {/* ✅ ADMIN MENU - MOBILE */}
-              <div className="space-y-2 mb-4">
-                <p className="font-semibold text-sm text-red-600 mb-2">Admin</p>
-                {user ? (
-                  <>
-                    <Link 
-                      to="/admin/dashboard" 
-                      className="block py-2 hover:text-green-600"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      📊 Dashboard
-                    </Link>
-                    
-                    <Link 
-                      to="/admin/equipment" 
-                      className="block py-2 hover:text-green-600"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      🎒 Kelola Equipment
-                    </Link>
-                    
-                    <Link 
-                      to="/admin/bookings" 
-                      className="block py-2 hover:text-green-600"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      📋 Kelola Booking
-                    </Link>
-                    
-                    <Link 
-                      to="/admin/customers" 
-                      className="block py-2 hover:text-green-600"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      👥 Kelola Customer
-                    </Link>
-                    
-                    <Link 
-                      to="/profile" 
-                      className="block py-2 hover:text-green-600"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      👤 Profile
-                    </Link>
-                    
-                    <button 
-                      onClick={() => {
-                        signOut();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="block w-full text-left py-2 text-red-600 hover:text-red-700"
-                    >
-                      🚪 Logout Admin
-                    </button>
-                  </>
-                ) : (
-                  // ✅ ARAHKAN KE /admin/login - MOBILE
-                  <Link 
-                    to="/admin/login" 
-                    className="block py-2 text-red-600 hover:text-red-700"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    🔐 Login Admin
-                  </Link>
-                )}
-              </div>
-
-              {/* ✅ CUSTOMER LOGIN - MOBILE - ARAHKAN KE /customer/login */}
-              <div className="space-y-2 border-t pt-3">
-                <Link to="/customer/login" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="outline" className="w-full gap-2">
-                    <User className="h-4 w-4" />
-                    Masuk (Customer)
-                  </Button>
-                </Link>
-                
-                <a 
-                  href="https://wa.me/6289692854470"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button className="w-full bg-green-600 hover:bg-green-700">
-                    WhatsApp
-                  </Button>
-                </a>
-              </div>
+            <div className="flex gap-1">
+              <Link to="/browse">
+                <Button variant="outline" size="sm">
+                  Menu
+                </Button>
+              </Link>
+              <Link to="/admin/login">
+                <Button variant="outline" size="sm" className="text-red-600">
+                  <Shield className="h-3 w-3" />
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </nav>
   );
 };
-
-export default Navbar;

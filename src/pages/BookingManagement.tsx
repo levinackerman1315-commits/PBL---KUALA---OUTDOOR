@@ -123,7 +123,7 @@ useEffect(() => {
     try {
       console.log("🔍 Fetching bookings from API...");
       
-      const response = await fetch('http://localhost/PBL - KELANA OUTDOOR/api/admin/bookings.php');
+      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/bookings.php');
       const data = await response.json();
       
       console.log("✅ Bookings data received:", data);
