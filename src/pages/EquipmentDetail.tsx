@@ -1346,8 +1346,500 @@
 // export default EquipmentDetail
 
 
+// import { useEffect, useState } from 'react'
+// import { useParams, Link } from 'react-router-dom'
+// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+// import { Badge } from '@/components/ui/badge'
+// import { Button } from '@/components/ui/button'
+// import { ArrowLeft, Package, Weight, Ruler, CheckCircle, AlertCircle, ShoppingCart, Image as ImageIcon } from 'lucide-react'
+// import { useCart, Equipment } from '@/contexts/CartContext'
+// import { useParams, Link, useLocation } from 'react-router-dom'
+
+// const EquipmentDetail = () => {
+//   const { id } = useParams<{ id: string }>()
+//   const [equipment, setEquipment] = useState<Equipment | null>(null)
+//   const [loading, setLoading] = useState(true)
+//   const [error, setError] = useState<string | null>(null)
+//   const location = useLocation()
+//   const params = new URLSearchParams(location.search)
+//   const from = params.get('from') // 'cart' atau null
+
+//   // ✅ USE CART CONTEXT
+//   const { addToCart, isInCart, getCartItem, getTotalItems } = useCart()
+
+//   useEffect(() => {
+//     if (id) {
+//       fetchEquipmentDetail(parseInt(id))
+//     }
+//   }, [id])
+
+//   // ✅ PERBAIKI FUNCTION buildImageUrl - PINDAH KE ATAS SEBELUM fetchEquipmentDetail
+//   const buildImageUrl = (item: Equipment) => {
+//     if (!item.image_url) return null;
+    
+//     console.log('🖼️ Original image_url:', item.image_url);
+    
+//     // Jika sudah full URL, return as is
+//     if (item.image_url.startsWith('http')) {
+//       return item.image_url;
+//     }
+    
+//     // ✅ PERBAIKAN: Pastikan path yang benar
+//     if (item.image_url.startsWith('/uploads/')) {
+//       // Path sudah lengkap dari root, tambahkan base URL
+//       return `http://localhost/PBL - KELANA OUTDOOR${item.image_url}`;
+//     }
+    
+//     if (item.image_url.startsWith('uploads/')) {
+//       // Path tanpa slash di depan
+//       return `http://localhost/PBL - KELANA OUTDOOR/${item.image_url}`;
+//     }
+    
+//     // Jika hanya nama file saja
+//     return `http://localhost/PBL - KELANA OUTDOOR/uploads/equipment/${item.image_url}`;
+//   };
+
+//   // ✅ ENHANCED handleImageError dengan lebih banyak fallback
+//   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>, item: Equipment) => {
+//     const img = e.target as HTMLImageElement;
+    
+//     console.log(`❌ Image load error for ${item.code}:`);
+//     console.log(`   Original URL: ${item.image_url}`);
+//     console.log(`   Failed URL: ${img.src}`);
+//     console.log(`   Trying fallback...`);
+    
+//     // Hide failed image and show fallback
+//     img.style.display = 'none';
+//     const fallback = img.nextElementSibling as HTMLElement;
+//     if (fallback && fallback.classList.contains('image-fallback')) {
+//       fallback.style.display = 'flex';
+//     }
+//   };
+
+//   // ✅ TAMBAHKAN FUNCTION UNTUK HANDLE IMAGE LOAD SUCCESS
+//   const handleImageLoad = (item: Equipment) => {
+//     console.log(`✅ Image loaded successfully for ${item.code}`);
+//   };
+
+//   const fetchEquipmentDetail = async (equipmentId: number) => {
+//     try {
+//       setLoading(true)
+//       setError(null)
+      
+//       console.log('🔍 Fetching equipment detail for ID:', equipmentId)
+      
+//       // ✅ FETCH BY ID dari API
+//       const response = await fetch(`http://localhost/PBL - KELANA OUTDOOR/api/public/equipment.php?id=${equipmentId}`)
+      
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! status: ${response.status}`)
+//       }
+      
+//       const text = await response.text()
+//       console.log('📄 Raw response:', text.substring(0, 200))
+      
+//       const data = JSON.parse(text)
+//       console.log('✅ Parsed data:', data)
+      
+//       // ✅ Debug image URL
+//       if (data.image_url) {
+//         console.log('🖼️ Equipment image URL:', data.image_url)
+//         console.log('🖼️ Full image URL will be:', buildImageUrl(data))
+//       }
+      
+//       if (data.error) {
+//         throw new Error(data.message || 'Equipment tidak ditemukan')
+//       }
+
+//       if (data.equipment_id) {
+//         // Single equipment response
+//         setEquipment(data)
+//         console.log('✅ Equipment loaded:', data.name)
+//       } else if (Array.isArray(data)) {
+//         // Array response, find by ID
+//         const foundEquipment = data.find((item: any) => item.equipment_id === equipmentId)
+//         if (foundEquipment) {
+//           setEquipment(foundEquipment)
+//           console.log('✅ Equipment found in array:', foundEquipment.name)
+//         } else {
+//           throw new Error('Equipment tidak ditemukan')
+//         }
+//       } else {
+//         throw new Error('Equipment tidak ditemukan')
+//       }
+      
+//     } catch (err) {
+//       console.error('❌ Error:', err)
+//       setError('Gagal memuat detail equipment')
+      
+//       // ✅ FALLBACK DATA untuk testing
+//       const fallbackEquipment: Equipment = {
+//         equipment_id: parseInt(id || '1'),
+//         name: "Tenda Dome 4 Orang (FALLBACK)",
+//         code: "TENDA-001",
+//         description: "Tenda berkualitas tinggi untuk 4 orang dengan fitur tahan air dan mudah dipasang. Cocok untuk camping keluarga atau petualangan outdoor.",
+//         category: "tenda",
+//         size_capacity: "4 orang",
+//         dimensions: "300x200x150 cm",
+//         weight: 4.5,
+//         material: "Polyester 190T",
+//         stock_quantity: 5,
+//         available_stock: 5,
+//         reserved_stock: 0,
+//         rented_stock: 0,
+//         price_per_day: 60000,
+//         condition: "baik",
+//         equipment_type: "single",
+//         image_url: null,
+//         created_at: new Date().toISOString()
+//       }
+      
+//       setEquipment(fallbackEquipment)
+      
+//     } finally {
+//       setLoading(false)
+//     }
+//   }
+
+//   // ✅ SIMPLIFIED ADD TO CART
+//   const handleAddToCart = () => {
+//     if (!equipment) return
+    
+//     console.log('🛒 Adding equipment to cart:', equipment.name)
+//     addToCart(equipment, 1)
+//     alert(`✅ ${equipment.name} ditambahkan ke keranjang!`)
+//   }
+
+//   if (loading) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center">
+//         <div className="text-center">
+//           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+//           <p className="mt-4 text-gray-600">Memuat detail equipment...</p>
+//         </div>
+//       </div>
+//     )
+//   }
+
+ 
+//   return (
+//     <div className="min-h-screen bg-gray-50">
+//       <div className="container mx-auto px-4 py-8">
+//         {/* Back Button */}
+//         <Link to={from === 'cart' ? '/cart' : '/browse'}>
+//           <Button variant="ghost" className="mb-6">
+//             <ArrowLeft className="h-4 w-4 mr-2" />
+//             {from === 'cart' ? 'Kembali ke Keranjang' : 'Kembali ke Browse'}
+//           </Button>
+//         </Link>
+//         {/* ...existing code... */}
+//       </div>
+//     </div>
+//   )
+// }
+
+//   if (!equipment) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center">
+//         <div className="text-center">
+//           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+//           <p className="text-red-600 text-lg mb-4">Equipment tidak ditemukan</p>
+//           <Link to="/browse">
+//             <Button>Kembali ke Browse</Button>
+//           </Link>
+//         </div>
+//       </div>
+//     )
+//   }
+
+//   const isAvailable = equipment.stock_quantity > 0
+//   const itemInCart = isInCart(equipment.equipment_id)
+//   const cartItem = getCartItem(equipment.equipment_id)
+
+//   return (
+//     <div className="min-h-screen bg-gray-50">
+//       <div className="container mx-auto px-4 py-8">
+//         {/* Back Button */}
+//         <Link to="/browse">
+//           <Button variant="ghost" className="mb-6">
+//             <ArrowLeft className="h-4 w-4 mr-2" />
+//             Kembali ke Browse
+//           </Button>
+//         </Link>
+
+//         {/* Error Warning */}
+//         {error && (
+//           <div className="mb-6 p-4 bg-yellow-100 border border-yellow-300 rounded-lg">
+//             <p className="text-yellow-800 text-sm">
+//               ⚠️ {error} - Menampilkan data fallback untuk testing
+//             </p>
+//           </div>
+//         )}
+
+//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+//           {/* ✅ ENHANCED: Equipment Image Section dengan Perfect Error Handling */}
+//           <div className="space-y-4">
+//             <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden relative">
+//               {equipment.image_url ? (
+//                 <>
+//                   <img 
+//                     key={`detail-img-${equipment.equipment_id}-${Date.now()}`}
+//                     src={buildImageUrl(equipment)}
+//                     alt={equipment.name}
+//                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+//                     onError={(e) => handleImageError(e, equipment)}
+//                     onLoad={() => handleImageLoad(equipment)}
+//                     style={{ display: 'block' }}
+//                   />
+//                   {/* ✅ ENHANCED FALLBACK jika gambar error */}
+//                   <div className="image-fallback absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-red-400 to-red-600">
+//                     <div className="text-center text-white p-6">
+//                       <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-70" />
+//                       <span className="text-4xl font-bold block mb-2">
+//                         {equipment.name.charAt(0)}
+//                       </span>
+//                       <p className="text-sm opacity-70 mb-2">Gambar tidak dapat dimuat</p>
+//                       <p className="text-xs opacity-50">{equipment.code}</p>
+//                       {/* Debug info */}
+//                       <div className="mt-3 text-xs opacity-60 bg-black bg-opacity-20 p-2 rounded max-w-full truncate">
+//                         Original: {equipment.image_url}
+//                       </div>
+//                     </div>
+//                   </div>
+//                 </>
+//               ) : (
+//                 <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+//                   <div className="text-center text-white">
+//                     <span className="text-6xl font-bold block mb-4">
+//                       {equipment.name.charAt(0)}
+//                     </span>
+//                     <p className="text-lg opacity-70">Belum ada gambar</p>
+//                     <p className="text-sm opacity-50 mt-2">{equipment.code}</p>
+//                   </div>
+//                 </div>
+//               )}
+
+//               {/* ✅ Stock Badge */}
+//               <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-bold shadow-lg ${
+//                 equipment.stock_quantity > 5 ? 'bg-green-500 text-white' :
+//                 equipment.stock_quantity > 0 ? 'bg-yellow-500 text-white' :
+//                 'bg-red-500 text-white'
+//               }`}>
+//                 {equipment.stock_quantity > 0 ? `${equipment.stock_quantity} unit` : 'Habis'}
+//               </div>
+
+//               {/* ✅ Condition Badge */}
+//               <div className={`absolute bottom-4 left-4 px-3 py-1 rounded text-sm font-medium ${
+//                 equipment.condition === 'baik' ? 'bg-green-600 text-white' :
+//                 equipment.condition === 'rusak_ringan' ? 'bg-yellow-600 text-white' :
+//                 'bg-red-600 text-white'
+//               }`}>
+//                 {equipment.condition}
+//               </div>
+//             </div>
+
+//             {/* ✅ CART SECTION */}
+//             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+//               <h3 className="font-medium text-blue-800 mb-2">
+//                 🛒 Simpan untuk nanti?
+//               </h3>
+//               <p className="text-sm text-blue-600 mb-3">
+//                 Tambahkan ke keranjang untuk booking multiple items
+//               </p>
+              
+//               {itemInCart ? (
+//                 <div className="space-y-2">
+//                   <p className="text-sm text-green-600 font-medium">
+//                     ✅ Sudah di keranjang ({cartItem?.quantity})
+//                   </p>
+//                   <div className="flex gap-2">
+//                     <Link to="/cart" className="flex-1">
+//                       <Button variant="outline" className="w-full border-blue-600 text-blue-600 hover:bg-blue-50">
+//                         <ShoppingCart className="h-4 w-4 mr-2" />
+//                         Lihat Keranjang
+//                       </Button>
+//                     </Link>
+//                     <Button 
+//                       onClick={handleAddToCart}
+//                       disabled={!isAvailable}
+//                       className="bg-blue-600 hover:bg-blue-700"
+//                       size="sm"
+//                     >
+//                       +1
+//                     </Button>
+//                   </div>
+//                 </div>
+//               ) : (
+//                 <Button 
+//                   onClick={handleAddToCart}
+//                   disabled={!isAvailable}
+//                   variant="outline"
+//                   className="w-full border-blue-600 text-blue-600 hover:bg-blue-100"
+//                 >
+//                   <ShoppingCart className="h-4 w-4 mr-2" />
+//                   Tambah ke Keranjang
+//                 </Button>
+//               )}
+
+//               {/* ✅ Enhanced Image Debug Info */}
+//               {equipment.image_url && (
+//                 <div className="mt-3 p-2 bg-blue-100 rounded text-xs">
+//                   <p className="text-blue-700 font-mono break-all mb-1">
+//                     🖼️ Original: {equipment.image_url}
+//                   </p>
+//                   <p className="text-blue-700 font-mono break-all">
+//                     🔗 Built URL: {buildImageUrl(equipment)}
+//                   </p>
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+
+//           {/* Equipment Details */}
+//           <div className="space-y-6">
+//             <div>
+//               <div className="flex items-center gap-3 mb-2">
+//                 <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+//                   {equipment.category.toUpperCase()}
+//                 </Badge>
+//                 <span className="text-sm text-gray-500">{equipment.code}</span>
+//               </div>
+              
+//               <h1 className="text-3xl font-bold text-gray-900 mb-4">
+//                 {equipment.name}
+//               </h1>
+
+//               {equipment.description && (
+//                 <p className="text-gray-600 text-lg leading-relaxed mb-6">
+//                   {equipment.description}
+//                 </p>
+//               )}
+//             </div>
+
+//             {/* Specifications */}
+//             <Card>
+//               <CardHeader>
+//                 <CardTitle>Spesifikasi</CardTitle>
+//               </CardHeader>
+//               <CardContent className="space-y-4">
+//                 {equipment.size_capacity && (
+//                   <div className="flex items-center gap-3">
+//                     <Package className="h-5 w-5 text-gray-500" />
+//                     <div>
+//                       <p className="font-medium">Kapasitas</p>
+//                       <p className="text-gray-600">{equipment.size_capacity}</p>
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {equipment.dimensions && (
+//                   <div className="flex items-center gap-3">
+//                     <Ruler className="h-5 w-5 text-gray-500" />
+//                     <div>
+//                       <p className="font-medium">Dimensi</p>
+//                       <p className="text-gray-600">{equipment.dimensions}</p>
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {equipment.weight && (
+//                   <div className="flex items-center gap-3">
+//                     <Weight className="h-5 w-5 text-gray-500" />
+//                     <div>
+//                       <p className="font-medium">Berat</p>
+//                       <p className="text-gray-600">{equipment.weight} kg</p>
+//                     </div>
+//                   </div>
+//                 )}
+
+//                 {equipment.material && (
+//                   <div className="flex items-center gap-3">
+//                     <CheckCircle className="h-5 w-5 text-gray-500" />
+//                     <div>
+//                       <p className="font-medium">Material</p>
+//                       <p className="text-gray-600">{equipment.material}</p>
+//                     </div>
+//                   </div>
+//                 )}
+//               </CardContent>
+//             </Card>
+
+//             {/* Price and Availability */}
+//             <Card>
+//               <CardContent className="pt-6">
+//                 <div className="flex justify-between items-center mb-4">
+//                   <div>
+//                     <p className="text-3xl font-bold text-green-600">
+//                       Rp {equipment.price_per_day.toLocaleString('id-ID')}
+//                     </p>
+//                     <p className="text-gray-500">per 24 jam</p>
+//                   </div>
+                  
+//                   <div className="text-right">
+//                     <p className="text-lg font-semibold">
+//                       {isAvailable ? (
+//                         <span className="text-green-600">
+//                           <CheckCircle className="inline h-5 w-5 mr-1" />
+//                           Tersedia ({equipment.stock_quantity})
+//                         </span>
+//                       ) : (
+//                         <span className="text-red-600">
+//                           <AlertCircle className="inline h-5 w-5 mr-1" />
+//                           Stok Habis
+//                         </span>
+//                       )}
+//                     </p>
+//                     <Badge variant={equipment.condition === 'baik' ? 'default' : 'secondary'}>
+//                       Kondisi: {equipment.condition}
+//                     </Badge>
+//                   </div>
+//                 </div>
+
+//                 {/* Rental Action */}
+//                 <Link 
+//                   to={`/booking/form?equipment_id=${equipment.equipment_id}`}
+//                   className="block"
+//                 >
+//                   <Button 
+//                     className="w-full bg-green-600 hover:bg-green-700 text-lg py-3"
+//                     disabled={!isAvailable}
+//                   >
+//                     {isAvailable ? '🎒 Sewa Sekarang' : '❌ Stok Tidak Tersedia'}
+//                   </Button>
+//                 </Link>
+
+//                 <p className="text-sm text-gray-500 text-center mt-3">
+//                   * Sistem sewa dihitung per 24 jam dengan toleransi keterlambatan 12 jam
+//                 </p>
+
+//                 {/* Quick Actions */}
+//                 <div className="flex gap-2 mt-4">
+//                   <Link to="/cart" className="flex-1">
+//                     <Button variant="outline" className="w-full text-sm">
+//                       Lihat Keranjang ({getTotalItems()})
+//                     </Button>
+//                   </Link>
+                  
+//                   <Link to="/browse" className="flex-1">
+//                     <Button variant="outline" className="w-full text-sm">
+//                       Browse Lainnya
+//                     </Button>
+//                   </Link>
+//                 </div>
+//               </CardContent>
+//             </Card>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   )
+// }
+
+// export default EquipmentDetail
+
+
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useLocation } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -1359,116 +1851,60 @@ const EquipmentDetail = () => {
   const [equipment, setEquipment] = useState<Equipment | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const location = useLocation()
+  const params = new URLSearchParams(location.search)
+  const from = params.get('from') // 'cart' atau null
 
-  // ✅ USE CART CONTEXT
   const { addToCart, isInCart, getCartItem, getTotalItems } = useCart()
 
   useEffect(() => {
     if (id) {
       fetchEquipmentDetail(parseInt(id))
     }
+    // eslint-disable-next-line
   }, [id])
 
-  // ✅ PERBAIKI FUNCTION buildImageUrl - PINDAH KE ATAS SEBELUM fetchEquipmentDetail
   const buildImageUrl = (item: Equipment) => {
-    if (!item.image_url) return null;
-    
-    console.log('🖼️ Original image_url:', item.image_url);
-    
-    // Jika sudah full URL, return as is
-    if (item.image_url.startsWith('http')) {
-      return item.image_url;
-    }
-    
-    // ✅ PERBAIKAN: Pastikan path yang benar
-    if (item.image_url.startsWith('/uploads/')) {
-      // Path sudah lengkap dari root, tambahkan base URL
-      return `http://localhost/PBL - KELANA OUTDOOR${item.image_url}`;
-    }
-    
-    if (item.image_url.startsWith('uploads/')) {
-      // Path tanpa slash di depan
-      return `http://localhost/PBL - KELANA OUTDOOR/${item.image_url}`;
-    }
-    
-    // Jika hanya nama file saja
-    return `http://localhost/PBL - KELANA OUTDOOR/uploads/equipment/${item.image_url}`;
-  };
+    if (!item.image_url) return null
+    if (item.image_url.startsWith('http')) return item.image_url
+    if (item.image_url.startsWith('/uploads/')) return `http://localhost/PBL - KELANA OUTDOOR${item.image_url}`
+    if (item.image_url.startsWith('uploads/')) return `http://localhost/PBL - KELANA OUTDOOR/${item.image_url}`
+    return `http://localhost/PBL - KELANA OUTDOOR/uploads/equipment/${item.image_url}`
+  }
 
-  // ✅ ENHANCED handleImageError dengan lebih banyak fallback
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>, item: Equipment) => {
-    const img = e.target as HTMLImageElement;
-    
-    console.log(`❌ Image load error for ${item.code}:`);
-    console.log(`   Original URL: ${item.image_url}`);
-    console.log(`   Failed URL: ${img.src}`);
-    console.log(`   Trying fallback...`);
-    
-    // Hide failed image and show fallback
-    img.style.display = 'none';
-    const fallback = img.nextElementSibling as HTMLElement;
+    const img = e.target as HTMLImageElement
+    img.style.display = 'none'
+    const fallback = img.nextElementSibling as HTMLElement
     if (fallback && fallback.classList.contains('image-fallback')) {
-      fallback.style.display = 'flex';
+      fallback.style.display = 'flex'
     }
-  };
+  }
 
-  // ✅ TAMBAHKAN FUNCTION UNTUK HANDLE IMAGE LOAD SUCCESS
   const handleImageLoad = (item: Equipment) => {
-    console.log(`✅ Image loaded successfully for ${item.code}`);
-  };
+    // Success log (optional)
+  }
 
   const fetchEquipmentDetail = async (equipmentId: number) => {
     try {
       setLoading(true)
       setError(null)
-      
-      console.log('🔍 Fetching equipment detail for ID:', equipmentId)
-      
-      // ✅ FETCH BY ID dari API
       const response = await fetch(`http://localhost/PBL - KELANA OUTDOOR/api/public/equipment.php?id=${equipmentId}`)
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
       const text = await response.text()
-      console.log('📄 Raw response:', text.substring(0, 200))
-      
       const data = JSON.parse(text)
-      console.log('✅ Parsed data:', data)
-      
-      // ✅ Debug image URL
-      if (data.image_url) {
-        console.log('🖼️ Equipment image URL:', data.image_url)
-        console.log('🖼️ Full image URL will be:', buildImageUrl(data))
-      }
-      
-      if (data.error) {
-        throw new Error(data.message || 'Equipment tidak ditemukan')
-      }
-
+      if (data.error) throw new Error(data.message || 'Equipment tidak ditemukan')
       if (data.equipment_id) {
-        // Single equipment response
         setEquipment(data)
-        console.log('✅ Equipment loaded:', data.name)
       } else if (Array.isArray(data)) {
-        // Array response, find by ID
         const foundEquipment = data.find((item: any) => item.equipment_id === equipmentId)
-        if (foundEquipment) {
-          setEquipment(foundEquipment)
-          console.log('✅ Equipment found in array:', foundEquipment.name)
-        } else {
-          throw new Error('Equipment tidak ditemukan')
-        }
+        if (foundEquipment) setEquipment(foundEquipment)
+        else throw new Error('Equipment tidak ditemukan')
       } else {
         throw new Error('Equipment tidak ditemukan')
       }
-      
     } catch (err) {
-      console.error('❌ Error:', err)
       setError('Gagal memuat detail equipment')
-      
-      // ✅ FALLBACK DATA untuk testing
       const fallbackEquipment: Equipment = {
         equipment_id: parseInt(id || '1'),
         name: "Tenda Dome 4 Orang (FALLBACK)",
@@ -1489,19 +1925,14 @@ const EquipmentDetail = () => {
         image_url: null,
         created_at: new Date().toISOString()
       }
-      
       setEquipment(fallbackEquipment)
-      
     } finally {
       setLoading(false)
     }
   }
 
-  // ✅ SIMPLIFIED ADD TO CART
   const handleAddToCart = () => {
     if (!equipment) return
-    
-    console.log('🛒 Adding equipment to cart:', equipment.name)
     addToCart(equipment, 1)
     alert(`✅ ${equipment.name} ditambahkan ke keranjang!`)
   }
@@ -1512,20 +1943,6 @@ const EquipmentDetail = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Memuat detail equipment...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error && !equipment) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 text-lg mb-4">{error || 'Equipment tidak ditemukan'}</p>
-          <Link to="/browse">
-            <Button>Kembali ke Browse</Button>
-          </Link>
         </div>
       </div>
     )
@@ -1553,10 +1970,10 @@ const EquipmentDetail = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Back Button */}
-        <Link to="/browse">
+        <Link to={from === 'cart' ? '/cart' : '/browse'}>
           <Button variant="ghost" className="mb-6">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Kembali ke Browse
+            {from === 'cart' ? 'Kembali ke Keranjang' : 'Kembali ke Browse'}
           </Button>
         </Link>
 
@@ -1570,12 +1987,12 @@ const EquipmentDetail = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* ✅ ENHANCED: Equipment Image Section dengan Perfect Error Handling */}
+          {/* Equipment Image Section */}
           <div className="space-y-4">
             <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden relative">
               {equipment.image_url ? (
                 <>
-                  <img 
+                  <img
                     key={`detail-img-${equipment.equipment_id}-${Date.now()}`}
                     src={buildImageUrl(equipment)}
                     alt={equipment.name}
@@ -1584,7 +2001,6 @@ const EquipmentDetail = () => {
                     onLoad={() => handleImageLoad(equipment)}
                     style={{ display: 'block' }}
                   />
-                  {/* ✅ ENHANCED FALLBACK jika gambar error */}
                   <div className="image-fallback absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-red-400 to-red-600">
                     <div className="text-center text-white p-6">
                       <ImageIcon className="h-16 w-16 mx-auto mb-4 opacity-70" />
@@ -1593,7 +2009,6 @@ const EquipmentDetail = () => {
                       </span>
                       <p className="text-sm opacity-70 mb-2">Gambar tidak dapat dimuat</p>
                       <p className="text-xs opacity-50">{equipment.code}</p>
-                      {/* Debug info */}
                       <div className="mt-3 text-xs opacity-60 bg-black bg-opacity-20 p-2 rounded max-w-full truncate">
                         Original: {equipment.image_url}
                       </div>
@@ -1612,7 +2027,7 @@ const EquipmentDetail = () => {
                 </div>
               )}
 
-              {/* ✅ Stock Badge */}
+              {/* Stock Badge */}
               <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-bold shadow-lg ${
                 equipment.stock_quantity > 5 ? 'bg-green-500 text-white' :
                 equipment.stock_quantity > 0 ? 'bg-yellow-500 text-white' :
@@ -1621,7 +2036,7 @@ const EquipmentDetail = () => {
                 {equipment.stock_quantity > 0 ? `${equipment.stock_quantity} unit` : 'Habis'}
               </div>
 
-              {/* ✅ Condition Badge */}
+              {/* Condition Badge */}
               <div className={`absolute bottom-4 left-4 px-3 py-1 rounded text-sm font-medium ${
                 equipment.condition === 'baik' ? 'bg-green-600 text-white' :
                 equipment.condition === 'rusak_ringan' ? 'bg-yellow-600 text-white' :
@@ -1631,7 +2046,7 @@ const EquipmentDetail = () => {
               </div>
             </div>
 
-            {/* ✅ CART SECTION */}
+            {/* Cart Section */}
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <h3 className="font-medium text-blue-800 mb-2">
                 🛒 Simpan untuk nanti?
@@ -1639,7 +2054,6 @@ const EquipmentDetail = () => {
               <p className="text-sm text-blue-600 mb-3">
                 Tambahkan ke keranjang untuk booking multiple items
               </p>
-              
               {itemInCart ? (
                 <div className="space-y-2">
                   <p className="text-sm text-green-600 font-medium">
@@ -1652,7 +2066,7 @@ const EquipmentDetail = () => {
                         Lihat Keranjang
                       </Button>
                     </Link>
-                    <Button 
+                    <Button
                       onClick={handleAddToCart}
                       disabled={!isAvailable}
                       className="bg-blue-600 hover:bg-blue-700"
@@ -1663,7 +2077,7 @@ const EquipmentDetail = () => {
                   </div>
                 </div>
               ) : (
-                <Button 
+                <Button
                   onClick={handleAddToCart}
                   disabled={!isAvailable}
                   variant="outline"
@@ -1673,8 +2087,6 @@ const EquipmentDetail = () => {
                   Tambah ke Keranjang
                 </Button>
               )}
-
-              {/* ✅ Enhanced Image Debug Info */}
               {equipment.image_url && (
                 <div className="mt-3 p-2 bg-blue-100 rounded text-xs">
                   <p className="text-blue-700 font-mono break-all mb-1">
@@ -1697,11 +2109,9 @@ const EquipmentDetail = () => {
                 </Badge>
                 <span className="text-sm text-gray-500">{equipment.code}</span>
               </div>
-              
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
                 {equipment.name}
               </h1>
-
               {equipment.description && (
                 <p className="text-gray-600 text-lg leading-relaxed mb-6">
                   {equipment.description}
@@ -1724,7 +2134,6 @@ const EquipmentDetail = () => {
                     </div>
                   </div>
                 )}
-
                 {equipment.dimensions && (
                   <div className="flex items-center gap-3">
                     <Ruler className="h-5 w-5 text-gray-500" />
@@ -1734,7 +2143,6 @@ const EquipmentDetail = () => {
                     </div>
                   </div>
                 )}
-
                 {equipment.weight && (
                   <div className="flex items-center gap-3">
                     <Weight className="h-5 w-5 text-gray-500" />
@@ -1744,7 +2152,6 @@ const EquipmentDetail = () => {
                     </div>
                   </div>
                 )}
-
                 {equipment.material && (
                   <div className="flex items-center gap-3">
                     <CheckCircle className="h-5 w-5 text-gray-500" />
@@ -1767,7 +2174,6 @@ const EquipmentDetail = () => {
                     </p>
                     <p className="text-gray-500">per 24 jam</p>
                   </div>
-                  
                   <div className="text-right">
                     <p className="text-lg font-semibold">
                       {isAvailable ? (
@@ -1787,32 +2193,26 @@ const EquipmentDetail = () => {
                     </Badge>
                   </div>
                 </div>
-
-                {/* Rental Action */}
-                <Link 
+                <Link
                   to={`/booking/form?equipment_id=${equipment.equipment_id}`}
                   className="block"
                 >
-                  <Button 
+                  <Button
                     className="w-full bg-green-600 hover:bg-green-700 text-lg py-3"
                     disabled={!isAvailable}
                   >
                     {isAvailable ? '🎒 Sewa Sekarang' : '❌ Stok Tidak Tersedia'}
                   </Button>
                 </Link>
-
                 <p className="text-sm text-gray-500 text-center mt-3">
                   * Sistem sewa dihitung per 24 jam dengan toleransi keterlambatan 12 jam
                 </p>
-
-                {/* Quick Actions */}
                 <div className="flex gap-2 mt-4">
                   <Link to="/cart" className="flex-1">
                     <Button variant="outline" className="w-full text-sm">
                       Lihat Keranjang ({getTotalItems()})
                     </Button>
                   </Link>
-                  
                   <Link to="/browse" className="flex-1">
                     <Button variant="outline" className="w-full text-sm">
                       Browse Lainnya
