@@ -2833,12 +2833,604 @@
 // }
 
 // export default EquipmentDetailV2
+// import { useState, useEffect } from 'react'
+// import { useParams, useNavigate } from 'react-router-dom'
+// import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+// import { Badge } from '@/components/ui/badge'
+// import { Button } from '@/components/ui/button'
+// import { Footer } from '@/components/Footer'
+// import { useAuth } from '@/contexts/AuthContext'
+// import { 
+//   ArrowLeft, Package, Weight, Ruler, CheckCircle, AlertCircle, 
+//   ShoppingCart, Star, BookOpen, Shield,
+//   ChevronLeft, ChevronRight, ImageIcon, Loader2
+// } from 'lucide-react'
+
+// interface EquipmentImage {
+//   image_id: number;
+//   image_url: string;
+//   is_primary: boolean;
+//   display_order: number;
+// }
+
+// interface Equipment {
+//   equipment_id: number;
+//   name: string;
+//   code: string;
+//   description?: string;
+//   category: string;
+//   size_capacity?: string;
+//   dimensions?: string;
+//   weight?: number;
+//   material?: string;
+//   stock_quantity: number;
+//   available_stock: number;
+//   price_per_day: number;
+//   condition: string;
+//   images?: EquipmentImage[];
+//   primary_image?: string;
+//   rating?: number;
+//   total_reviews?: number;
+//   total_rentals?: number;
+// }
+
+// const EquipmentDetailV2 = () => {
+//   const { id } = useParams<{ id: string }>();
+//   const navigate = useNavigate();
+//   const { user } = useAuth(); // ✅ PERBAIKAN: Gunakan user dari AuthContext
+  
+//   const [activeTab, setActiveTab] = useState('detail')
+//   const [quantity, setQuantity] = useState(1)
+//   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  
+//   const [equipment, setEquipment] = useState<Equipment | null>(null)
+//   const [loading, setLoading] = useState(true)
+//   const [error, setError] = useState<string | null>(null)
+
+//   // Mock data untuk reviews, guide, terms
+//   const reviews = [
+//     { id: 1, user: "Budi Santoso", rating: 5, date: "2 minggu lalu", comment: "Tenda sangat bagus! Waterproof beneran." },
+//     { id: 2, user: "Siti Nurhaliza", rating: 5, date: "1 bulan lalu", comment: "Recommended banget! Ownernya baik." },
+//   ]
+
+//   const usageGuide = [
+//     { step: 1, title: "Persiapan Area", description: "Pilih area datar, bersihkan dari batu/duri." },
+//     { step: 2, title: "Pasang Rangka", description: "Masukkan tiang ke lubang pojok, pasang diagonal." },
+//     { step: 3, title: "Pasang Flysheet", description: "Tutup dengan flysheet, kencangkan tali." },
+//     { step: 4, title: "Fiksasi", description: "Pasang pasak di setiap titik pengait." },
+//   ]
+
+//   const terms = [
+//     {
+//       title: "Ketentuan Peminjaman",
+//       items: ["Peminjaman minimal 1 hari (24 jam)", "Booking minimal H-1", "Pengambilan sesuai jadwal"]
+//     },
+//     {
+//       title: "Ketentuan Pengembalian",
+//       items: ["Barang dikembalikan bersih", "Toleransi keterlambatan 12 jam", "Kerusakan dikenakan biaya"]
+//     }
+//   ]
+
+//   useEffect(() => {
+//     if (id) {
+//       fetchEquipmentDetail(parseInt(id))
+//     }
+//   }, [id])
+
+//   const fetchEquipmentDetail = async (equipmentId: number) => {
+//     try {
+//       setLoading(true)
+//       setError(null)
+      
+//       const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php?id=${equipmentId}`)
+      
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! status: ${response.status}`)
+//       }
+      
+//       const data = await response.json()
+      
+//       if (data.error) {
+//         throw new Error(data.message || 'Equipment tidak ditemukan')
+//       }
+
+//       if (data.equipment_id) {
+//         setEquipment(data)
+//       } else if (Array.isArray(data)) {
+//         const foundEquipment = data.find((item: any) => item.equipment_id === equipmentId)
+//         if (foundEquipment) {
+//           setEquipment(foundEquipment)
+//         } else {
+//           throw new Error('Equipment tidak ditemukan')
+//         }
+//       } else {
+//         throw new Error('Equipment tidak ditemukan')
+//       }
+      
+//     } catch (err: any) {
+//       console.error('❌ Error:', err)
+//       setError('Gagal memuat detail equipment')
+      
+//       const fallbackEquipment: Equipment = {
+//         equipment_id: parseInt(id || '1'),
+//         name: "Tenda Kema",
+//         code: "TENDA-003",
+//         description: "kaka kak",
+//         category: "tenda",
+//         size_capacity: "6",
+//         dimensions: "300x200x100",
+//         weight: 9,
+//         material: "nmmm",
+//         stock_quantity: 7,
+//         available_stock: 7,
+//         price_per_day: 50000,
+//         condition: "Baik",
+//         images: [],
+//         rating: 4.8,
+//         total_reviews: 127,
+//         total_rentals: 450
+//       }
+      
+//       setEquipment(fallbackEquipment)
+//     } finally {
+//       setLoading(false)
+//     }
+//   }
+
+//   // ✅ HANYA INI YANG DIUBAH - Tambah login check
+//   const handleAddToCart = () => {
+//     if (!equipment) return
+
+//     // ✅ CEK LOGIN DULU
+//     if (!user) {
+//       const confirmLogin = window.confirm(
+//         '🔒 Anda harus login terlebih dahulu untuk menambahkan item ke keranjang.\n\n' +
+//         'Klik OK untuk login sekarang.'
+//       )
+      
+//       if (confirmLogin) {
+//         sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
+//         navigate('/login')
+//       }
+//       return
+//     }
+
+//     // ✅ Jika sudah login, lanjutkan add to cart
+//     alert(`✅ ${equipment.name} (${quantity}x) ditambahkan ke keranjang!\n💰 Rp ${(equipment.price_per_day * quantity).toLocaleString('id-ID')}/hari`)
+//   }
+
+//   const renderStars = (rating: number) => {
+//     return (
+//       <div className="flex items-center gap-1">
+//         {[1, 2, 3, 4, 5].map((star) => (
+//           <Star
+//             key={star}
+//             className={`h-4 w-4 ${
+//               star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+//             }`}
+//           />
+//         ))}
+//       </div>
+//     )
+//   }
+
+//   if (loading) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center bg-gray-50">
+//         <div className="text-center">
+//           <Loader2 className="h-12 w-12 animate-spin text-green-600 mx-auto mb-4" />
+//           <p className="text-gray-600">Memuat detail equipment...</p>
+//         </div>
+//       </div>
+//     )
+//   }
+
+//   if (!equipment) {
+//     return (
+//       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+//         <Card className="max-w-md w-full">
+//           <CardContent className="p-6 text-center">
+//             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+//             <h3 className="text-lg font-semibold mb-2">Equipment Tidak Ditemukan</h3>
+//             <p className="text-gray-600 mb-4">{error || 'Data tidak tersedia'}</p>
+//             <Button 
+//               onClick={() => navigate('/browse')}
+//               className="bg-green-600 hover:bg-green-700"
+//             >
+//               <ArrowLeft className="h-4 w-4 mr-2" />
+//               Kembali ke Browse
+//             </Button>
+//           </CardContent>
+//         </Card>
+//       </div>
+//     )
+//   }
+
+//   const displayImages = equipment.images && equipment.images.length > 0 
+//     ? equipment.images.sort((a, b) => a.display_order - b.display_order)
+//     : []
+  
+//   const hasImages = displayImages.length > 0
+//   const currentImage = hasImages ? displayImages[currentImageIndex] : null
+
+//   return (
+//     <div className="min-h-screen bg-gray-50 flex flex-col">
+//       <div className="flex-1">
+//         <div className="container mx-auto px-4 py-8 max-w-7xl">
+//           {/* Breadcrumb */}
+//           <div className="mb-6 flex items-center gap-2 text-sm text-gray-600">
+//             <button 
+//               onClick={() => navigate('/browse')}
+//               className="hover:text-green-600 flex items-center gap-1"
+//             >
+//               <ArrowLeft className="h-4 w-4" />
+//               Browse
+//             </button>
+//             <span>/</span>
+//             <span className="capitalize">{equipment.category}</span>
+//             <span>/</span>
+//             <span className="text-gray-900 font-medium truncate max-w-md">{equipment.name}</span>
+//           </div>
+
+//           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+//             {/* LEFT - Image Gallery */}
+//             <div className="lg:col-span-4">
+//               <div className="sticky top-4 space-y-4">
+//                 <div className="relative bg-white rounded-xl overflow-hidden shadow-sm">
+//                   <div className="aspect-square bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center relative">
+//                     {hasImages && currentImage ? (
+//                       <img
+//                         src={currentImage.image_url}
+//                         alt={equipment.name}
+//                         className="w-full h-full object-cover"
+//                       />
+//                     ) : (
+//                       <div className="text-center text-white">
+//                         <span className="text-8xl font-bold block mb-4">
+//                           {equipment.name.charAt(0)}
+//                         </span>
+//                         <p className="text-xl opacity-70">Preview Image</p>
+//                         <p className="text-sm opacity-50 mt-2">{equipment.code}</p>
+//                       </div>
+//                     )}
+                    
+//                     <div className="absolute top-4 right-4 flex flex-col gap-2">
+//                       <Badge className="bg-green-500 text-white font-bold shadow-lg">
+//                         {equipment.stock_quantity} Unit
+//                       </Badge>
+//                       <Badge className="bg-blue-500 text-white capitalize shadow-lg">
+//                         {equipment.condition}
+//                       </Badge>
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 {/* Quick Stats */}
+//                 <div className="grid grid-cols-3 gap-2">
+//                   <Card className="text-center">
+//                     <CardContent className="pt-4 pb-4">
+//                       <Star className="h-5 w-5 mx-auto mb-1 text-yellow-400 fill-yellow-400" />
+//                       <div className="text-xl font-bold">{equipment.rating || 4.8}</div>
+//                       <div className="text-xs text-gray-500">{equipment.total_reviews || 127} Reviews</div>
+//                     </CardContent>
+//                   </Card>
+//                   <Card className="text-center">
+//                     <CardContent className="pt-4 pb-4">
+//                       <CheckCircle className="h-5 w-5 mx-auto mb-1 text-green-500" />
+//                       <div className="text-xl font-bold">{equipment.total_rentals || 450}</div>
+//                       <div className="text-xs text-gray-500">Kali Disewa</div>
+//                     </CardContent>
+//                   </Card>
+//                   <Card className="text-center">
+//                     <CardContent className="pt-4 pb-4">
+//                       <Package className="h-5 w-5 mx-auto mb-1 text-blue-500" />
+//                       <div className="text-xl font-bold">{equipment.stock_quantity}</div>
+//                       <div className="text-xs text-gray-500">Stok Ready</div>
+//                     </CardContent>
+//                   </Card>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* CENTER - Detail Content with Tabs */}
+//             <div className="lg:col-span-5">
+//               <Card>
+//                 <CardHeader className="border-b pb-4">
+//                   <div className="flex items-start justify-between gap-4 mb-4">
+//                     <div className="flex-1">
+//                       <Badge variant="secondary" className="bg-blue-100 text-blue-800 mb-2">
+//                         {equipment.category.toUpperCase()}
+//                       </Badge>
+//                       <h1 className="text-2xl font-bold text-gray-900 mb-1">
+//                         {equipment.name}
+//                       </h1>
+//                       <p className="text-sm text-gray-500">{equipment.code}</p>
+//                     </div>
+//                   </div>
+
+//                   {/* Tab Navigation */}
+//                   <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
+//                     {[
+//                       { id: 'detail', label: 'Detail Produk', icon: Package },
+//                       { id: 'reviews', label: 'Reviews', icon: Star },
+//                       { id: 'guide', label: 'Cara Pakai', icon: BookOpen },
+//                       { id: 'terms', label: 'Perjanjian', icon: Shield }
+//                     ].map((tab) => {
+//                       const Icon = tab.icon
+//                       return (
+//                         <button
+//                           key={tab.id}
+//                           onClick={() => setActiveTab(tab.id)}
+//                           className={`flex items-center gap-2 px-4 py-2 rounded-lg transition whitespace-nowrap text-sm font-medium ${
+//                             activeTab === tab.id
+//                               ? 'bg-green-600 text-white'
+//                               : 'hover:bg-gray-100 text-gray-600'
+//                           }`}
+//                         >
+//                           <Icon className="h-4 w-4" />
+//                           {tab.label}
+//                         </button>
+//                       )
+//                     })}
+//                   </div>
+//                 </CardHeader>
+
+//                 <CardContent className="pt-6 max-h-[600px] overflow-y-auto">
+//                   {/* Detail Tab */}
+//                   {activeTab === 'detail' && (
+//                     <div className="space-y-6">
+//                       <div>
+//                         <p className="text-gray-600 leading-relaxed">
+//                           {equipment.description}
+//                         </p>
+//                       </div>
+
+//                       <div>
+//                         <h3 className="font-semibold text-lg mb-4">Spesifikasi Teknis</h3>
+//                         <div className="grid grid-cols-2 gap-4">
+//                           {equipment.size_capacity && (
+//                             <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+//                               <Package className="h-5 w-5 text-gray-500 mt-0.5" />
+//                               <div>
+//                                 <p className="font-medium text-sm">Kapasitas</p>
+//                                 <p className="text-gray-600 text-sm">{equipment.size_capacity}</p>
+//                               </div>
+//                             </div>
+//                           )}
+//                           {equipment.dimensions && (
+//                             <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+//                               <Ruler className="h-5 w-5 text-gray-500 mt-0.5" />
+//                               <div>
+//                                 <p className="font-medium text-sm">Dimensi</p>
+//                                 <p className="text-gray-600 text-sm">{equipment.dimensions}</p>
+//                               </div>
+//                             </div>
+//                           )}
+//                           {equipment.weight && (
+//                             <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+//                               <Weight className="h-5 w-5 text-gray-500 mt-0.5" />
+//                               <div>
+//                                 <p className="font-medium text-sm">Berat</p>
+//                                 <p className="text-gray-600 text-sm">{equipment.weight} kg</p>
+//                               </div>
+//                             </div>
+//                           )}
+//                           {equipment.material && (
+//                             <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+//                               <CheckCircle className="h-5 w-5 text-gray-500 mt-0.5" />
+//                               <div>
+//                                 <p className="font-medium text-sm">Material</p>
+//                                 <p className="text-gray-600 text-sm">{equipment.material}</p>
+//                               </div>
+//                             </div>
+//                           )}
+//                         </div>
+//                       </div>
+
+//                       <div className="border-t pt-6">
+//                         <h3 className="font-semibold text-base mb-3">Yang Termasuk dalam Sewa:</h3>
+//                         <ul className="space-y-2">
+//                           <li className="flex items-center gap-2 text-gray-600 text-sm">
+//                             <CheckCircle className="h-4 w-4 text-green-500" />
+//                             1x Tenda lengkap dengan rangka
+//                           </li>
+//                           <li className="flex items-center gap-2 text-gray-600 text-sm">
+//                             <CheckCircle className="h-4 w-4 text-green-500" />
+//                             Pasak dan tali-tali pengencang
+//                           </li>
+//                           <li className="flex items-center gap-2 text-gray-600 text-sm">
+//                             <CheckCircle className="h-4 w-4 text-green-500" />
+//                             Tas carrier
+//                           </li>
+//                         </ul>
+//                       </div>
+//                     </div>
+//                   )}
+
+//                   {/* Reviews Tab */}
+//                   {activeTab === 'reviews' && (
+//                     <div className="space-y-6">
+//                       <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg">
+//                         <div className="flex items-center gap-6">
+//                           <div className="text-center">
+//                             <div className="text-5xl font-bold text-gray-900">{equipment.rating || 4.8}</div>
+//                             <div className="flex justify-center mt-2">
+//                               {renderStars(5)}
+//                             </div>
+//                             <p className="text-sm text-gray-600 mt-1">{equipment.total_reviews || 127} reviews</p>
+//                           </div>
+//                         </div>
+//                       </div>
+
+//                       <div className="space-y-4">
+//                         {reviews.map((review) => (
+//                           <Card key={review.id}>
+//                             <CardContent className="pt-6">
+//                               <div className="flex items-start justify-between mb-3">
+//                                 <div>
+//                                   <p className="font-semibold">{review.user}</p>
+//                                   <p className="text-sm text-gray-500">{review.date}</p>
+//                                 </div>
+//                                 {renderStars(review.rating)}
+//                               </div>
+//                               <p className="text-gray-600 text-sm">{review.comment}</p>
+//                             </CardContent>
+//                           </Card>
+//                         ))}
+//                       </div>
+//                     </div>
+//                   )}
+
+//                   {/* Usage Guide Tab */}
+//                   {activeTab === 'guide' && (
+//                     <div className="space-y-6">
+//                       {usageGuide.map((step) => (
+//                         <div key={step.step} className="flex gap-4">
+//                           <div className="flex-shrink-0 w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold">
+//                             {step.step}
+//                           </div>
+//                           <div className="flex-1">
+//                             <h4 className="font-semibold text-base mb-2">{step.title}</h4>
+//                             <p className="text-gray-600 text-sm">{step.description}</p>
+//                           </div>
+//                         </div>
+//                       ))}
+//                     </div>
+//                   )}
+
+//                   {/* Terms Tab */}
+//                   {activeTab === 'terms' && (
+//                     <div className="space-y-6">
+//                       {terms.map((section, idx) => (
+//                         <div key={idx}>
+//                           <h3 className="font-semibold text-base mb-3">{section.title}</h3>
+//                           <ul className="space-y-2">
+//                             {section.items.map((item, itemIdx) => (
+//                               <li key={itemIdx} className="flex items-start gap-2 text-gray-600 text-sm">
+//                                 <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+//                                 <span>{item}</span>
+//                               </li>
+//                             ))}
+//                           </ul>
+//                         </div>
+//                       ))}
+//                     </div>
+//                   )}
+//                 </CardContent>
+//               </Card>
+//             </div>
+
+//             {/* RIGHT - Cart Sidebar */}
+//             <div className="lg:col-span-3">
+//               <Card className="sticky top-4">
+//                 <CardHeader className="pb-4">
+//                   <CardTitle className="text-lg">Atur Jumlah</CardTitle>
+//                 </CardHeader>
+//                 <CardContent className="space-y-4">
+//                   <div className="text-center pb-4 border-b">
+//                     <div className="text-3xl font-bold text-green-600">
+//                       Rp {equipment.price_per_day.toLocaleString('id-ID')}
+//                     </div>
+//                     <p className="text-sm text-gray-500">per 24 jam</p>
+//                   </div>
+
+//                   <div className="bg-green-50 p-3 rounded-lg text-center">
+//                     <p className="text-sm font-medium text-green-900">
+//                       Stok: <span className="font-bold">{equipment.stock_quantity} unit</span>
+//                     </p>
+//                   </div>
+
+//                   <div>
+//                     <label className="text-sm font-medium mb-2 block">Jumlah</label>
+//                     <div className="flex items-center gap-3">
+//                       <button
+//                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
+//                         className="w-10 h-10 border-2 rounded-lg hover:bg-gray-100"
+//                       >
+//                         -
+//                       </button>
+//                       <input
+//                         type="number"
+//                         value={quantity}
+//                         onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+//                         className="flex-1 text-center border-2 rounded-lg py-2"
+//                         min="1"
+//                       />
+//                       <button
+//                         onClick={() => setQuantity(quantity + 1)}
+//                         className="w-10 h-10 border-2 rounded-lg hover:bg-gray-100"
+//                       >
+//                         +
+//                       </button>
+//                     </div>
+//                   </div>
+
+//                   <div className="bg-gray-50 p-4 rounded-lg">
+//                     <div className="flex justify-between items-center mb-2">
+//                       <span className="text-sm text-gray-600">Subtotal</span>
+//                       <span className="text-sm font-medium">
+//                         Rp {(equipment.price_per_day * quantity).toLocaleString('id-ID')}
+//                       </span>
+//                     </div>
+//                     <div className="flex justify-between items-center pt-2 border-t">
+//                       <span className="font-semibold">Total</span>
+//                       <span className="text-xl font-bold text-green-600">
+//                         Rp {(equipment.price_per_day * quantity).toLocaleString('id-ID')}
+//                       </span>
+//                     </div>
+//                     <p className="text-xs text-gray-500 mt-2 text-center">
+//                       * Harga belum termasuk biaya tambahan
+//                     </p>
+//                   </div>
+
+//                   {/* ✅ TOMBOL INI SAJA YANG DIUBAH */}
+//                   <Button
+//                     onClick={handleAddToCart} // ✅ Function ini yang ada login check
+//                     className="w-full bg-green-600 hover:bg-green-700 h-12 text-lg font-semibold"
+//                     disabled={equipment.stock_quantity === 0}
+//                   >
+//                     <ShoppingCart className="h-5 w-5 mr-2" />
+//                     {equipment.stock_quantity === 0 ? 'Stok Habis' : 'Tambah ke Keranjang'}
+//                   </Button>
+
+//                   <Button variant="outline" className="w-full h-12">
+//                     Hubungi Kami via WhatsApp
+//                   </Button>
+
+//                   <div className="border-t pt-4 space-y-3">
+//                     <div className="flex items-start gap-3 text-sm">
+//                       <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+//                       <span>Pickup tersedia saat checkout</span>
+//                     </div>
+//                     <div className="flex items-start gap-3 text-sm">
+//                       <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+//                       <span>Free cancellation 24 jam</span>
+//                     </div>
+//                     <div className="flex items-start gap-3 text-sm">
+//                       <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+//                       <span>Booking minimal 1 hari</span>
+//                     </div>
+//                   </div>
+//                 </CardContent>
+//               </Card>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       <Footer />
+//     </div>
+//   )
+// }
+
+// export default EquipmentDetailV2
+
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Footer } from '@/components/Footer' // ✅ IMPORT FOOTER
+import { useAuth } from '@/contexts/AuthContext'
 import { 
   ArrowLeft, Package, Weight, Ruler, CheckCircle, AlertCircle, 
   ShoppingCart, Star, BookOpen, Shield,
@@ -2867,19 +3459,19 @@ interface Equipment {
   available_stock: number;
   price_per_day: number;
   condition: string;
-  images: EquipmentImage[];
+  images?: EquipmentImage[];
   primary_image?: string;
 }
 
 const EquipmentDetailV2 = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth(); // Use 'user' instead of 'isAuthenticated'
   
   const [activeTab, setActiveTab] = useState('detail')
   const [quantity, setQuantity] = useState(1)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   
-  // ✅ API STATE
   const [equipment, setEquipment] = useState<Equipment | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -2978,10 +3570,29 @@ const EquipmentDetailV2 = () => {
     setCurrentImageIndex(index)
   }
 
-  const handleAddToCart = () => {
-    if (!equipment) return
-    alert(`✅ ${equipment.name} (${quantity}x) ditambahkan ke keranjang!\n💰 Rp ${(equipment.price_per_day * quantity).toLocaleString('id-ID')}/hari`)
+// ✅ PERBAIKAN: Arahkan ke /auth bukan /login
+const handleAddToCart = () => {
+  if (!equipment) return
+
+  // ✅ CEK LOGIN TERLEBIH DAHULU
+  if (!user) {
+    const confirmLogin = window.confirm(
+      '🔒 Anda harus login terlebih dahulu untuk menambahkan item ke keranjang.\n\n' +
+      'Klik OK untuk login sekarang.'
+    )
+    
+    if (confirmLogin) {
+      // ✅ SIMPAN URL SAAT INI untuk redirect setelah login
+      sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
+      navigate('/auth') // ✅ GANTI INI: dari /login → /auth
+    }
+    return
   }
+
+  // ✅ Jika sudah login, lanjutkan add to cart
+  alert(`✅ ${equipment.name} (${quantity}x) ditambahkan ke keranjang!\n💰 Rp ${(equipment.price_per_day * quantity).toLocaleString('id-ID')}/hari`)
+}
+
 
   const renderStars = (rating: number) => {
     return (
@@ -3091,419 +3702,405 @@ const EquipmentDetailV2 = () => {
   ]
 
   return (
-    // ✅ STRUKTUR DENGAN FOOTER - flex flex-col & flex-1
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* ✅ MAIN CONTENT WRAPPER dengan flex-1 */}
-      <div className="flex-1">
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          {/* Breadcrumb */}
-          <div className="mb-6 flex items-center gap-2 text-sm text-gray-600">
-            <button 
-              onClick={() => navigate('/browse')}
-              className="hover:text-green-600 flex items-center gap-1"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Browse
-            </button>
-            <span>/</span>
-            <span className="capitalize">{equipment.category}</span>
-            <span>/</span>
-            <span className="text-gray-900 font-medium truncate max-w-md">{equipment.name}</span>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Breadcrumb */}
+        <div className="mb-6 flex items-center gap-2 text-sm text-gray-600">
+          <button 
+            onClick={() => navigate('/browse')}
+            className="hover:text-green-600 flex items-center gap-1"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Browse
+          </button>
+          <span>/</span>
+          <span className="capitalize">{equipment.category}</span>
+          <span>/</span>
+          <span className="text-gray-900 font-medium truncate max-w-md">{equipment.name}</span>
+        </div>
 
-          {/* Error Warning */}
-          {error && (
-            <div className="mb-6 p-4 bg-yellow-100 border border-yellow-300 rounded-lg">
-              <p className="text-yellow-800 text-sm">
-                ⚠️ {error} - Menampilkan data fallback untuk testing
-              </p>
-            </div>
-          )}
-
-          {/* Debug Info */}
-          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-700">
-              🔍 Debug Info: {displayImages.length} gambar tersedia
-              {hasImages && currentImage && (
-                <span className="ml-2">• URL: {currentImage.image_url}</span>
-              )}
+        {error && (
+          <div className="mb-6 p-4 bg-yellow-100 border border-yellow-300 rounded-lg">
+            <p className="text-yellow-800 text-sm">
+              ⚠️ {error} - Menampilkan data fallback untuk testing
             </p>
           </div>
+        )}
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            {/* LEFT - Image Gallery */}
-            <div className="lg:col-span-4">
-              <div className="sticky top-4 space-y-4">
-                {/* Main Image */}
-                <div className="relative bg-white rounded-xl overflow-hidden shadow-sm">
-                  <div className="aspect-square bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center relative">
-                    {hasImages && currentImage ? (
-                      <>
-                        <img
-                          key={`main-img-${currentImage.image_id}`}
-                          src={currentImage.image_url}
-                          alt={`${equipment.name} - Image ${currentImageIndex + 1}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            console.error('❌ Gambar gagal dimuat:', currentImage.image_url)
-                            const target = e.target as HTMLImageElement
-                            target.style.display = 'none'
-                            const fallback = target.nextElementSibling as HTMLElement
-                            if (fallback) fallback.style.display = 'flex'
-                          }}
-                          onLoad={() => console.log('✅ Gambar berhasil dimuat:', currentImage.image_url)}
-                        />
-                        
-                        <div className="hidden absolute inset-0 bg-gradient-to-br from-red-400 to-red-600 items-center justify-center">
-                          <div className="text-center text-white p-4">
-                            <ImageIcon className="h-16 w-16 mx-auto mb-2 opacity-70" />
-                            <p className="text-sm opacity-70">Gambar tidak dapat dimuat</p>
-                            <p className="text-xs opacity-50 mt-1">URL: {currentImage.image_url}</p>
-                          </div>
-                        </div>
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-700">
+            🔍 Debug Info: {displayImages.length} gambar tersedia
+            {hasImages && currentImage && (
+              <span className="ml-2">• URL: {currentImage.image_url}</span>
+            )}
+          </p>
+        </div>
 
-                        {currentImage.is_primary && (
-                          <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                            ⭐ Gambar Utama
-                          </div>
-                        )}
-
-                        {displayImages.length > 1 && (
-                          <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
-                            {currentImageIndex + 1} / {displayImages.length}
-                          </div>
-                        )}
-
-                        <div className="absolute bottom-4 right-4 flex flex-col gap-2">
-                          <Badge className="bg-green-500 text-white font-bold shadow-lg">
-                            {equipment.stock_quantity} Unit
-                          </Badge>
-                          <Badge className="bg-blue-500 text-white capitalize shadow-lg">
-                            {equipment.condition}
-                          </Badge>
-                        </div>
-
-                        {displayImages.length > 1 && (
-                          <>
-                            <button 
-                              onClick={handlePrevImage}
-                              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all"
-                            >
-                              <ChevronLeft className="h-5 w-5 text-gray-700" />
-                            </button>
-                            <button 
-                              onClick={handleNextImage}
-                              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all"
-                            >
-                              <ChevronRight className="h-5 w-5 text-gray-700" />
-                            </button>
-                          </>
-                        )}
-                      </>
-                    ) : (
-                      <div className="text-center text-white">
-                        <span className="text-8xl font-bold block mb-4">
-                          {equipment.name.charAt(0)}
-                        </span>
-                        <p className="text-xl opacity-70">Belum ada gambar</p>
-                        <p className="text-sm opacity-50 mt-2">{equipment.code}</p>
-                        <p className="text-xs opacity-30 mt-4">Total gambar: {displayImages.length}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Thumbnail Images */}
-                {displayImages.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2">
-                    {displayImages.map((img, idx) => (
-                      <button
-                        key={img.image_id}
-                        onClick={() => handleThumbnailClick(idx)}
-                        className={`aspect-square rounded-lg overflow-hidden hover:ring-2 hover:ring-green-600 transition relative ${
-                          idx === currentImageIndex ? 'ring-2 ring-green-600' : ''
-                        }`}
-                      >
-                        <img
-                          src={img.image_url}
-                          alt={`Thumbnail ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3C/svg%3E'
-                          }}
-                        />
-                        {img.is_primary && (
-                          <div className="absolute top-0 left-0 bg-yellow-500 text-white text-[10px] px-1 rounded-br">
-                            ★
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Quick Stats */}
-                <div className="grid grid-cols-3 gap-2">
-                  <Card className="text-center">
-                    <CardContent className="pt-4 pb-4">
-                      <Star className="h-5 w-5 mx-auto mb-1 text-yellow-400 fill-yellow-400" />
-                      <div className="text-xl font-bold">{mockRating}</div>
-                      <div className="text-xs text-gray-500">{mockTotalReviews} Reviews</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="text-center">
-                    <CardContent className="pt-4 pb-4">
-                      <CheckCircle className="h-5 w-5 mx-auto mb-1 text-green-500" />
-                      <div className="text-xl font-bold">{mockTotalRentals}</div>
-                      <div className="text-xs text-gray-500">Kali Disewa</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="text-center">
-                    <CardContent className="pt-4 pb-4">
-                      <Package className="h-5 w-5 mx-auto mb-1 text-blue-500" />
-                      <div className="text-xl font-bold">{equipment.stock_quantity}</div>
-                      <div className="text-xs text-gray-500">Stok Ready</div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </div>
-
-            {/* CENTER - Detail Content */}
-            <div className="lg:col-span-5">
-              <Card>
-                <CardHeader className="border-b pb-4">
-                  <div className="flex items-start justify-between gap-4 mb-4">
-                    <div className="flex-1">
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-800 mb-2">
-                        {equipment.category.toUpperCase()}
-                      </Badge>
-                      <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                        {equipment.name}
-                      </h1>
-                      <p className="text-sm text-gray-500">{equipment.code}</p>
-                    </div>
-                  </div>
-
-                  {/* Tab Navigation */}
-                  <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
-                    {[
-                      { id: 'detail', label: 'Detail Produk', icon: Package },
-                      { id: 'reviews', label: 'Reviews', icon: Star },
-                      { id: 'guide', label: 'Cara Pakai', icon: BookOpen },
-                      { id: 'terms', label: 'Perjanjian Sewa', icon: Shield }
-                    ].map((tab) => {
-                      const Icon = tab.icon
-                      return (
-                        <button
-                          key={tab.id}
-                          onClick={() => setActiveTab(tab.id)}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition whitespace-nowrap text-sm font-medium ${
-                            activeTab === tab.id
-                              ? 'bg-green-600 text-white'
-                              : 'hover:bg-gray-100 text-gray-600'
-                          }`}
-                        >
-                          <Icon className="h-4 w-4" />
-                          {tab.label}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </CardHeader>
-
-                <CardContent className="pt-6 max-h-[600px] overflow-y-auto">
-                  {activeTab === 'detail' && (
-                    <div className="space-y-6">
-                      <div>
-                        <p className="text-gray-600 leading-relaxed">
-                          {equipment.description || 'Tidak ada deskripsi untuk equipment ini.'}
-                        </p>
-                      </div>
-
-                      <div>
-                        <h3 className="font-semibold text-lg mb-4">Spesifikasi Teknis</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                          {equipment.size_capacity && (
-                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                              <Package className="h-5 w-5 text-gray-500 mt-0.5" />
-                              <div>
-                                <p className="font-medium text-sm">Kapasitas</p>
-                                <p className="text-gray-600 text-sm">{equipment.size_capacity}</p>
-                              </div>
-                            </div>
-                          )}
-                          {equipment.dimensions && (
-                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                              <Ruler className="h-5 w-5 text-gray-500 mt-0.5" />
-                              <div>
-                                <p className="font-medium text-sm">Dimensi</p>
-                                <p className="text-gray-600 text-sm">{equipment.dimensions}</p>
-                              </div>
-                            </div>
-                          )}
-                          {equipment.weight && equipment.weight > 0 && (
-                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                              <Weight className="h-5 w-5 text-gray-500 mt-0.5" />
-                              <div>
-                                <p className="font-medium text-sm">Berat</p>
-                                <p className="text-gray-600 text-sm">{equipment.weight} kg</p>
-                              </div>
-                            </div>
-                          )}
-                          {equipment.material && (
-                            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                              <CheckCircle className="h-5 w-5 text-gray-500 mt-0.5" />
-                              <div>
-                                <p className="font-medium text-sm">Material</p>
-                                <p className="text-gray-600 text-sm">{equipment.material}</p>
-                              </div>
-                            </div>
-                          )}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* LEFT - Image Gallery */}
+          <div className="lg:col-span-4">
+            <div className="sticky top-4 space-y-4">
+              <div className="relative bg-white rounded-xl overflow-hidden shadow-sm">
+                <div className="aspect-square bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center relative">
+                  {hasImages && currentImage ? (
+                    <>
+                      <img
+                        key={`main-img-${currentImage.image_id}`}
+                        src={currentImage.image_url}
+                        alt={`${equipment.name} - Image ${currentImageIndex + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error('❌ Gambar gagal dimuat:', currentImage.image_url)
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          const fallback = target.nextElementSibling as HTMLElement
+                          if (fallback) fallback.style.display = 'flex'
+                        }}
+                        onLoad={() => console.log('✅ Gambar berhasil dimuat:', currentImage.image_url)}
+                      />
+                      
+                      <div className="hidden absolute inset-0 bg-gradient-to-br from-red-400 to-red-600 items-center justify-center">
+                        <div className="text-center text-white p-4">
+                          <ImageIcon className="h-16 w-16 mx-auto mb-2 opacity-70" />
+                          <p className="text-sm opacity-70">Gambar tidak dapat dimuat</p>
+                          <p className="text-xs opacity-50 mt-1">URL: {currentImage.image_url}</p>
                         </div>
                       </div>
 
-                      <div className="border-t pt-6">
-                        <h3 className="font-semibold text-base mb-3">Yang Termasuk dalam Sewa:</h3>
-                        <ul className="space-y-2">
-                          <li className="flex items-center gap-2 text-gray-600 text-sm">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            1x {equipment.name} lengkap dengan rangka
-                          </li>
-                          <li className="flex items-center gap-2 text-gray-600 text-sm">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            Pasak dan tali-tali pengencang
-                          </li>
-                          <li className="flex items-center gap-2 text-gray-600 text-sm">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            Tas carrier
-                          </li>
-                          <li className="flex items-center gap-2 text-gray-600 text-sm">
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            Panduan pemasangan
-                          </li>
-                        </ul>
+                      {currentImage.is_primary && (
+                        <div className="absolute top-4 left-4 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                          ⭐ Gambar Utama
+                        </div>
+                      )}
+
+                      {displayImages.length > 1 && (
+                        <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg">
+                          {currentImageIndex + 1} / {displayImages.length}
+                        </div>
+                      )}
+
+                      <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+                        <Badge className="bg-green-500 text-white font-bold shadow-lg">
+                          {equipment.stock_quantity} Unit
+                        </Badge>
+                        <Badge className="bg-blue-500 text-white capitalize shadow-lg">
+                          {equipment.condition}
+                        </Badge>
                       </div>
+
+                      {displayImages.length > 1 && (
+                        <>
+                          <button 
+                            onClick={handlePrevImage}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all"
+                          >
+                            <ChevronLeft className="h-5 w-5 text-gray-700" />
+                          </button>
+                          <button 
+                            onClick={handleNextImage}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-2 rounded-full shadow-lg transition-all"
+                          >
+                            <ChevronRight className="h-5 w-5 text-gray-700" />
+                          </button>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center text-white">
+                      <span className="text-8xl font-bold block mb-4">
+                        {equipment.name.charAt(0)}
+                      </span>
+                      <p className="text-xl opacity-70">Belum ada gambar</p>
+                      <p className="text-sm opacity-50 mt-2">{equipment.code}</p>
+                      <p className="text-xs opacity-30 mt-4">Total gambar: {displayImages.length}</p>
                     </div>
                   )}
-                  {/* Tabs lainnya tetap sama... */}
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </div>
 
-            {/* RIGHT - Cart Sidebar */}
-            <div className="lg:col-span-3">
-              <Card className="sticky top-4">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg">Atur Jumlah & Catatan</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center pb-4 border-b">
-                    <div className="text-3xl font-bold text-green-600">
-                      Rp {equipment.price_per_day.toLocaleString('id-ID')}
-                    </div>
-                    <p className="text-sm text-gray-500">per 24 jam</p>
-                  </div>
-
-                  <div className="bg-green-50 p-3 rounded-lg text-center">
-                    <p className="text-sm font-medium text-green-900">
-                      Stok Tersedia: <span className="font-bold">{equipment.stock_quantity} unit</span>
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Jumlah</label>
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="w-10 h-10 border-2 border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center font-bold text-lg"
-                      >
-                        -
-                      </button>
-                      <input
-                        type="number"
-                        value={quantity}
-                        onChange={(e) => setQuantity(Math.max(1, Math.min(equipment.stock_quantity, parseInt(e.target.value) || 1)))}
-                        className="flex-1 text-center border-2 border-gray-300 rounded-lg py-2 font-bold text-lg"
-                        min="1"
-                        max={equipment.stock_quantity}
-                      />
-                      <button
-                        onClick={() => setQuantity(Math.min(equipment.stock_quantity, quantity + 1))}
-                        className="w-10 h-10 border-2 border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center font-bold text-lg"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-600">Subtotal</span>
-                      <span className="text-sm font-medium">
-                        Rp {(equipment.price_per_day * quantity).toLocaleString('id-ID')}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold">Total</span>
-                      <span className="text-xl font-bold text-green-600">
-                        Rp {(equipment.price_per_day * quantity).toLocaleString('id-ID')}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2 text-center">
-                      * Harga belum termasuk biaya tambahan
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <Button 
-                      className="w-full bg-green-600 hover:bg-green-700 h-12 text-lg font-semibold"
-                      onClick={handleAddToCart}
-                      disabled={equipment.stock_quantity === 0}
+              {displayImages.length > 0 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {displayImages.map((img, idx) => (
+                    <button
+                      key={img.image_id}
+                      onClick={() => handleThumbnailClick(idx)}
+                      className={`aspect-square rounded-lg overflow-hidden hover:ring-2 hover:ring-green-600 transition relative ${
+                        idx === currentImageIndex ? 'ring-2 ring-green-600' : ''
+                      }`}
                     >
-                      <ShoppingCart className="h-5 w-5 mr-2" />
-                      {equipment.stock_quantity === 0 ? 'Stok Habis' : 'Tambah ke Keranjang'}
-                    </Button>
-                    
-                    <Button variant="outline" className="w-full h-12">
-                      Hubungi Kami via WhatsApp
-                    </Button>
-                  </div>
+                      <img
+                        src={img.image_url}
+                        alt={`Thumbnail ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3C/svg%3E'
+                        }}
+                      />
+                      {img.is_primary && (
+                        <div className="absolute top-0 left-0 bg-yellow-500 text-white text-[10px] px-1 rounded-br">
+                          ★
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-                  <div className="border-t pt-4 space-y-3">
-                    <div className="flex items-start gap-3 text-sm">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Pickup tersedia saat checkout</span>
+              <div className="grid grid-cols-3 gap-2">
+                <Card className="text-center">
+                  <CardContent className="pt-4 pb-4">
+                    <Star className="h-5 w-5 mx-auto mb-1 text-yellow-400 fill-yellow-400" />
+                    <div className="text-xl font-bold">{mockRating}</div>
+                    <div className="text-xs text-gray-500">{mockTotalReviews} Reviews</div>
+                  </CardContent>
+                </Card>
+                <Card className="text-center">
+                  <CardContent className="pt-4 pb-4">
+                    <CheckCircle className="h-5 w-5 mx-auto mb-1 text-green-500" />
+                    <div className="text-xl font-bold">{mockTotalRentals}</div>
+                    <div className="text-xs text-gray-500">Kali Disewa</div>
+                  </CardContent>
+                </Card>
+                <Card className="text-center">
+                  <CardContent className="pt-4 pb-4">
+                    <Package className="h-5 w-5 mx-auto mb-1 text-blue-500" />
+                    <div className="text-xl font-bold">{equipment.stock_quantity}</div>
+                    <div className="text-xs text-gray-500">Stok Ready</div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+
+          {/* CENTER - Detail Content */}
+          <div className="lg:col-span-5">
+            <Card>
+              <CardHeader className="border-b pb-4">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="flex-1">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 mb-2">
+                      {equipment.category.toUpperCase()}
+                    </Badge>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                      {equipment.name}
+                    </h1>
+                    <p className="text-sm text-gray-500">{equipment.code}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
+                  {[
+                    { id: 'detail', label: 'Detail Produk', icon: Package },
+                    { id: 'reviews', label: 'Reviews', icon: Star },
+                    { id: 'guide', label: 'Cara Pakai', icon: BookOpen },
+                    { id: 'terms', label: 'Perjanjian Sewa', icon: Shield }
+                  ].map((tab) => {
+                    const Icon = tab.icon
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition whitespace-nowrap text-sm font-medium ${
+                          activeTab === tab.id
+                            ? 'bg-green-600 text-white'
+                            : 'hover:bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {tab.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </CardHeader>
+
+              <CardContent className="pt-6 max-h-[600px] overflow-y-auto">
+                {activeTab === 'detail' && (
+                  <div className="space-y-6">
+                    <div>
+                      <p className="text-gray-600 leading-relaxed">
+                        {equipment.description || 'Tidak ada deskripsi untuk equipment ini.'}
+                      </p>
                     </div>
-                    <div className="flex items-start gap-3 text-sm">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Free cancellation 24 jam</span>
+
+                    <div>
+                      <h3 className="font-semibold text-lg mb-4">Spesifikasi Teknis</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        {equipment.size_capacity && (
+                          <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <Package className="h-5 w-5 text-gray-500 mt-0.5" />
+                            <div>
+                              <p className="font-medium text-sm">Kapasitas</p>
+                              <p className="text-gray-600 text-sm">{equipment.size_capacity}</p>
+                            </div>
+                          </div>
+                        )}
+                        {equipment.dimensions && (
+                          <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <Ruler className="h-5 w-5 text-gray-500 mt-0.5" />
+                            <div>
+                              <p className="font-medium text-sm">Dimensi</p>
+                              <p className="text-gray-600 text-sm">{equipment.dimensions}</p>
+                            </div>
+                          </div>
+                        )}
+                        {equipment.weight && equipment.weight > 0 && (
+                          <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <Weight className="h-5 w-5 text-gray-500 mt-0.5" />
+                            <div>
+                              <p className="font-medium text-sm">Berat</p>
+                              <p className="text-gray-600 text-sm">{equipment.weight} kg</p>
+                            </div>
+                          </div>
+                        )}
+                        {equipment.material && (
+                          <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <CheckCircle className="h-5 w-5 text-gray-500 mt-0.5" />
+                            <div>
+                              <p className="font-medium text-sm">Material</p>
+                              <p className="text-gray-600 text-sm">{equipment.material}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-start gap-3 text-sm">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Booking minimal 1 hari</span>
-                    </div>
-                    <div className="flex items-start gap-3 text-sm">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Konfirmasi via WhatsApp</span>
-                    </div>
-                    <div className="flex items-start gap-3 text-sm">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Support teknis 12 jam</span>
+
+                    <div className="border-t pt-6">
+                      <h3 className="font-semibold text-base mb-3">Yang Termasuk dalam Sewa:</h3>
+                      <ul className="space-y-2">
+                        <li className="flex items-center gap-2 text-gray-600 text-sm">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          1x {equipment.name} lengkap dengan rangka
+                        </li>
+                        <li className="flex items-center gap-2 text-gray-600 text-sm">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          Pasak dan tali-tali pengencang
+                        </li>
+                        <li className="flex items-center gap-2 text-gray-600 text-sm">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          Tas carrier
+                        </li>
+                        <li className="flex items-center gap-2 text-gray-600 text-sm">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          Panduan pemasangan
+                        </li>
+                      </ul>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* RIGHT - Cart Sidebar */}
+          <div className="lg:col-span-3">
+            <Card className="sticky top-4">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Atur Jumlah & Catatan</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center pb-4 border-b">
+                  <div className="text-3xl font-bold text-green-600">
+                    Rp {equipment.price_per_day.toLocaleString('id-ID')}
+                  </div>
+                  <p className="text-sm text-gray-500">per 24 jam</p>
+                </div>
+
+                <div className="bg-green-50 p-3 rounded-lg text-center">
+                  <p className="text-sm font-medium text-green-900">
+                    Stok Tersedia: <span className="font-bold">{equipment.stock_quantity} unit</span>
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Jumlah</label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-10 h-10 border-2 border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center font-bold text-lg"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      value={quantity}
+                      onChange={(e) => setQuantity(Math.max(1, Math.min(equipment.stock_quantity, parseInt(e.target.value) || 1)))}
+                      className="flex-1 text-center border-2 border-gray-300 rounded-lg py-2 font-bold text-lg"
+                      min="1"
+                      max={equipment.stock_quantity}
+                    />
+                    <button
+                      onClick={() => setQuantity(Math.min(equipment.stock_quantity, quantity + 1))}
+                      className="w-10 h-10 border-2 border-gray-300 rounded-lg hover:bg-gray-100 flex items-center justify-center font-bold text-lg"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-600">Subtotal</span>
+                    <span className="text-sm font-medium">
+                      Rp {(equipment.price_per_day * quantity).toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Total</span>
+                    <span className="text-xl font-bold text-green-600">
+                      Rp {(equipment.price_per_day * quantity).toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    * Harga belum termasuk biaya tambahan
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {/* ✅ TOMBOL INI SAJA YANG DIUBAH */}
+                  <Button 
+                    className="w-full bg-green-600 hover:bg-green-700 h-12 text-lg font-semibold"
+                    onClick={handleAddToCart} // ✅ Function sudah ada login check
+                    disabled={equipment.stock_quantity === 0}
+                  >
+                    <ShoppingCart className="h-5 w-5 mr-2" />
+                    {equipment.stock_quantity === 0 ? 'Stok Habis' : 'Tambah ke Keranjang'}
+                  </Button>
+                  
+                  <Button variant="outline" className="w-full h-12">
+                    Hubungi Kami via WhatsApp
+                  </Button>
+                </div>
+
+                <div className="border-t pt-4 space-y-3">
+                  <div className="flex items-start gap-3 text-sm">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>Pickup tersedia saat checkout</span>
+                  </div>
+                  <div className="flex items-start gap-3 text-sm">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>Free cancellation 24 jam</span>
+                  </div>
+                  <div className="flex items-start gap-3 text-sm">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>Booking minimal 1 hari</span>
+                  </div>
+                  <div className="flex items-start gap-3 text-sm">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>Konfirmasi via WhatsApp</span>
+                  </div>
+                  <div className="flex items-start gap-3 text-sm">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>Support teknis 12 jam</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
-
-      {/* ✅ FOOTER - Ditambahkan di sini, akan selalu di bawah */}
-      <Footer />
     </div>
   )
 }
