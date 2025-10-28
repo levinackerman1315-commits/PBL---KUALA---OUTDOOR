@@ -1889,7 +1889,7 @@ const EquipmentDetail = () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`http://localhost/PBL - KELANA OUTDOOR/api/public/equipment.php?id=${equipmentId}`)
+      const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php?id=${equipmentId}`)
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
       const text = await response.text()
       const data = JSON.parse(text)
