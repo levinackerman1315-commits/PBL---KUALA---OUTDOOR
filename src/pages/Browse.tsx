@@ -3001,19 +3001,34 @@ const Browse = () => {
                       {item.size_capacity && (
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <Package className="h-3 w-3 text-gray-500" />
-                          <span className="truncate">{item.size_capacity}</span>
+                          <span className="truncate">Jumlah: {item.size_capacity}</span>
                         </div>
                       )}
                       {item.dimensions && (
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <Ruler className="h-3 w-3 text-gray-500" />
-                          <span className="truncate">{item.dimensions}</span>
-                        </div>
+                          <span className="truncate">
+                            {(() => {
+                              // Parse dimensi (contoh: "300x200x150 cm" atau "300x200x150")
+                              const dims = item.dimensions.toLowerCase().replace(/cm|mm|m/gi, '').trim();
+                              const parts = dims.split('x').map(d => d.trim());
+                              
+                              if (parts.length === 3) {
+                                return `P: ${parts[0]} × L: ${parts[1]} × T: ${parts[2]} cm`;
+                              } else if (parts.length === 2) {
+                                return `P: ${parts[0]} × L: ${parts[1]} cm`;
+                              } else {
+                                // Fallback ke format original
+                                return item.dimensions;
+                              }
+                            })()}
+                          </span>
+                        </div>  
                       )}
                       {item.weight && item.weight > 0 && (
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <Weight className="h-3 w-3 text-gray-500" />
-                          <span>{item.weight} kg</span>
+                          <span>Berat: {item.weight} kg</span>
                         </div>
                       )}
                       {item.material && (
