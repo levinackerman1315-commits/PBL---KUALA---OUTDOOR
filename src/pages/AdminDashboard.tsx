@@ -406,7 +406,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogOut, Package, ShoppingCart, Users, TrendingUp, Calendar, DollarSign, AlertCircle, Mountain, Shirt } from "lucide-react";
-
+import { Phone } from "lucide-react";
 const AdminDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('admin_token');
@@ -468,7 +468,16 @@ const AdminDashboard = () => {
       title: "👕 Kelola Merchandise",
       color: "group-hover:text-orange-600",
       desc: "Tambah dan edit merchandise"
-    }
+    },
+{
+    to: "/admin/contact",
+    icon: <Phone className="h-10 w-10 text-cyan-600 group-hover:text-white transition-colors" />,
+    bg: "bg-cyan-100 group-hover:bg-cyan-500",
+    border: "hover:border-cyan-400",
+    title: "📞 Kelola Kontak",
+    color: "group-hover:text-cyan-600",
+    desc: "Ubah nomor telepon & info kontak"
+  }
   ];
 
   return (

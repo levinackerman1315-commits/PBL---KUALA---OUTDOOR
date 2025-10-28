@@ -3152,7 +3152,9 @@ import { Input } from '@/components/ui/input'
 import { Search, Package, ArrowLeft, Weight, Ruler, AlertTriangle, Image as ImageIcon, ShoppingCart } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useCart } from '@/contexts/CartContext'
-import { useAuth } from '@/contexts/AuthContext' // ✅ TAMBAHKAN
+import { useAuth } from '@/contexts/AuthContext'
+
+ // ✅ TAMBAHKAN
 
 interface EquipmentImage {
   image_id: number;

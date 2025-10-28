@@ -17,14 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Footer } from '@/components/Footer'
 
-// ✅ INTERFACE UNTUK IMAGES
-interface EquipmentImage {
-  image_id: number;
-  image_url: string;
-  is_primary: boolean;
-  display_order: number;
-}
-
+// ✅ INTERFACE YANG SESUAI DENGAN CARTCONTEXT BARU
 interface Equipment {
   equipment_id: number;
   name: string;
@@ -36,35 +29,26 @@ interface Equipment {
   weight?: number;
   material?: string;
   stock_quantity: number;
-  available_stock: number;
-  reserved_stock: number;
-  rented_stock: number;
   price_per_day: number;
   condition: string;
   equipment_type?: string;
   image_url?: string;
-  images: EquipmentImage[]; // ✅ TAMBAHKAN INI
   created_at: string;
+  
+  // ✅ FIELD OPTIONAL UNTUK COMPATIBILITY
+  available_stock?: number;
+  reserved_stock?: number;
+  rented_stock?: number;
+  images?: any[]; // ✅ OPSIONAL, TIDAK WAJIB
 }
 
 const CartPage = () => {
   const { cartItems, updateQuantity, removeFromCart, clearCart, getTotalItems } = useCart()
-  const navigate = useNavigate() // ✅ TAMBAHKAN INI
+  const navigate = useNavigate()
 
-  // ✅ FUNGSI UNTUK MENDAPATKAN GAMBAR UTAMA
-  const getPrimaryImage = (item: Equipment) => {
-    // Jika ada images array, cari yang primary atau ambil pertama
-    if (item.images && item.images.length > 0) {
-      const primaryImage = item.images.find(img => img.is_primary) || item.images[0];
-      return primaryImage.image_url;
-    }
-    // Fallback ke image_url lama
-    return item.image_url;
-  };
-
-  // ✅ BUILD IMAGE URL YANG DIPERBAIKI
+  // ✅ BUILD IMAGE URL YANG DIPERBAIKI - GUNAKAN image_url LANGSUNG
   const buildImageUrl = (item: Equipment) => {
-    const imageUrl = getPrimaryImage(item);
+    const imageUrl = item.image_url; // ✅ LANGSUNG PAKAI image_url
     
     if (!imageUrl) return null;
     if (imageUrl.startsWith('http')) return imageUrl;
@@ -90,15 +74,14 @@ const CartPage = () => {
       0
     )
 
-  // ✅ TAMBAHKAN FUNCTION UNTUK HANDLE CHECKOUT
+  // ✅ FUNCTION UNTUK HANDLE CHECKOUT
   const handleCheckout = () => {
-    // Kirim data keranjang ke booking form via state
     navigate('/booking/form', {
       state: {
         cartItems: cartItems,
         totalItems: getTotalItems(),
         totalPrice: getTotalPrice(),
-        fromCart: true // Flag untuk tahu data dari cart
+        fromCart: true
       }
     })
   }
@@ -172,13 +155,12 @@ const CartPage = () => {
             <div className="lg:col-span-2 space-y-4">
               {cartItems.map((item) => {
                 const imageUrl = buildImageUrl(item.equipment);
-                const hasImages = item.equipment.images && item.equipment.images.length > 0;
                 
                 return (
                   <Card key={item.equipment.equipment_id} className="overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex gap-4 items-center">
-                        {/* ✅ Equipment Image - DIPERBAIKI */}
+                        {/* ✅ Equipment Image - SESUAI STRUKTUR BARU */}
                         <div className="w-24 h-24 bg-gray-200 rounded flex items-center justify-center overflow-hidden relative">
                           {imageUrl ? (
                             <>
@@ -200,18 +182,6 @@ const CartPage = () => {
                             <div className="text-center text-gray-400">
                               <ImageIcon className="h-8 w-8 mx-auto mb-1" />
                               <p className="text-xs">No image</p>
-                              {hasImages && (
-                                <p className="text-xs opacity-50 mt-1">
-                                  {item.equipment.images.length} images in DB
-                                </p>
-                              )}
-                            </div>
-                          )}
-                          
-                          {/* Badge untuk gambar utama */}
-                          {hasImages && item.equipment.images.some(img => img.is_primary) && (
-                            <div className="absolute top-1 left-1 bg-yellow-500 text-white text-[8px] px-1 rounded">
-                              ★
                             </div>
                           )}
                         </div>
@@ -262,9 +232,6 @@ const CartPage = () => {
                           </div>
                           <div className="text-xs text-gray-500 mt-2">
                             Stok: {item.equipment.stock_quantity} | Kondisi: {item.equipment.condition}
-                            {hasImages && (
-                              <span className="ml-2">• {item.equipment.images.length} gambar</span>
-                            )}
                           </div>
                           <div className="mt-2">
                             <Link to={`/equipment/${item.equipment.equipment_id}?from=cart`}>
@@ -312,7 +279,6 @@ const CartPage = () => {
                     </div>
                   </div>
                   
-                  {/* ✅ GANTI Link jadi Button dengan onClick */}
                   <Button 
                     onClick={handleCheckout}
                     className="w-full bg-green-600 hover:bg-green-700 text-base py-2"

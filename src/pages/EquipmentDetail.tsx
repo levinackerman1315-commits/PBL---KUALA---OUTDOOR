@@ -3431,11 +3431,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
+import { useCart } from '@/contexts/CartContext' //
+import { Footer } from '@/components/Footer' // ✅ IMPORT FOOTER ✅ IMPORT
 import { 
   ArrowLeft, Package, Weight, Ruler, CheckCircle, AlertCircle, 
   ShoppingCart, Star, BookOpen, Shield,
   ChevronLeft, ChevronRight, ImageIcon, Loader2
 } from 'lucide-react'
+
+
 
 // ✅ INTERFACE
 interface EquipmentImage {
@@ -3570,11 +3574,13 @@ const EquipmentDetailV2 = () => {
     setCurrentImageIndex(index)
   }
 
-// ✅ PERBAIKAN: Arahkan ke /auth bukan /login
-const handleAddToCart = () => {
+// ✅ SIMPAN VERSI INI - CART SYSTEM FIX
+const handleAddToCart = async () => {
   if (!equipment) return
 
-  // ✅ CEK LOGIN TERLEBIH DAHULU
+  console.log('🎯 Starting add to cart process...')
+  
+  // ✅ CEK LOGIN
   if (!user) {
     const confirmLogin = window.confirm(
       '🔒 Anda harus login terlebih dahulu untuk menambahkan item ke keranjang.\n\n' +
@@ -3582,15 +3588,53 @@ const handleAddToCart = () => {
     )
     
     if (confirmLogin) {
-      // ✅ SIMPAN URL SAAT INI untuk redirect setelah login
       sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
-      navigate('/auth') // ✅ GANTI INI: dari /login → /auth
+      navigate('/auth')
     }
     return
   }
 
-  // ✅ Jika sudah login, lanjutkan add to cart
-  alert(`✅ ${equipment.name} (${quantity}x) ditambahkan ke keranjang!\n💰 Rp ${(equipment.price_per_day * quantity).toLocaleString('id-ID')}/hari`)
+  // ✅ JIKA SUDAH LOGIN, LANJUTKAN KE API
+  try {
+    console.log('👤 User:', user.id)
+    console.log('📦 Equipment:', equipment.equipment_id)
+    console.log('🔢 Quantity:', quantity)
+    
+    // ✅ PREPARE PAYLOAD
+    const payload = {
+      customer_id: parseInt(user.id),
+      equipment_id: equipment.equipment_id,
+      quantity: quantity
+    }
+    
+    console.log('📤 Sending to API:', payload)
+    
+    // ✅ CALL API
+    const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/cart/add.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    })
+    
+    console.log('📥 Response status:', response.status)
+    
+    // ✅ CHECK RESPONSE
+    const data = await response.json()
+    console.log('📥 API Response:', data)
+    
+    if (data.success) {
+      alert(`✅ ${equipment.name} (${quantity}x) berhasil ditambahkan ke keranjang!`)
+      setQuantity(1) // Reset quantity
+    } else {
+      throw new Error(data.message || 'Gagal menambahkan ke keranjang')
+    }
+    
+  } catch (error: any) {
+    console.error('❌ Add to cart error:', error)
+    alert(`❌ Gagal: ${error.message}`)
+  }
 }
 
 
@@ -4101,6 +4145,7 @@ const handleAddToCart = () => {
           </div>
         </div>
       </div>
+        <Footer />
     </div>
   )
 }
