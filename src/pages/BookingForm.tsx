@@ -3,11 +3,13 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Calendar, User, Phone, Mail, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Calendar, User, Phone, Mail, MessageSquare, MessageCircle, Package, ShoppingCart } from 'lucide-react'
+import { useContact } from '@/contexts/ContactContext' // ✅ IMPORT CONTEXT
 
 const BookingForm = () => {
   const location = useLocation()
   const navigate = useNavigate()
+  const { contactInfo } = useContact() // ✅ GUNAKAN CONTEXT
   
   // ✅ TERIMA DATA DARI CART
   const { cartItems, totalItems, totalPrice, fromCart } = location.state || {}
@@ -16,11 +18,13 @@ const BookingForm = () => {
     customerName: '',
     phone: '',
     email: '',
+    identityNumber: '', // ✅ TAMBAH NO KTP
     rentalStartDate: '',
     rentalEndDate: '',
-    notes: '',
-    identityNumber: ''
+    notes: ''
   })
+
+  const [loading, setLoading] = useState(false)
 
   // ✅ CEK APAKAH ADA DATA CART
   useEffect(() => {
@@ -47,83 +51,153 @@ const BookingForm = () => {
   const rentalDays = calculateDays()
   const grandTotal = totalPrice * rentalDays
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // ✅ GENERATE PESAN WHATSAPP DENGAN FORMAT YANG LEBIH BAIK
+  const generateWhatsAppMessage = () => {
+    const itemsList = cartItems.map((item: any) => 
+      `• ${item.equipment.name} (${item.quantity}x) - Rp ${item.equipment.price_per_day.toLocaleString('id-ID')}/hari`
+    ).join('\n')
 
+    return `
+⛰️ *BOOKING KUALA OUTDOOR*
+
+👤 *DATA PENYEWA:*
+• Nama: ${bookingData.customerName}
+• HP: ${bookingData.phone}
+• Email: ${bookingData.email || '-'}
+• No. KTP: ${bookingData.identityNumber || '-'}
+
+🛍️ *PERALATAN:*
+${itemsList}
+
+🗓️ *PERIODE SEWA:*
+• Mulai: ${bookingData.rentalStartDate}
+• Selesai: ${bookingData.rentalEndDate}
+• Durasi: ${rentalDays} hari
+
+💰 *ESTIMASI BIAYA TOTAL:*
+Rp ${grandTotal.toLocaleString('id-ID')}
+
+📒 *CATATAN:*
+${bookingData.notes || 'Tidak ada catatan khusus'}
+
+---
+Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
+    `.trim()
+  }
+
+  // ✅ HANDLE KIRIM VIA WHATSAPP
+  const handleWhatsApp = () => {
     if (!bookingData.customerName || !bookingData.phone || !bookingData.rentalStartDate || !bookingData.rentalEndDate) {
-      alert('Mohon lengkapi data wajib');
-      return;
+      alert('⚠️ Mohon lengkapi nama, telepon, dan tanggal rental terlebih dahulu!')
+      return
     }
 
-    const payload = {
-      customer_id: 1,
-      equipment_items: cartItems.map((it: any) => ({
-        equipment_id: it.equipment.equipment_id,
-        quantity: it.quantity
-      })),
-      start_date: bookingData.rentalStartDate,
-      end_date: bookingData.rentalEndDate,
-      notes: bookingData.notes || ''
-    };
+    const message = generateWhatsAppMessage()
+    const whatsappUrl = `https://wa.me/${contactInfo.phone1.replace(/[^\d]/g, '')}?text=${encodeURIComponent(message)}`
+    
+    window.open(whatsappUrl, '_blank')
+  }
 
-    console.log('📤 Sending payload:', payload);
+  // ✅ HANDLE SUBMIT FORM
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    
+    // Validasi
+    if (!bookingData.customerName || !bookingData.phone || !bookingData.rentalStartDate || !bookingData.rentalEndDate) {
+      alert('⚠️ Mohon lengkapi semua data yang wajib diisi!')
+      setLoading(false)
+      return
+    }
 
+    if (new Date(bookingData.rentalEndDate) <= new Date(bookingData.rentalStartDate)) {
+      alert('❌ Tanggal selesai harus setelah tanggal mulai')
+      setLoading(false)
+      return
+    }
+
+    // ✅ KIRIM DATA KE API
     try {
-      const res = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/booking.php', {
+      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/booking.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const text = await res.text();
-      console.log('📥 Raw response:', text);
-
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (parseErr) {
-        console.error('❌ Parse error:', parseErr);
-        alert('Response backend bukan JSON. Cek console.');
-        return;
+        body: JSON.stringify({
+          customer_name: bookingData.customerName,
+          customer_id: null, // atau ID customer jika ada sistem login
+          start_date: bookingData.rentalStartDate,
+          end_date: bookingData.rentalEndDate,
+          notes: bookingData.notes,
+          equipment_items: cartItems.map((item: any) => ({
+            equipment_id: item.equipment.equipment_id,
+            quantity: item.quantity
+          }))
+        })
+      })
+      
+      const result = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.message)
       }
 
-      console.log('✅ Parsed response:', data);
-
-      if (data.success) {
-        const equipmentList = cartItems.map((item: any) => 
-          `- ${item.equipment.name} (${item.quantity}x)`
-        ).join('%0A');
-        
-        const waMessage = `*BOOKING BARU - KELANA OUTDOOR*%0A%0A` +
-          `Kode Booking: *${data.booking_code}*%0A` +
-          `Nama: ${bookingData.customerName}%0A` +
-          `No. HP: ${bookingData.phone}%0A` +
-          `Email: ${bookingData.email || '-'}%0A%0A` +
-          `*Equipment:*%0A${equipmentList}%0A%0A` +
-          `Tanggal Sewa: ${bookingData.rentalStartDate} s/d ${bookingData.rentalEndDate}%0A` +
-          `Durasi: ${rentalDays} hari%0A` +
-          `Total: *Rp ${grandTotal.toLocaleString('id-ID')}*%0A%0A` +
-          `Catatan: ${bookingData.notes || '-'}`;
-        
-        const adminWA = '6281234567890';
-        const waURL = `https://wa.me/${adminWA}?text=${waMessage}`;
-        window.open(waURL, '_blank');
-        
-        alert(`✅ Booking berhasil!\n\nKode Booking: ${data.booking_code}\nTotal: Rp ${data.total_price.toLocaleString()}`);
-        
-        navigate('/'); // Redirect ke home
-        
-      } else {
-        alert('❌ Gagal booking: ' + data.message);
+      // Tanya user mau konfirmasi via WhatsApp
+      const confirmWhatsApp = window.confirm(
+        `✅ Booking berhasil dibuat!\n\nKode Booking: ${result.booking_code}\n💰 Total: Rp ${result.total_price.toLocaleString('id-ID')}\n📅 Durasi: ${rentalDays} hari\n\nApakah Anda ingin mengirim konfirmasi via WhatsApp?`
+      )
+      
+      if (confirmWhatsApp) {
+        handleWhatsApp()
       }
-    } catch (err) {
-      console.error('❌ Fetch error:', err);
-      alert('Terjadi error saat booking!');
+      
+      // Redirect ke halaman sukses
+      navigate('/booking/success', {
+        state: {
+          bookingData: {
+            ...bookingData,
+            rentalDays,
+            grandTotal: result.total_price,
+            cartItems,
+            bookingCode: result.booking_code
+          }
+        }
+      })
+    } catch (error: any) {
+      alert('❌ Gagal membuat booking: ' + error.message)
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
+  // ✅ LOADING STATE
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Memproses booking...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // ✅ JIKA KERANJANG KOSONG
   if (!cartItems || cartItems.length === 0) {
-    return null // Atau loading state
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <ShoppingCart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 text-xl mb-2">Keranjang Booking Kosong</p>
+          <p className="text-gray-500 mb-6">Silakan tambah equipment terlebih dahulu</p>
+          <Button 
+            onClick={() => navigate('/browse')}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Package className="h-4 w-4 mr-2" />
+            Browse Equipment
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -167,7 +241,7 @@ const BookingForm = () => {
                       required
                     />
                   </div>
-                  
+
                   {/* No. Telepon */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -183,7 +257,7 @@ const BookingForm = () => {
                       required
                     />
                   </div>
-                  
+
                   {/* Email */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
@@ -196,6 +270,21 @@ const BookingForm = () => {
                       value={bookingData.email}
                       onChange={(e) => setBookingData({...bookingData, email: e.target.value})}
                       placeholder="email@example.com"
+                    />
+                  </div>
+
+                  {/* No. KTP */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      <User className="h-4 w-4 inline mr-1" />
+                      No. KTP (Opsional)
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      value={bookingData.identityNumber}
+                      onChange={(e) => setBookingData({...bookingData, identityNumber: e.target.value})}
+                      placeholder="Masukkan nomor KTP"
                     />
                   </div>
                   
@@ -250,8 +339,9 @@ const BookingForm = () => {
                   <Button
                     type="submit"
                     className="w-full bg-green-600 hover:bg-green-700 text-lg py-3"
+                    disabled={loading}
                   >
-                    Konfirmasi Booking
+                    {loading ? 'Memproses...' : 'Konfirmasi Booking'}
                   </Button>
                 </form>
               </CardContent>
@@ -298,9 +388,22 @@ const BookingForm = () => {
                   </div>
                 </div>
 
+                {/* ✅ TOMBOL WHATSAPP - MENGGUNAKAN NOMOR DARI CONTEXT */}
+                <Button 
+                  variant="outline" 
+                  className="w-full h-12"
+                  onClick={handleWhatsApp}
+                  disabled={!bookingData.customerName || !bookingData.phone}
+                >
+                  <MessageCircle className="h-5 w-5 mr-2" />
+                  Kirim via WhatsApp
+                </Button>
+
                 {/* Info */}
-                <div className="bg-blue-50 p-3 rounded-lg text-xs text-blue-700">
-                  📦 Gratis pickup & return di lokasi kami
+                <div className="bg-blue-50 p-3 rounded-lg text-xs text-blue-700 space-y-1">
+                  <p>📞 Admin: {contactInfo.phone1}</p>
+                  <p>📦 Gratis pickup & return di lokasi kami</p>
+                  <p>⏰ Konfirmasi via WhatsApp max 1 jam</p>
                 </div>
               </CardContent>
             </Card>

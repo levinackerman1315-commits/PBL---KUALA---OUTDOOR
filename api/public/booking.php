@@ -30,8 +30,8 @@ try {
         // Log untuk debugging
         error_log("Received data: " . $json);
 
-        // Validasi
-        if (!$data || !isset($data->customer_id) || !isset($data->equipment_items) || !isset($data->start_date) || !isset($data->end_date)) {
+        // Validasi - TAMBAHKAN customer_name
+        if (!$data || !isset($data->customer_name) || !isset($data->equipment_items) || !isset($data->start_date) || !isset($data->end_date)) {
             http_response_code(400);
             echo json_encode(["success" => false, "message" => "Data tidak lengkap"]);
             exit();
@@ -57,11 +57,31 @@ try {
         // Generate booking code
         $booking_code = "KO-" . date('Ymd') . "-" . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
 
-        // Insert booking
-        $query = "INSERT INTO bookings (customer_id, booking_code, start_date, end_date, estimated_duration, total_estimated_cost, status, payment_status, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, 'pending', 'unpaid', ?, NOW())";
+        // Insert booking - TAMBAHKAN customer_name
+        $query = "INSERT INTO bookings (
+            customer_name, 
+            customer_phone, 
+            customer_email, 
+            customer_identity_number,
+            customer_id, 
+            booking_code, 
+            start_date, 
+            end_date, 
+            estimated_duration, 
+            total_estimated_cost, 
+            status, 
+            payment_status, 
+            notes, 
+            created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'unpaid', ?, NOW())";
+
         $stmt = $db->prepare($query);
         $stmt->execute([
-            $data->customer_id,
+            $data->customer_name,
+            $data->customer_phone ?? null,
+            $data->customer_email ?? null,
+            $data->customer_identity_number ?? null,
+            $data->customer_id ?? null,
             $booking_code,
             $data->start_date,
             $data->end_date,
