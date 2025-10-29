@@ -166,6 +166,17 @@ const BookingDetail = () => {
                 <p className="font-semibold text-gray-900">{booking.customer_name || '-'}</p>
               </div>
               
+              {/* ✅ TAMBAHKAN DISPLAY NO. KTP */}
+              {booking.customer_identity_number && (
+                <div>
+                  <label className="text-sm text-gray-600 flex items-center gap-1">
+                    <CreditCard className="h-4 w-4" />
+                    No. KTP/Identitas
+                  </label>
+                  <p className="font-semibold text-gray-900">{booking.customer_identity_number}</p>
+                </div>
+              )}
+              
               {booking.customer_phone && (
                 <div>
                   <label className="text-sm text-gray-600 flex items-center gap-1">
@@ -173,6 +184,14 @@ const BookingDetail = () => {
                     No. Telepon
                   </label>
                   <p className="font-semibold text-gray-900">{booking.customer_phone}</p>
+                  <a 
+                    href={`https://wa.me/${booking.customer_phone.replace(/^0/, '62')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-green-600 hover:underline"
+                  >
+                    📱 Hubungi via WhatsApp
+                  </a>
                 </div>
               )}
               
@@ -183,16 +202,6 @@ const BookingDetail = () => {
                     Email
                   </label>
                   <p className="font-semibold text-gray-900">{booking.customer_email}</p>
-                </div>
-              )}
-              
-              {booking.customer_identity_number && (
-                <div>
-                  <label className="text-sm text-gray-600 flex items-center gap-1">
-                    <CreditCard className="h-4 w-4" />
-                    No. KTP/Identitas
-                  </label>
-                  <p className="font-semibold text-gray-900">{booking.customer_identity_number}</p>
                 </div>
               )}
             </CardContent>

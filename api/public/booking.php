@@ -57,7 +57,7 @@ try {
         // Generate booking code
         $booking_code = "KO-" . date('Ymd') . "-" . str_pad(rand(1, 999), 3, '0', STR_PAD_LEFT);
 
-        // Insert booking - TAMBAHKAN customer_name
+        // Insert booking - TAMBAHKAN customer_identity_number
         $query = "INSERT INTO bookings (
             customer_name, 
             customer_phone, 
@@ -80,7 +80,7 @@ try {
             $data->customer_name,
             $data->customer_phone ?? null,
             $data->customer_email ?? null,
-            $data->customer_identity_number ?? null,
+            $data->customer_identity_number ?? null, // ✅ PASTIKAN INI ADA
             $data->customer_id ?? null,
             $booking_code,
             $data->start_date,

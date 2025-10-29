@@ -15,6 +15,10 @@ try {
     $database = new Database();
     $db = $database->getConnection();
 
+    if (!$db) {
+        throw new Exception("Database connection failed");
+    }
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = json_decode(file_get_contents("php://input"));
 
@@ -22,14 +26,13 @@ try {
             throw new Exception("Data tidak lengkap");
         }
 
+        // Update payment status
         $query = "UPDATE bookings SET payment_status = :payment_status WHERE booking_id = :booking_id";
         $stmt = $db->prepare($query);
         $stmt->bindParam(':payment_status', $data->payment_status);
         $stmt->bindParam(':booking_id', $data->booking_id);
 
         if ($stmt->execute()) {
-            // TODO: Jika payment_status = 'partial' atau 'paid', kurangi stok equipment
-            
             echo json_encode([
                 'success' => true,
                 'message' => 'Status payment berhasil diupdate'
@@ -37,12 +40,19 @@ try {
         } else {
             throw new Exception("Gagal update payment status");
         }
+    } else {
+        http_response_code(405);
+        echo json_encode([
+            "success" => false,
+            "message" => "Method not allowed"
+        ]);
     }
+
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => $e->getMessage()
+        "message" => "Error: " . $e->getMessage()
     ]);
 }
 ?>

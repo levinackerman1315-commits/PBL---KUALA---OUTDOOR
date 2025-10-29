@@ -116,14 +116,17 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
       return
     }
 
-    // ✅ KIRIM DATA KE API
+    // ✅ KIRIM DATA KE API TERMASUK IDENTITY NUMBER
     try {
       const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/booking.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customer_name: bookingData.customerName,
-          customer_id: null, // atau ID customer jika ada sistem login
+          customer_phone: bookingData.phone,
+          customer_email: bookingData.email,
+          customer_identity_number: bookingData.identityNumber, // ✅ PASTIKAN INI ADA
+          customer_id: null,
           start_date: bookingData.rentalStartDate,
           end_date: bookingData.rentalEndDate,
           notes: bookingData.notes,

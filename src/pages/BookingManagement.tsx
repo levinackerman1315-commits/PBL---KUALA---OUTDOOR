@@ -15,7 +15,9 @@ import {
   DollarSign,
   User,
   RefreshCw,
-  Trash2 // ✅ TAMBAH ICON TRASH
+  Trash2,
+  Clock,
+  AlertTriangle
 } from "lucide-react";
 
 const BookingManagement = () => {
@@ -25,13 +27,15 @@ const BookingManagement = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [showCompleted, setShowCompleted] = useState(false); // ✅ TAMBAH STATE
+
+  // ✅ COUNTDOWN STATE
+  const [countdowns, setCountdowns] = useState({});
 
   // ✅ FETCH DATA DARI API
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      console.log("🔍 Fetching bookings from API...");
-      
       const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/bookings.php');
       
       if (!response.ok) {
@@ -39,8 +43,6 @@ const BookingManagement = () => {
       }
       
       const data = await response.json();
-      
-      console.log("✅ Bookings data received:", data);
       
       if (data.success && Array.isArray(data.data)) {
         setBookings(data.data);
@@ -65,9 +67,58 @@ const BookingManagement = () => {
     fetchBookings();
   }, []);
 
+  // ✅ COUNTDOWN TIMER UNTUK BOOKING AKTIF
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newCountdowns = {};
+      
+      bookings.forEach(booking => {
+        if (booking.status === 'active') {
+          const endDate = new Date(booking.end_date);
+          const now = new Date();
+          const diff = endDate.getTime() - now.getTime();
+          
+          if (diff > 0) {
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            newCountdowns[booking.booking_id] = {
+              days,
+              hours,
+              minutes,
+              seconds,
+              isOverdue: false
+            };
+          } else {
+            // Sudah melewati batas waktu
+            newCountdowns[booking.booking_id] = {
+              days: 0,
+              hours: 0,
+              minutes: 0,
+              seconds: 0,
+              isOverdue: true,
+              overdueTime: Math.abs(diff)
+            };
+          }
+        }
+      });
+      
+      setCountdowns(newCountdowns);
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [bookings]);
+
   // Filter bookings
   useEffect(() => {
     let filtered = bookings;
+    
+    // ✅ FILTER COMPLETED BERDASARKAN TOGGLE
+    if (!showCompleted) {
+      filtered = filtered.filter(booking => booking.status !== 'completed');
+    }
     
     // Search filter
     if (searchTerm) {
@@ -89,7 +140,7 @@ const BookingManagement = () => {
     }
     
     setFilteredBookings(filtered);
-  }, [bookings, searchTerm, statusFilter, paymentFilter]);
+  }, [bookings, searchTerm, statusFilter, paymentFilter, showCompleted]);
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -131,8 +182,22 @@ const BookingManagement = () => {
     }
   };
 
-  // ✅ UPDATE STATUS BOOKING
-  const handleStatusChange = async (bookingId, newStatus) => {
+  // ✅ UPDATE STATUS BOOKING DENGAN KONFIRMASI
+  const handleStatusChange = async (bookingId, newStatus, booking) => {
+    let confirmMessage = '';
+    
+    if (newStatus === 'confirmed') {
+      confirmMessage = `Konfirmasi booking ${booking.booking_code}?\n\nBarang akan siap untuk diserahkan kepada penyewa.`;
+    } else if (newStatus === 'active') {
+      confirmMessage = `⚠️ KONFIRMASI PENYERAHAN BARANG\n\nBooking: ${booking.booking_code}\nPenyewa: ${booking.customer_name}\n\nBarang sudah diterima oleh penyewa?\n\n✅ Stok equipment akan dikurangi\n⏰ Countdown pengembalian akan dimulai\n📅 Harus dikembalikan: ${new Date(booking.end_date).toLocaleString('id-ID')}`;
+    } else if (newStatus === 'completed') {
+      confirmMessage = `✅ KONFIRMASI PENGEMBALIAN BARANG\n\nBooking: ${booking.booking_code}\nPenyewa: ${booking.customer_name}\n\nBarang sudah dikembalikan oleh penyewa?\n\n✅ Stok equipment akan dikembalikan`;
+    } else if (newStatus === 'cancelled') {
+      confirmMessage = `❌ Batalkan booking ${booking.booking_code}?`;
+    }
+    
+    if (!window.confirm(confirmMessage)) return;
+
     try {
       const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/update_booking_status.php', {
         method: 'POST',
@@ -146,12 +211,22 @@ const BookingManagement = () => {
       const result = await response.json();
       
       if (result.success) {
-        setBookings(prev => prev.map(booking => 
-          booking.booking_id === bookingId 
-            ? { ...booking, status: newStatus }
-            : booking
+        setBookings(prev => prev.map(b => 
+          b.booking_id === bookingId 
+            ? { ...b, status: newStatus }
+            : b
         ));
-        alert(`✅ Status booking diubah ke: ${getStatusText(newStatus)}`);
+        
+        if (newStatus === 'active') {
+          alert(`✅ Barang sudah diserahkan!\n⏰ Countdown pengembalian dimulai!\n📅 Harus dikembalikan: ${new Date(booking.end_date).toLocaleString('id-ID')}`);
+        } else if (newStatus === 'completed') {
+          alert(`✅ Barang sudah dikembalikan!\nBooking selesai.`);
+        } else {
+          alert(`✅ Status booking diubah ke: ${getStatusText(newStatus)}`);
+        }
+        
+        // Refresh data
+        fetchBookings();
       } else {
         alert('❌ Gagal mengubah status: ' + result.message);
       }
@@ -182,9 +257,9 @@ const BookingManagement = () => {
         ));
         
         if (newPaymentStatus === 'partial') {
-          alert('✅ DP dikonfirmasi! Stok equipment dikurangi (reserved)');
+          alert('✅ DP dikonfirmasi!');
         } else if (newPaymentStatus === 'paid') {
-          alert('✅ Pembayaran lunas! Equipment siap disewa');
+          alert('✅ Pembayaran lunas!');
         }
       } else {
         alert('❌ Gagal mengubah status payment: ' + result.message);
@@ -194,7 +269,7 @@ const BookingManagement = () => {
     }
   };
 
-  // ✅ TAMBAH FUNGSI HAPUS BOOKING
+  // ✅ HAPUS BOOKING
   const handleDeleteBooking = async (bookingId, bookingCode) => {
     const confirmDelete = window.confirm(
       `⚠️ PERINGATAN!\n\nAnda yakin ingin menghapus booking:\n${bookingCode}?\n\nData yang dihapus tidak dapat dikembalikan!`
@@ -214,7 +289,6 @@ const BookingManagement = () => {
       const result = await response.json();
       
       if (result.success) {
-        // Hapus dari state
         setBookings(prev => prev.filter(booking => booking.booking_id !== bookingId));
         alert(`✅ Booking ${bookingCode} berhasil dihapus!`);
       } else {
@@ -345,6 +419,15 @@ const BookingManagement = () => {
                 <option value="partial">DP Paid</option>
                 <option value="paid">Lunas</option>
               </select>
+              
+              {/* ✅ TOGGLE SHOW COMPLETED */}
+              <Button
+                variant={showCompleted ? "default" : "outline"}
+                onClick={() => setShowCompleted(!showCompleted)}
+                className="whitespace-nowrap"
+              >
+                {showCompleted ? "🔍 Sembunyikan Selesai" : "👁️ Tampilkan Selesai"}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -359,18 +442,21 @@ const BookingManagement = () => {
           </Card>
         )}
 
-        {/* BOOKINGS TABLE */}
+        {/* BOOKINGS LIST */}
         {!loading && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Daftar Booking ({filteredBookings.length})</span>
-              </CardTitle>
+              <CardTitle>Daftar Booking ({filteredBookings.length})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {filteredBookings.map((booking) => (
-                  <Card key={booking.booking_id} className="border-l-4 border-l-blue-500">
+                  <Card key={booking.booking_id} className={`border-l-4 ${
+                    booking.status === 'active' ? 'border-l-green-500' : 
+                    booking.status === 'confirmed' ? 'border-l-blue-500' :
+                    booking.status === 'pending' ? 'border-l-yellow-500' :
+                    'border-l-gray-500'
+                  }`}>
                     <CardContent className="p-6">
                       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                         {/* BOOKING INFO */}
@@ -422,6 +508,63 @@ const BookingManagement = () => {
                                 Rp {Number(booking.total_estimated_cost || 0).toLocaleString('id-ID')}
                               </span>
                             </div>
+                            
+                            {/* ✅ COUNTDOWN TIMER UNTUK BOOKING AKTIF */}
+                            {booking.status === 'active' && countdowns[booking.booking_id] && (
+                              <div className={`mt-3 p-3 rounded-lg ${
+                                countdowns[booking.booking_id].isOverdue 
+                                  ? 'bg-red-100 border border-red-300' 
+                                  : 'bg-green-100 border border-green-300'
+                              }`}>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Clock className={`h-4 w-4 ${
+                                    countdowns[booking.booking_id].isOverdue ? 'text-red-600' : 'text-green-600'
+                                  }`} />
+                                  <span className={`font-semibold ${
+                                    countdowns[booking.booking_id].isOverdue ? 'text-red-600' : 'text-green-600'
+                                  }`}>
+                                    {countdowns[booking.booking_id].isOverdue ? '⚠️ TERLAMBAT!' : '⏰ Waktu Pengembalian'}
+                                  </span>
+                                </div>
+                                
+                                {!countdowns[booking.booking_id].isOverdue ? (
+                                  <div className="grid grid-cols-4 gap-2 text-center">
+                                    <div className="bg-white rounded p-2">
+                                      <div className="text-2xl font-bold text-green-600">
+                                        {countdowns[booking.booking_id].days}
+                                      </div>
+                                      <div className="text-xs text-gray-600">Hari</div>
+                                    </div>
+                                    <div className="bg-white rounded p-2">
+                                      <div className="text-2xl font-bold text-green-600">
+                                        {countdowns[booking.booking_id].hours}
+                                      </div>
+                                      <div className="text-xs text-gray-600">Jam</div>
+                                    </div>
+                                    <div className="bg-white rounded p-2">
+                                      <div className="text-2xl font-bold text-green-600">
+                                        {countdowns[booking.booking_id].minutes}
+                                      </div>
+                                      <div className="text-xs text-gray-600">Menit</div>
+                                    </div>
+                                    <div className="bg-white rounded p-2">
+                                      <div className="text-2xl font-bold text-green-600">
+                                        {countdowns[booking.booking_id].seconds}
+                                      </div>
+                                      <div className="text-xs text-gray-600">Detik</div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    <AlertTriangle className="h-5 w-5 text-red-600" />
+                                    <span className="text-red-600 font-semibold">
+                                      Barang sudah melewati batas waktu pengembalian!
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
                             {booking.notes && (
                               <div className="flex items-start gap-2 mt-2 p-2 bg-gray-50 rounded">
                                 <span className="text-xs text-gray-600">
@@ -435,90 +578,121 @@ const BookingManagement = () => {
                         {/* ACTIONS */}
                         <div className="lg:col-span-2">
                           <div className="space-y-3">
-                            {/* STATUS ACTIONS */}
-                            <div>
-                              <label className="text-sm font-medium text-gray-700 block mb-2">
-                                Update Status Booking:
-                              </label>
-                              <div className="flex gap-2 flex-wrap">
-                                {booking.status === 'pending' && (
-                                  <Button 
-                                    size="sm"
-                                    onClick={() => handleStatusChange(booking.booking_id, 'confirmed')}
-                                    className="bg-blue-600 hover:bg-blue-700"
-                                  >
-                                    <CheckCircle className="h-4 w-4 mr-1" />
-                                    Konfirmasi
-                                  </Button>
-                                )}
-                                {booking.status === 'confirmed' && (
-                                  <Button 
-                                    size="sm"
-                                    onClick={() => handleStatusChange(booking.booking_id, 'active')}
-                                    className="bg-green-600 hover:bg-green-700"
-                                  >
-                                    <Package className="h-4 w-4 mr-1" />
-                                    Mulai Rental
-                                  </Button>
-                                )}
-                                {booking.status === 'active' && (
-                                  <Button 
-                                    size="sm"
-                                    onClick={() => handleStatusChange(booking.booking_id, 'completed')}
-                                    className="bg-gray-600 hover:bg-gray-700"
-                                  >
-                                    <CheckCircle className="h-4 w-4 mr-1" />
-                                    Selesai
-                                  </Button>
-                                )}
-                                <Button 
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => handleStatusChange(booking.booking_id, 'cancelled')}
-                                >
-                                  <XCircle className="h-4 w-4 mr-1" />
-                                  Cancel
-                                </Button>
-                              </div>
-                            </div>
-
-                            {/* PAYMENT ACTIONS */}
-                            <div>
-                              <label className="text-sm font-medium text-gray-700 block mb-2">
-                                Update Status Payment:
-                              </label>
-                              <div className="flex gap-2 flex-wrap">
-                                {booking.payment_status === 'unpaid' && (
-                                  <>
+                            
+                            {/* ✅ HANYA TAMPILKAN TOMBOL STATUS & PAYMENT JIKA BELUM COMPLETED */}
+                            {booking.status !== 'completed' && booking.status !== 'cancelled' && (
+                              <>
+                                {/* STATUS ACTIONS */}
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700 block mb-2">
+                                    Update Status Booking:
+                                  </label>
+                                  <div className="flex gap-2 flex-wrap">
+                                    {booking.status === 'pending' && (
+                                      <Button 
+                                        size="sm"
+                                        onClick={() => handleStatusChange(booking.booking_id, 'confirmed', booking)}
+                                        className="bg-blue-600 hover:bg-blue-700"
+                                      >
+                                        <CheckCircle className="h-4 w-4 mr-1" />
+                                        Konfirmasi
+                                      </Button>
+                                    )}
+                                    {booking.status === 'confirmed' && (
+                                      <Button 
+                                        size="sm"
+                                        onClick={() => handleStatusChange(booking.booking_id, 'active', booking)}
+                                        className="bg-green-600 hover:bg-green-700"
+                                      >
+                                        <Package className="h-4 w-4 mr-1" />
+                                        Mulai Rental
+                                      </Button>
+                                    )}
+                                    {booking.status === 'active' && (
+                                      <Button 
+                                        size="sm"
+                                        onClick={() => handleStatusChange(booking.booking_id, 'completed', booking)}
+                                        className="bg-gray-600 hover:bg-gray-700"
+                                      >
+                                        <CheckCircle className="h-4 w-4 mr-1" />
+                                        Selesai
+                                      </Button>
+                                    )}
                                     <Button 
                                       size="sm"
-                                      onClick={() => handlePaymentStatusChange(booking.booking_id, 'partial')}
-                                      className="bg-yellow-600 hover:bg-yellow-700"
+                                      variant="destructive"
+                                      onClick={() => handleStatusChange(booking.booking_id, 'cancelled', booking)}
                                     >
-                                      🟡 Konfirm DP
+                                      <XCircle className="h-4 w-4 mr-1" />
+                                      Cancel
                                     </Button>
-                                    <Button 
-                                      size="sm"
-                                      onClick={() => handlePaymentStatusChange(booking.booking_id, 'paid')}
-                                      className="bg-green-600 hover:bg-green-700"
-                                    >
-                                      🟢 Konfirm Lunas
-                                    </Button>
-                                  </>
-                                )}
-                                {booking.payment_status === 'partial' && (
-                                  <Button 
-                                    size="sm"
-                                    onClick={() => handlePaymentStatusChange(booking.booking_id, 'paid')}
-                                    className="bg-green-600 hover:bg-green-700"
-                                  >
-                                    🟢 Konfirm Lunas
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
+                                  </div>
+                                </div>
 
-                            {/* ✅ TAMBAH TOMBOL DETAIL & HAPUS */}
+                                {/* PAYMENT ACTIONS */}
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700 block mb-2">
+                                    Update Status Payment:
+                                  </label>
+                                  <div className="flex gap-2 flex-wrap">
+                                    {booking.payment_status === 'unpaid' && (
+                                      <>
+                                        <Button 
+                                          size="sm"
+                                          onClick={() => handlePaymentStatusChange(booking.booking_id, 'partial')}
+                                          className="bg-yellow-600 hover:bg-yellow-700"
+                                        >
+                                          🟡 Konfirm DP
+                                        </Button>
+                                        <Button 
+                                          size="sm"
+                                          onClick={() => handlePaymentStatusChange(booking.booking_id, 'paid')}
+                                          className="bg-green-600 hover:bg-green-700"
+                                        >
+                                          🟢 Konfirm Lunas
+                                        </Button>
+                                      </>
+                                    )}
+                                    {booking.payment_status === 'partial' && (
+                                      <Button 
+                                        size="sm"
+                                        onClick={() => handlePaymentStatusChange(booking.booking_id, 'paid')}
+                                        className="bg-green-600 hover:bg-green-700"
+                                      >
+                                        🟢 Konfirm Lunas
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              </>
+                            )}
+
+                            {/* ✅ TAMPILKAN INFO JIKA BOOKING SUDAH SELESAI/CANCELLED */}
+                            {booking.status === 'completed' && (
+                              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <div className="flex items-center gap-2 text-green-700">
+                                  <CheckCircle className="h-5 w-5" />
+                                  <span className="font-semibold">Booking Selesai</span>
+                                </div>
+                                <p className="text-sm text-green-600 mt-1">
+                                  Equipment sudah dikembalikan dan stok telah dipulihkan.
+                                </p>
+                              </div>
+                            )}
+                            
+                            {booking.status === 'cancelled' && (
+                              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <div className="flex items-center gap-2 text-red-700">
+                                  <XCircle className="h-5 w-5" />
+                                  <span className="font-semibold">Booking Dibatalkan</span>
+                                </div>
+                                <p className="text-sm text-red-600 mt-1">
+                                  Booking ini telah dibatalkan oleh admin.
+                                </p>
+                              </div>
+                            )}
+
+                            {/* ✅ DETAIL & HAPUS - SELALU TAMPIL */}
                             <div className="flex gap-2 pt-2 border-t">
                               <Link to={`/admin/bookings/${booking.booking_id}`}>
                                 <Button size="sm" variant="outline">
