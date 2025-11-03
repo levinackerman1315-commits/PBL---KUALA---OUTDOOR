@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/Naufal
 // export default Browse
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom'; // ✅ TAMBAHKAN

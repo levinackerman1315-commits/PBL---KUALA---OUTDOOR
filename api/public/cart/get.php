@@ -1,4 +1,6 @@
 <?php
+// filepath: api/public/cart/get.php
+
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -25,8 +27,8 @@ if ($customer_id <= 0) {
 try {
     $database = new Database();
     $db = $database->connect();
-    
-    // ✅ QUERY YANG SESUAI DENGAN STRUKTUR TABEL SEBENARNYA
+
+    // Query utama: ambil item di cart + data equipment
     $query = "
         SELECT 
             c.cart_id,
@@ -45,7 +47,7 @@ try {
             e.material,
             e.stock_quantity,
             e.price_per_day,
-            e.condition_item,  -- ✅ condition_item, bukan condition
+            e.condition_item,
             e.equipment_type,
             e.image_url,
             e.created_at
@@ -54,18 +56,49 @@ try {
         WHERE c.customer_id = :customer_id
         ORDER BY c.added_at DESC
     ";
-    
+
     $stmt = $db->prepare($query);
     $stmt->bindParam(':customer_id', $customer_id, PDO::PARAM_INT);
     $stmt->execute();
-    
+
     $cartItems = [];
-    
+
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $equipment_id = $row['equipment_id'];
+
+        // Ambil semua gambar untuk equipment ini
+        $imageQuery = "
+            SELECT 
+                image_id,
+                image_url,
+                is_primary,
+                display_order
+            FROM equipment_images
+            WHERE equipment_id = :equipment_id
+            ORDER BY display_order ASC, is_primary DESC
+        ";
+
+        $imageStmt = $db->prepare($imageQuery);
+        $imageStmt->bindParam(':equipment_id', $equipment_id, PDO::PARAM_INT);
+        $imageStmt->execute();
+        $images = $imageStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Format images
+        $formattedImages = array_map(function($img) {
+            return [
+                'image_id' => (int)$img['image_id'],
+                'image_url' => $img['image_url'],
+                'is_primary' => (bool)$img['is_primary'],
+                'display_order' => (int)$img['display_order']
+            ];
+        }, $images);
+
+        // Buat item cart
         $cartItems[] = [
             'cart_id' => (int)$row['cart_id'],
             'quantity' => (int)$row['quantity'],
             'added_at' => $row['added_at'],
+            'updated_at' => $row['updated_at'],
             'equipment' => [
                 'equipment_id' => (int)$row['equipment_id'],
                 'name' => $row['name'],
@@ -78,26 +111,28 @@ try {
                 'material' => $row['material'],
                 'stock_quantity' => (int)$row['stock_quantity'],
                 'price_per_day' => (float)$row['price_per_day'],
-                'condition' => $row['condition_item'], // ✅ condition_item di-map ke condition
+                'condition' => $row['condition_item'], // Map dari condition_item
                 'equipment_type' => $row['equipment_type'],
                 'image_url' => $row['image_url'],
                 'created_at' => $row['created_at'],
-                // ✅ FIELD YANG DIBUTUHKAN FRONTEND - BERI NILAI DEFAULT
-                'available_stock' => (int)$row['stock_quantity'], // Gunakan stock_quantity
-                'reserved_stock' => 0,  // Default value
-                'rented_stock' => 0,    // Default value
-                'images' => []          // Default empty array
+                // Stok status
+                'available_stock' => (int)$row['stock_quantity'],
+                'reserved_stock' => 0,
+                'rented_stock' => 0,
+                // Gambar lengkap
+                'images' => $formattedImages
             ]
         ];
     }
-    
+
     echo json_encode([
         'success' => true,
         'cart_items' => $cartItems,
         'total_items' => count($cartItems)
     ]);
-    
+
 } catch (PDOException $e) {
+    http_response_code(500);
     echo json_encode([
         'success' => false,
         'message' => 'Database error: ' . $e->getMessage()
