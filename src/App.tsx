@@ -38,7 +38,6 @@ import EquipmentManagement from "./pages/EquipmentManagement";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import PackageManagement from "./pages/PackageManagement";
 
 // TEMPORARY BOOKINGS COMPONENT
 const Bookings = () => (
@@ -131,16 +130,6 @@ const App = () => (
                     }
                   />
                   
-                  {/* ✅ TAMBAHKAN ROUTE PACKAGE MANAGEMENT */}
-                  <Route
-                    path="/admin/packages"
-                    element={
-                      <ProtectedRoute>
-                        <PackageManagement />
-                      </ProtectedRoute>
-                    }
-                  />
-                  
                   {/* OPEN TRIP MANAGEMENT */}
                   <Route
                     path="/admin/trips"
@@ -181,4 +170,4 @@ const App = () => (
   </GoogleOAuthProvider>
 );
 
-export default App;
+export default App;z
