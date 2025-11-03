@@ -1,11 +1,16 @@
 <?php
+// filepath: c:\xampp\htdocs\PBL-KELANA-OUTDOOR\api\admin\bookings.php
+
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET, PUT, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
+// ✅ AKTIFKAN ERROR REPORTING
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../logs/booking_errors.log');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -24,8 +29,9 @@ try {
 
     $method = $_SERVER['REQUEST_METHOD'];
 
-    // GET: Ambil semua booking
+    // ✅ GET: Ambil semua booking
     if ($method === 'GET') {
+        // ✅ QUERY SIMPLIFIED - TANPA GROUP_CONCAT (kemungkinan error di sini)
         $query = "
             SELECT 
                 b.booking_id,
@@ -34,6 +40,7 @@ try {
                 b.customer_name,
                 b.customer_phone,
                 b.customer_email,
+                b.customer_identity_number,
                 b.start_date,
                 b.end_date,
                 b.estimated_duration,
@@ -47,50 +54,52 @@ try {
                 b.created_at,
                 b.payment_date,
                 b.handover_date,
-                b.return_date,
-                c.name AS customer_full_name,
-                c.phone AS customer_phone_db,
-                c.email AS customer_email_db,
-                GROUP_CONCAT(
-                    CONCAT(e.name, ' (', bi.quantity, 'x)') 
-                    SEPARATOR ', '
-                ) AS equipment_list
+                b.return_date
             FROM bookings b
-            LEFT JOIN customers c ON b.customer_id = c.customer_id
-            LEFT JOIN booking_items bi ON b.booking_id = bi.booking_id
-            LEFT JOIN equipment e ON bi.equipment_id = e.equipment_id
-            GROUP BY b.booking_id
             ORDER BY b.created_at DESC
         ";
 
         $stmt = $db->prepare($query);
+        
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $db->errorInfo()[2]);
+        }
+        
         $stmt->execute();
         $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Format angka
+        // ✅ TAMBAHKAN EQUIPMENT LIST MANUAL (PER BOOKING)
         foreach ($bookings as &$booking) {
-            $booking['estimated_duration'] = (int)$booking['estimated_duration'];
-            $booking['total_estimated_cost'] = (int)$booking['total_estimated_cost'];
-            $booking['actual_duration'] = $booking['actual_duration'] ? (int)$booking['actual_duration'] : null;
-            $booking['total_actual_cost'] = $booking['total_actual_cost'] ? (int)$booking['total_actual_cost'] : null;
-            $booking['compensation_fee'] = $booking['compensation_fee'] ? (int)$booking['compensation_fee'] : 0;
-
-            // Gunakan data customer dari bookings jika tidak ada di customers
-            $booking['customer_name'] = $booking['customer_name'] ?: $booking['customer_full_name'];
-            $booking['customer_phone'] = $booking['customer_phone'] ?: $booking['customer_phone_db'];
-            $booking['customer_email'] = $booking['customer_email'] ?: $booking['customer_email_db'];
-
-            // Hapus field duplikat
-            unset(
-                $booking['customer_full_name'],
-                $booking['customer_phone_db'],
-                $booking['customer_email_db']
-            );
-
-            // Default equipment list
-            if (empty($booking['equipment_list'])) {
-                $booking['equipment_list'] = "Tidak ada equipment";
+            // Get equipment items untuk booking ini
+            $itemQuery = "
+                SELECT 
+                    e.name,
+                    bi.quantity
+                FROM booking_items bi
+                JOIN equipment e ON bi.equipment_id = e.equipment_id
+                WHERE bi.booking_id = ?
+            ";
+            
+            $itemStmt = $db->prepare($itemQuery);
+            $itemStmt->execute([$booking['booking_id']]);
+            $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Format equipment names
+            $equipmentNames = [];
+            foreach ($items as $item) {
+                $equipmentNames[] = $item['name'] . ' (' . $item['quantity'] . 'x)';
             }
+            
+            $booking['equipment_names'] = !empty($equipmentNames) 
+                ? implode(', ', $equipmentNames) 
+                : 'Tidak ada equipment';
+            
+            // ✅ Format numbers
+            $booking['estimated_duration'] = (int)$booking['estimated_duration'];
+            $booking['total_estimated_cost'] = (float)$booking['total_estimated_cost'];
+            $booking['actual_duration'] = $booking['actual_duration'] ? (int)$booking['actual_duration'] : null;
+            $booking['total_actual_cost'] = $booking['total_actual_cost'] ? (float)$booking['total_actual_cost'] : null;
+            $booking['compensation_fee'] = $booking['compensation_fee'] ? (float)$booking['compensation_fee'] : 0;
         }
 
         http_response_code(200);
@@ -98,10 +107,12 @@ try {
             'success' => true,
             'data' => $bookings,
             'total' => count($bookings)
-        ]);
+        ], JSON_PRETTY_PRINT);
+        
+        exit;
     }
 
-    // PUT: Update status atau payment_status
+    // ✅ PUT: Update status atau payment_status
     elseif ($method === 'PUT') {
         $data = json_decode(file_get_contents("php://input"), true);
 
@@ -131,9 +142,17 @@ try {
             exit();
         }
 
-        // Tambahkan timestamp otomatis
+        // Timestamp otomatis
         if (isset($data['payment_status']) && $data['payment_status'] === 'paid') {
             $updates[] = "payment_date = NOW()";
+        }
+
+        if (isset($data['status']) && $data['status'] === 'active') {
+            $updates[] = "handover_date = NOW()";
+        }
+
+        if (isset($data['status']) && $data['status'] === 'completed') {
+            $updates[] = "return_date = NOW()";
         }
 
         $query = "UPDATE bookings SET " . implode(", ", $updates) . " WHERE booking_id = ?";
@@ -155,6 +174,7 @@ try {
                 "message" => "Gagal memperbarui booking"
             ]);
         }
+        exit;
     }
 
     // Method tidak diizinkan
@@ -164,13 +184,18 @@ try {
             "success" => false,
             "message" => "Method tidak diizinkan"
         ]);
+        exit;
     }
 
 } catch (Exception $e) {
+    error_log("❌ Booking API Error: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
+    
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => "Error: " . $e->getMessage()
-    ]);
+        "message" => "Error: " . $e->getMessage(),
+        "trace" => $e->getTraceAsString() // ✅ HANYA UNTUK DEBUGGING
+    ], JSON_PRETTY_PRINT);
 }
 ?>
