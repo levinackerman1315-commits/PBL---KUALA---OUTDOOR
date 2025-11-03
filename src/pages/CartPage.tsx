@@ -618,9 +618,44 @@ const CartPage = () => {
                     </div>
                   </div>
                   
+                  {/* ✅ PERBAIKAN: TOMBOL LANJUT KE PEMBAYARAN - KIRIM DATA CART */}
                   <Button 
-                    onClick={() => navigate('/booking/form')}
+                    onClick={() => {
+                      // ✅ VALIDASI: Cek apakah ada barang di cart
+                      if (allCartItems.length === 0) {
+                        toast({
+                          title: '⚠️ Keranjang Kosong',
+                          description: 'Tambahkan equipment atau paket terlebih dahulu',
+                          variant: 'destructive'
+                        })
+                        return
+                      }
+
+                      // ✅ FORMAT DATA UNTUK BOOKINGFORM
+                      const cartItemsForBooking = allCartItems.map(item => ({
+                        cart_type: item.cart_type,
+                        equipment: item.cart_type === 'equipment' ? item.equipment : null,
+                        package_id: item.cart_type === 'package' ? item.package_id : null,
+                        package_name: item.cart_type === 'package' ? item.package_name : null,
+                        quantity: item.quantity,
+                        price_per_day: item.price_per_day,
+                        total_price: item.total_price
+                      }))
+
+                      console.log('📦 Sending cart data to booking form:', cartItemsForBooking)
+
+                      // ✅ NAVIGATE DENGAN STATE
+                      navigate('/booking/form', {
+                        state: {
+                          cartItems: cartItemsForBooking,
+                          totalItems: getTotalItems(),
+                          totalPrice: getTotalPrice(),
+                          fromCart: true
+                        }
+                      })
+                    }}
                     className="w-full bg-green-600 hover:bg-green-700 text-base py-3 mb-3"
+                    disabled={allCartItems.length === 0}
                   >
                     Lanjut ke Pembayaran
                   </Button>
@@ -629,6 +664,7 @@ const CartPage = () => {
                     variant="outline"
                     onClick={handleClearCart}
                     className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                    disabled={allCartItems.length === 0}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Kosongkan Keranjang
