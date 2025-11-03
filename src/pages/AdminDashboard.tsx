@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-
-
-=======
 import { useState, useEffect } from "react";
->>>>>>> origin/Naufal
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {

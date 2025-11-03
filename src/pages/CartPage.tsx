@@ -1,15 +1,3 @@
-<<<<<<< HEAD
-
-
-
-import { useCart } from '@/contexts/CartContext';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, Trash2, ShoppingCart, ArrowLeft, ExternalLink, Image as ImageIcon, RefreshCw } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-=======
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
@@ -30,7 +18,6 @@ import {
   RefreshCw,
   Package
 } from 'lucide-react'
->>>>>>> origin/Naufal
 import {
   AlertDialog,
   AlertDialogAction,

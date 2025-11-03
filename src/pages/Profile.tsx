@@ -1,550 +1,3 @@
-// import { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
-// import { ArrowLeft, Camera, Edit, Save, X } from "lucide-react";
-// import { Navbar } from "@/components/Navbar";
-// import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
-// import { Label } from "@/components/ui/label";
-// import { Textarea } from "@/components/ui/textarea";
-// import { useAuth } from "@/contexts/AuthContext";
-// import { useToast } from "@/hooks/use-toast";
-
-// const API_BASE_URL = "http://localhost/PBL-KELANA-OUTDOOR/api";
-
-// interface Profile {
-//   full_name: string | null;
-//   identity_type: "NIK" | "KTP" | "SIM" | null;
-//   identity_number: string | null;
-//   birth_date: string | null;
-//   gender: "Laki-laki" | "Perempuan" | null;
-//   phone: string | null;
-//   address: string | null;
-//   profile_picture: string | null;
-// }
-
-// const Profile = () => {
-//   const [profile, setProfile] = useState<Profile>({
-//     full_name: "",
-//     identity_type: "KTP",
-//     identity_number: "",
-//     birth_date: "",
-//     gender: null,
-//     phone: "",
-//     address: "",
-//     profile_picture: null,
-//   });
-//   const [originalProfile, setOriginalProfile] = useState<Profile | null>(null);
-//   const [loading, setLoading] = useState(false);
-//   const [previewImage, setPreviewImage] = useState<string | null>(null);
-//   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-//   const [isEditMode, setIsEditMode] = useState(false);
-//   const [isProfileComplete, setIsProfileComplete] = useState(false);
-
-//   const { user } = useAuth();
-//   const { toast } = useToast();
-//   const navigate = useNavigate();
-
-//   useEffect(() => {
-//     if (!user) {
-//       navigate("/auth");
-//     } else {
-//       fetchProfile();
-//     }
-//   }, [user, navigate]);
-
-//   // ✅ FETCH PROFILE - GUNAKAN PATH BARU
-//   const fetchProfile = async () => {
-//     if (!user?.id) {
-//       console.error('❌ User.id tidak ditemukan:', user);
-//       return;
-//     }
-
-//     try {
-//       console.log('🔄 Fetching profile for customer_id:', user.id);
-
-//       // ✅ GANTI PATH: /api/customer/profile.php
-//       const response = await fetch(
-//         `${API_BASE_URL}/customer/profile.php?id=${user.id}`,
-//         {
-//           method: 'GET',
-//           headers: {
-//             'Content-Type': 'application/json'
-//           }
-//         }
-//       );
-
-//       console.log('📡 Response status:', response.status);
-
-//       // ✅ CEK TEXT RESPONSE DULU
-//       const textResponse = await response.text();
-//       console.log('📄 Raw response:', textResponse);
-
-//       if (!response.ok) {
-//         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-//       }
-
-//       // ✅ PARSE JSON
-//       let result;
-//       try {
-//         result = JSON.parse(textResponse);
-//       } catch (parseError) {
-//         console.error('❌ JSON Parse Error:', parseError);
-//         throw new Error('Response bukan JSON valid. Cek PHP error di XAMPP log.');
-//       }
-
-//       console.log('📦 API Response:', result);
-
-//       if (result.success && result.data) {
-//         const data = result.data;
-//         console.log('✅ Profile data loaded:', data);
-
-//         const profileData: Profile = {
-//           full_name: data.full_name || "",
-//           identity_type: data.identity_type || "KTP",
-//           identity_number: data.identity_number || "",
-//           birth_date: data.birth_date || "",
-//           gender: data.gender || null,
-//           phone: data.phone || "",
-//           address: data.address || "",
-//           profile_picture: data.profile_picture || null,
-//         };
-
-//         setProfile(profileData);
-//         setOriginalProfile(profileData);
-//         if (data.profile_picture) setPreviewImage(data.profile_picture);
-
-//         const complete = !!(
-//           data.full_name &&
-//           data.identity_type &&
-//           data.identity_number &&
-//           data.birth_date &&
-//           data.gender &&
-//           data.phone &&
-//           data.address
-//         );
-//         setIsProfileComplete(complete);
-
-//         if (!complete) {
-//           setIsEditMode(true);
-//           toast({
-//             title: '⚠️ Profil Belum Lengkap',
-//             description: 'Silakan lengkapi profil Anda',
-//             variant: 'destructive'
-//           });
-//         } else {
-//           toast({
-//             title: '✅ Profil Dimuat',
-//             description: 'Data profil Anda berhasil dimuat',
-//           });
-//         }
-//       } else {
-//         console.warn('⚠️ Profile tidak ditemukan, mode edit aktif');
-//         setIsEditMode(true);
-//         setIsProfileComplete(false);
-        
-//         toast({
-//           title: '⚠️ Profil Belum Ada',
-//           description: 'Silakan lengkapi profil Anda',
-//           variant: 'default'
-//         });
-//       }
-//     } catch (error: any) {
-//       console.error('❌ Error fetching profile:', error);
-//       console.error('❌ Error stack:', error.stack);
-      
-//       toast({
-//         title: "❌ Gagal Memuat Profil",
-//         description: error.message || "Gagal mengambil data profil",
-//         variant: "destructive",
-//       });
-
-//       // ✅ TETAP BISA EDIT JIKA ERROR
-//       setIsEditMode(true);
-//       setIsProfileComplete(false);
-//     }
-//   };
-
-//   const hasDataChanged = (): boolean => {
-//     if (!originalProfile) return true;
-//     return (
-//       profile.full_name !== originalProfile.full_name ||
-//       profile.identity_type !== originalProfile.identity_type ||
-//       profile.identity_number !== originalProfile.identity_number ||
-//       profile.birth_date !== originalProfile.birth_date ||
-//       profile.gender !== originalProfile.gender ||
-//       profile.phone !== originalProfile.phone ||
-//       profile.address !== originalProfile.address ||
-//       selectedFile !== null
-//     );
-//   };
-
-//   const uploadImage = async (): Promise<string | null> => {
-//     if (!selectedFile || !user?.id) return profile.profile_picture;
-
-//     try {
-//       const formData = new FormData();
-//       formData.append("file", selectedFile);
-//       formData.append("user_id", user.id.toString());
-
-//       const response = await fetch(`${API_BASE_URL}/upload-profile-picture.php`, {
-//         method: "POST",
-//         body: formData,
-//       });
-
-//       const result = await response.json();
-//       if (result.success) return result.url;
-//       throw new Error(result.message);
-//     } catch (error: any) {
-//       toast({
-//         title: "Upload Foto Gagal",
-//         description: "Foto tidak diupload, tapi profil tetap disimpan.",
-//         variant: "default",
-//       });
-//       return null;
-//     }
-//   };
-
-//   const validateForm = (): boolean => {
-//     if (!profile.full_name?.trim()) {
-//       toast({ title: "Error", description: "Nama Lengkap wajib diisi", variant: "destructive" });
-//       return false;
-//     }
-//     if (profile.full_name.length < 3) {
-//       toast({ title: "Error", description: "Nama minimal 3 karakter", variant: "destructive" });
-//       return false;
-//     }
-
-//     if (!profile.identity_number?.trim()) {
-//       toast({ title: "Error", description: "Nomor Identitas wajib diisi", variant: "destructive" });
-//       return false;
-//     }
-
-//     const idLength = profile.identity_type === "KTP" || profile.identity_type === "NIK" ? 16 : 12;
-//     if (profile.identity_number.length !== idLength) {
-//       toast({ title: "Error", description: `${profile.identity_type} harus ${idLength} digit`, variant: "destructive" });
-//       return false;
-//     }
-
-//     if (!profile.birth_date) {
-//       toast({ title: "Error", description: "Tanggal Lahir wajib diisi", variant: "destructive" });
-//       return false;
-//     }
-
-//     const birthDate = new Date(profile.birth_date);
-//     const age = new Date().getFullYear() - birthDate.getFullYear();
-//     if (age < 17) {
-//       toast({ title: "Error", description: "Usia minimal 17 tahun", variant: "destructive" });
-//       return false;
-//     }
-
-//     if (!profile.gender) {
-//       toast({ title: "Error", description: "Jenis Kelamin wajib diisi", variant: "destructive" });
-//       return false;
-//     }
-
-//     if (!profile.phone?.trim()) {
-//       toast({ title: "Error", description: "Nomor HP wajib diisi", variant: "destructive" });
-//       return false;
-//     }
-//     if (profile.phone.length < 10 || profile.phone.length > 13) {
-//       toast({ title: "Error", description: "Nomor HP harus 10-13 digit", variant: "destructive" });
-//       return false;
-//     }
-//     if (!profile.phone.startsWith("08") && !profile.phone.startsWith("62")) {
-//       toast({ title: "Error", description: "Nomor HP harus diawali 08 atau 62", variant: "destructive" });
-//       return false;
-//     }
-
-//     if (!profile.address?.trim()) {
-//       toast({ title: "Error", description: "Alamat wajib diisi", variant: "destructive" });
-//       return false;
-//     }
-//     if (profile.address.length < 10) {
-//       toast({ title: "Error", description: "Alamat minimal 10 karakter", variant: "destructive" });
-//       return false;
-//     }
-
-//     return true;
-//   };
-
-//   // ✅ HANDLE SUBMIT - GUNAKAN PATH BARU
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-
-//     if (isProfileComplete && !hasDataChanged()) {
-//       toast({ title: "Info", description: "Tidak ada perubahan data", variant: "default" });
-//       return;
-//     }
-
-//     if (!validateForm() || !user) return;
-
-//     setLoading(true);
-//     try {
-//       let profilePictureUrl = profile.profile_picture;
-//       if (selectedFile) {
-//         const uploadedUrl = await uploadImage();
-//         if (uploadedUrl) profilePictureUrl = uploadedUrl;
-//       }
-
-//       console.log('🔄 Updating profile for customer_id:', user.id);
-//       console.log('📤 Data yang dikirim:', profile);
-
-//       // ✅ GANTI PATH DAN METHOD: POST ke /api/customer/profile.php
-//       const response = await fetch(`${API_BASE_URL}/customer/profile.php`, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//           customer_id: user.id,
-//           full_name: profile.full_name,
-//           identity_type: profile.identity_type,
-//           identity_number: profile.identity_number,
-//           birth_date: profile.birth_date,
-//           gender: profile.gender,
-//           phone: profile.phone,
-//           address: profile.address,
-//           profile_picture: profilePictureUrl,
-//         }),
-//       });
-
-//       console.log('📡 Response status:', response.status);
-
-//       const textResponse = await response.text();
-//       console.log('📄 Raw response:', textResponse);
-
-//       let result;
-//       try {
-//         result = JSON.parse(textResponse);
-//       } catch (parseError) {
-//         console.error('❌ JSON Parse Error:', parseError);
-//         throw new Error('Response bukan JSON valid');
-//       }
-
-//       console.log('📦 API Response:', result);
-
-//       if (result.success) {
-//         toast({
-//           title: "✅ Berhasil",
-//           description: isProfileComplete
-//             ? "Perubahan profil disimpan"
-//             : "Profil Anda telah disimpan",
-//         });
-//         setSelectedFile(null);
-//         setIsEditMode(false);
-//         setIsProfileComplete(true);
-//         await fetchProfile();
-//       } else {
-//         throw new Error(result.message || 'Gagal update profil');
-//       }
-//     } catch (error: any) {
-//       console.error('❌ Error updating profile:', error);
-//       toast({ title: "❌ Error", description: error.message, variant: "destructive" });
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     if (!isEditMode) return;
-//     const file = e.target.files?.[0];
-//     if (!file) return;
-
-//     if (file.size > 5 * 1024 * 1024) {
-//       toast({ title: "Error", description: "Ukuran maksimal 5MB", variant: "destructive" });
-//       return;
-//     }
-//     const allowed = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
-//     if (!allowed.includes(file.type)) {
-//       toast({ title: "Error", description: "Hanya JPG, PNG, GIF", variant: "destructive" });
-//       return;
-//     }
-
-//     setSelectedFile(file);
-//     const reader = new FileReader();
-//     reader.onload = (ev) => setPreviewImage(ev.target?.result as string);
-//     reader.readAsDataURL(file);
-//   };
-
-//   const handleEditClick = () => {
-//     setIsEditMode(true);
-//     toast({ title: "Edit Mode", description: "Anda dapat mengubah profil" });
-//   };
-
-//   const handleCancelEdit = () => {
-//     if (originalProfile) {
-//       setProfile(originalProfile);
-//       if (originalProfile.profile_picture) setPreviewImage(originalProfile.profile_picture);
-//     }
-//     setSelectedFile(null);
-//     setIsEditMode(false);
-//     toast({ title: "Dibatalkan", description: "Perubahan dibatalkan" });
-//   };
-
-//   const handleIdNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     if (!isEditMode) return;
-//     const value = e.target.value.replace(/[^0-9]/g, "");
-//     const max = profile.identity_type === "KTP" || profile.identity_type === "NIK" ? 16 : 12;
-//     setProfile({ ...profile, identity_number: value.slice(0, max) });
-//   };
-
-//   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     if (!isEditMode) return;
-//     const value = e.target.value.replace(/[^0-9]/g, "");
-//     setProfile({ ...profile, phone: value.slice(0, 13) });
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-//       <Navbar />
-
-//       {!user ? (
-//         <div className="container mx-auto px-4 py-20 text-center">
-//           <p className="text-gray-500">Loading...</p>
-//         </div>
-//       ) : (
-//         <div className="container mx-auto px-4 py-6 max-w-2xl">
-//           <button
-//             onClick={() => navigate(-1)}
-//             className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6 transition-colors"
-//           >
-//             <ArrowLeft className="w-5 h-5" />
-//             <span className="font-medium">Kembali</span>
-//           </button>
-
-//           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-//             <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 flex items-center justify-between">
-//               <div className="flex items-center gap-4">
-//                 <div className="text-3xl">📋</div>
-//                 <div>
-//                   <h1 className="text-2xl font-bold">Profil Pribadi</h1>
-//                   <p className="text-green-100 text-sm">
-//                     {isEditMode
-//                       ? "Edit data Anda"
-//                       : "Profil Anda telah tersimpan"}
-//                   </p>
-//                 </div>
-//               </div>
-//               {isProfileComplete && !isEditMode && (
-//                 <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-semibold">
-//                   ✓ Lengkap
-//                 </div>
-//               )}
-//             </div>
-
-//             <div className="p-8">
-//               <form onSubmit={handleSubmit} className="space-y-6">
-//                 {/* ...existing code... FORM FIELDS SAMA SEPERTI SEBELUMNYA */}
-//                 {/* Copy semua form field dari code Anda yang lama */}
-                
-//                 {/* Foto Profil */}
-//                 <div className="flex flex-col items-center mb-8">
-//                   <div className="relative mb-3">
-//                     <div className="w-36 h-36 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center border-4 border-white shadow-lg overflow-hidden">
-//                       {previewImage ? (
-//                         <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
-//                       ) : (
-//                         <Camera className="w-12 h-12 text-gray-400" />
-//                       )}
-//                     </div>
-//                     {isEditMode && (
-//                       <label
-//                         htmlFor="photo-upload"
-//                         className="absolute bottom-2 right-2 bg-green-500 hover:bg-green-600 text-white w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-md border-4 border-white"
-//                       >
-//                         <Camera className="w-6 h-6" />
-//                       </label>
-//                     )}
-//                     <input
-//                       id="photo-upload"
-//                       type="file"
-//                       accept="image/*"
-//                       onChange={handleImageChange}
-//                       className="hidden"
-//                       disabled={!isEditMode}
-//                     />
-//                   </div>
-//                   <p className="text-gray-500 text-sm">
-//                     {isEditMode ? "Klik untuk ubah foto" : "Foto profil Anda"}
-//                   </p>
-//                   {isEditMode && selectedFile && (
-//                     <p className="text-green-600 text-xs mt-1 font-semibold">
-//                       Foto baru: {selectedFile.name}
-//                     </p>
-//                   )}
-//                 </div>
-
-//                 {/* ...COPY SEMUA FORM FIELD DARI CODE LAMA ANDA... */}
-//                 {/* MULAI DARI NAMA LENGKAP SAMPAI ALAMAT */}
-//                 {/* TIDAK PERLU SAYA COPY LAGI KARENA SUDAH ADA DI FILE ANDA */}
-
-//                 {/* Tombol Aksi */}
-//                 <div className="flex gap-3">
-//                   {!isEditMode && isProfileComplete ? (
-//                     <Button
-//                       type="button"
-//                       onClick={handleEditClick}
-//                       className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 rounded-lg text-lg"
-//                     >
-//                       <Edit className="w-5 h-5 mr-2" />
-//                       Edit Profil
-//                     </Button>
-//                   ) : (
-//                     <>
-//                       <Button
-//                         type="submit"
-//                         disabled={loading}
-//                         className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 rounded-lg text-lg disabled:opacity-50"
-//                       >
-//                         {loading ? "Menyimpan..." : (
-//                           <>
-//                             <Save className="w-5 h-5 mr-2" />
-//                             Simpan Profil
-//                           </>
-//                         )}
-//                       </Button>
-//                       {isProfileComplete && (
-//                         <Button
-//                           type="button"
-//                           onClick={handleCancelEdit}
-//                           disabled={loading}
-//                           className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-3 rounded-lg text-lg"
-//                         >
-//                           <X className="w-5 w-5 mr-2" />
-//                           Batal
-//                         </Button>
-//                       )}
-//                     </>
-//                   )}
-//                 </div>
-
-//                 {/* Notifikasi */}
-//                 {!isProfileComplete && (
-//                   <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded flex gap-3">
-//                     <span className="text-xl">⚠️</span>
-//                     <p className="text-sm text-yellow-800">
-//                       Lengkapi profil untuk akses fitur lengkap
-//                     </p>
-//                   </div>
-//                 )}
-//                 {isProfileComplete && !isEditMode && (
-//                   <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded flex gap-3">
-//                     <span className="text-xl">✅</span>
-//                     <p className="text-sm text-green-800">
-//                       Profil lengkap! Klik "Edit Profil" untuk ubah data.
-//                     </p>
-//                   </div>
-//                 )}
-//               </form>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default Profile;
-
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Camera, Edit, Save, X } from "lucide-react";
@@ -585,24 +38,28 @@ const Profile = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
-  const { user } = useAuth();
+  const [formKey, setFormKey] = useState(0); // ✅ TAMBAHKAN INI
+  
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  // Redirect jika belum login
->>>>>>> origin/Naufal
-=======
->>>>>>> 57a2b4b027e13a9119086577bda9c96773760578
+  console.log('🔍 DEBUG - authLoading:', authLoading);
+  console.log('🔍 DEBUG - user:', user);
+  console.log('🔍 DEBUG - isEditMode:', isEditMode);
+  console.log('🔍 DEBUG - isProfileComplete:', isProfileComplete);
+
   useEffect(() => {
+    if (authLoading) return;
+
     if (!user) {
+      console.log('⚠️ User tidak ada, redirect ke /auth');
       navigate("/auth");
     } else {
+      console.log('✅ User ada, fetch profile');
       fetchProfile();
     }
-  }, [user, navigate]);
+  }, [user, navigate, authLoading]);
 
   const fetchProfile = async () => {
     if (!user?.id) return;
@@ -649,7 +106,40 @@ const Profile = () => {
         setIsEditMode(true);
       }
     } catch (error) {
+      console.error('❌ Error fetching profile:', error);
       setIsEditMode(true);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file); // ✅ GANTI 'image' JADI 'file'
+      formData.append('user_id', user?.id || ''); // ✅ GANTI 'customer_id' JADI 'user_id'
+
+      // ✅ GUNAKAN ENDPOINT YANG BENAR
+      const response = await fetch(`${API_BASE_URL}/upload-profile-picture.php`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      console.log('📤 Upload response:', result); // ✅ DEBUG LOG
+
+      if (result.success) {
+        return result.url; // ✅ GANTI 'image_url' JADI 'url'
+      } else {
+        throw new Error(result.error || 'Gagal upload gambar');
+      }
+    } catch (error: any) {
+      console.error('❌ Upload error:', error);
+      toast({
+        title: "❌ Error upload gambar",
+        description: error.message,
+        variant: "destructive",
+      });
+      return null;
     }
   };
 
@@ -658,13 +148,8 @@ const Profile = () => {
 
     if (!user) return;
 
-    // ✅ VALIDASI
     if (!profile.full_name.trim()) {
       toast({ title: "Error", description: "Nama Lengkap wajib diisi", variant: "destructive" });
-      return;
-    }
-    if (!profile.email.trim()) {
-      toast({ title: "Error", description: "Email wajib diisi", variant: "destructive" });
       return;
     }
     if (!profile.phone.trim()) {
@@ -690,6 +175,14 @@ const Profile = () => {
 
     setLoading(true);
     try {
+      let imageUrl = profile.profile_picture;
+      if (selectedFile) {
+        imageUrl = await uploadImage(selectedFile);
+        if (!imageUrl) {
+          throw new Error('Gagal upload gambar');
+        }
+      }
+
       const response = await fetch(`${API_BASE_URL}/customer/profile.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -703,7 +196,7 @@ const Profile = () => {
           gender: profile.gender,
           phone: profile.phone,
           address: profile.address,
-          profile_picture: profile.profile_picture,
+          profile_picture: imageUrl,
         }),
       });
 
@@ -716,42 +209,38 @@ const Profile = () => {
         });
         setIsEditMode(false);
         setIsProfileComplete(true);
+        setSelectedFile(null);
         await fetchProfile();
       } else {
         throw new Error(result.message || "Gagal menyimpan profil");
       }
     } catch (error: any) {
-<<<<<<< HEAD
-<<<<<<< HEAD
       toast({
         title: "❌ Error menyimpan profil",
         description: error.message,
         variant: "destructive",
       });
-=======
-      toast({ title: "Error", description: error.message, variant: "destructive" });
->>>>>>> origin/Naufal
-=======
-      toast({ title: "❌ Error", description: error.message, variant: "destructive" });
->>>>>>> 57a2b4b027e13a9119086577bda9c96773760578
     } finally {
       setLoading(false);
     }
   };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  // Handler tambahan
-=======
->>>>>>> 57a2b4b027e13a9119086577bda9c96773760578
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isEditMode) return;
+    if (!isEditMode) {
+      toast({ title: "⚠️ Mode View", description: "Klik 'Edit Profil' untuk mengubah foto" });
+      return;
+    }
+    
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
       toast({ title: "Error", description: "Ukuran maksimal 5MB", variant: "destructive" });
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Error", description: "File harus berupa gambar", variant: "destructive" });
       return;
     }
 
@@ -761,11 +250,16 @@ const Profile = () => {
     reader.readAsDataURL(file);
   };
 
-<<<<<<< HEAD
->>>>>>> origin/Naufal
   const handleEditClick = () => {
+    console.log('🔄 Klik Edit - isEditMode sebelumnya:', isEditMode);
     setIsEditMode(true);
-    toast({ title: "Edit Mode", description: "Anda dapat mengubah profil" });
+    setFormKey(prev => prev + 1); // ✅ FORCE RE-RENDER
+    console.log('🔄 Klik Edit - isEditMode sekarang: true');
+    toast({ 
+      title: "✏️ Mode Edit Aktif", 
+      description: "Sekarang Anda dapat mengubah profil",
+      duration: 2000
+    });
   };
 
   const handleCancelEdit = () => {
@@ -775,24 +269,25 @@ const Profile = () => {
     }
     setSelectedFile(null);
     setIsEditMode(false);
-    toast({ title: "Dibatalkan", description: "Perubahan dibatalkan" });
+    setFormKey(prev => prev + 1); // ✅ FORCE RE-RENDER
+    toast({ 
+      title: "❌ Dibatalkan", 
+      description: "Perubahan dibatalkan",
+      duration: 2000
+    });
   };
 
-  const handleIdNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isEditMode) return;
-    const value = e.target.value.replace(/[^0-9]/g, "");
-    const max = profile.identity_type === "KTP" || profile.identity_type === "NIK" ? 16 : 12;
-    setProfile({ ...profile, identity_number: value.slice(0, max) });
-  };
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Memuat profil...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isEditMode) return;
-    const value = e.target.value.replace(/[^0-9]/g, "");
-    setProfile({ ...profile, phone: value.slice(0, 13) });
-  };
-
-=======
->>>>>>> 57a2b4b027e13a9119086577bda9c96773760578
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Navbar />
@@ -800,24 +295,27 @@ const Profile = () => {
       <div className="container mx-auto px-4 py-6 max-w-2xl">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6"
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           <span className="font-medium">Kembali</span>
         </button>
 
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          {/* Header */}
           <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6">
             <h1 className="text-2xl font-bold">Profil Pribadi</h1>
-            <p className="text-green-100 text-sm">
+            <p className="text-green-100 text-sm mt-1">
               {isEditMode ? "Lengkapi atau ubah profil Anda" : "Profil Anda telah tersimpan"}
             </p>
+            <div className="mt-3 text-xs bg-white/20 px-3 py-1 rounded inline-block font-medium">
+              Mode: {isEditMode ? "✏️ EDIT" : "👁️ VIEW"} | Complete: {isProfileComplete ? "✅ YA" : "⚠️ TIDAK"}
+            </div>
           </div>
 
           <div className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* ✅ FOTO PROFIL */}
+            {/* ✅ TAMBAHKAN KEY DI FORM */}
+            <form key={formKey} onSubmit={handleSubmit} className="space-y-6">
+              {/* FOTO PROFIL */}
               <div className="flex flex-col items-center mb-8">
                 <div className="relative mb-3">
                   <div className="w-36 h-36 bg-gray-200 rounded-full flex items-center justify-center border-4 border-white shadow-lg overflow-hidden">
@@ -830,7 +328,7 @@ const Profile = () => {
                   {isEditMode && (
                     <label
                       htmlFor="photo-upload"
-                      className="absolute bottom-2 right-2 bg-green-500 hover:bg-green-600 text-white w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-md border-4 border-white"
+                      className="absolute bottom-2 right-2 bg-green-500 hover:bg-green-600 text-white w-12 h-12 rounded-full flex items-center justify-center cursor-pointer shadow-md border-4 border-white transition-all hover:scale-110"
                     >
                       <Camera className="w-6 h-6" />
                     </label>
@@ -841,64 +339,91 @@ const Profile = () => {
                     accept="image/*"
                     onChange={handleImageChange}
                     className="hidden"
-                    disabled={!isEditMode}
                   />
                 </div>
-                <p className="text-gray-500 text-sm">
-                  {isEditMode ? "Klik untuk ubah foto" : "Foto profil Anda"}
+                <p className="text-gray-500 text-sm text-center">
+                  {isEditMode ? "📷 Klik ikon kamera untuk ubah foto (Max 5MB)" : "Foto profil Anda"}
                 </p>
               </div>
 
-              {/* ✅ NAMA LENGKAP */}
+              {/* NAMA LENGKAP */}
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nama Lengkap <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  className={`w-full border rounded-lg px-4 py-3 ${
-                    isEditMode ? "bg-white" : "bg-gray-100 cursor-not-allowed"
+                  className={`w-full border rounded-lg px-4 py-3 transition-all ${
+                    isEditMode 
+                      ? "bg-white border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-gray-900" 
+                      : "bg-gray-100 border-gray-200 text-gray-600"
                   }`}
                   value={profile.full_name}
-                  onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                  onChange={(e) => {
+                    console.log('📝 Nama onChange:', e.target.value);
+                    setProfile({ ...profile, full_name: e.target.value });
+                  }}
+                  onFocus={() => {
+                    if (!isEditMode) {
+                      toast({ title: "⚠️ Mode View", description: "Klik 'Edit Profil' untuk mengubah data" });
+                    }
+                  }}
                   placeholder="Masukkan nama lengkap Anda"
-                  disabled={!isEditMode}
+                  readOnly={!isEditMode}
                   required
                 />
               </div>
 
-              {/* ✅ EMAIL */}
+              {/* EMAIL */}
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
-                  className={`w-full border rounded-lg px-4 py-3 ${
-                    isEditMode ? "bg-white" : "bg-gray-100 cursor-not-allowed"
+                  className={`w-full border rounded-lg px-4 py-3 transition-all ${
+                    isEditMode 
+                      ? "bg-white border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-gray-900" 
+                      : "bg-gray-100 border-gray-200 text-gray-600"
                   }`}
                   value={profile.email}
-                  onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                  onChange={(e) => {
+                    console.log('📝 Email onChange:', e.target.value);
+                    setProfile({ ...profile, email: e.target.value });
+                  }}
+                  onFocus={() => {
+                    if (!isEditMode) {
+                      toast({ title: "⚠️ Mode View", description: "Klik 'Edit Profil' untuk mengubah data" });
+                    }
+                  }}
                   placeholder="email@example.com"
-                  disabled={!isEditMode}
+                  readOnly={!isEditMode}
                   required
                 />
               </div>
 
-              {/* ✅ JENIS IDENTITAS & NOMOR IDENTITAS */}
+              {/* JENIS IDENTITAS & NOMOR IDENTITAS */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Jenis Identitas <span className="text-red-500">*</span>
                   </label>
                   <select
-                    className={`w-full border rounded-lg px-4 py-3 ${
-                      isEditMode ? "bg-white" : "bg-gray-100 cursor-not-allowed"
+                    className={`w-full border rounded-lg px-4 py-3 transition-all ${
+                      isEditMode 
+                        ? "bg-white border-gray-300 focus:border-green-500 text-gray-900" 
+                        : "bg-gray-100 border-gray-200 text-gray-600"
                     }`}
                     value={profile.identity_type}
-                    onChange={(e) =>
-                      setProfile({ ...profile, identity_type: e.target.value as "NIK" | "KTP" | "SIM" })
-                    }
+                    onChange={(e) => {
+                      console.log('📝 Identity type onChange:', e.target.value);
+                      setProfile({ ...profile, identity_type: e.target.value as "NIK" | "KTP" | "SIM" });
+                    }}
+                    onFocus={() => {
+                      if (!isEditMode) {
+                        toast({ title: "⚠️ Mode View", description: "Klik 'Edit Profil' untuk mengubah data" });
+                      }
+                    }}
                     disabled={!isEditMode}
                   >
                     <option value="KTP">KTP</option>
@@ -907,56 +432,82 @@ const Profile = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Nomor Identitas <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    className={`w-full border rounded-lg px-4 py-3 ${
-                      isEditMode ? "bg-white" : "bg-gray-100 cursor-not-allowed"
+                    className={`w-full border rounded-lg px-4 py-3 transition-all ${
+                      isEditMode 
+                        ? "bg-white border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-gray-900" 
+                        : "bg-gray-100 border-gray-200 text-gray-600"
                     }`}
                     value={profile.identity_number}
                     onChange={(e) => {
                       const value = e.target.value.replace(/[^0-9]/g, "");
                       const max = profile.identity_type === "SIM" ? 12 : 16;
+                      console.log('📝 Identity number onChange:', value);
                       setProfile({ ...profile, identity_number: value.slice(0, max) });
                     }}
+                    onFocus={() => {
+                      if (!isEditMode) {
+                        toast({ title: "⚠️ Mode View", description: "Klik 'Edit Profil' untuk mengubah data" });
+                      }
+                    }}
                     placeholder={`Masukkan nomor ${profile.identity_type}`}
-                    disabled={!isEditMode}
+                    readOnly={!isEditMode}
                     required
                   />
                 </div>
               </div>
 
-              {/* ✅ TANGGAL LAHIR & JENIS KELAMIN */}
+              {/* TANGGAL LAHIR & JENIS KELAMIN */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Tanggal Lahir <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
-                    className={`w-full border rounded-lg px-4 py-3 ${
-                      isEditMode ? "bg-white" : "bg-gray-100 cursor-not-allowed"
+                    className={`w-full border rounded-lg px-4 py-3 transition-all ${
+                      isEditMode 
+                        ? "bg-white border-gray-300 focus:border-green-500 text-gray-900" 
+                        : "bg-gray-100 border-gray-200 text-gray-600"
                     }`}
                     value={profile.birth_date}
-                    onChange={(e) => setProfile({ ...profile, birth_date: e.target.value })}
-                    disabled={!isEditMode}
+                    onChange={(e) => {
+                      console.log('📝 Birth date onChange:', e.target.value);
+                      setProfile({ ...profile, birth_date: e.target.value });
+                    }}
+                    onFocus={() => {
+                      if (!isEditMode) {
+                        toast({ title: "⚠️ Mode View", description: "Klik 'Edit Profil' untuk mengubah data" });
+                      }
+                    }}
+                    readOnly={!isEditMode}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Jenis Kelamin <span className="text-red-500">*</span>
                   </label>
                   <select
-                    className={`w-full border rounded-lg px-4 py-3 ${
-                      isEditMode ? "bg-white" : "bg-gray-100 cursor-not-allowed"
+                    className={`w-full border rounded-lg px-4 py-3 transition-all ${
+                      isEditMode 
+                        ? "bg-white border-gray-300 focus:border-green-500 text-gray-900" 
+                        : "bg-gray-100 border-gray-200 text-gray-600"
                     }`}
                     value={profile.gender || ""}
-                    onChange={(e) =>
-                      setProfile({ ...profile, gender: e.target.value as "Laki-laki" | "Perempuan" })
-                    }
+                    onChange={(e) => {
+                      console.log('📝 Gender onChange:', e.target.value);
+                      setProfile({ ...profile, gender: e.target.value as "Laki-laki" | "Perempuan" });
+                    }}
+                    onFocus={() => {
+                      if (!isEditMode) {
+                        toast({ title: "⚠️ Mode View", description: "Klik 'Edit Profil' untuk mengubah data" });
+                      }
+                    }}
                     disabled={!isEditMode}
                     required
                   >
@@ -967,52 +518,70 @@ const Profile = () => {
                 </div>
               </div>
 
-              {/* ✅ NOMOR HP */}
+              {/* NOMOR HP */}
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nomor HP/WhatsApp <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
-                  className={`w-full border rounded-lg px-4 py-3 ${
-                    isEditMode ? "bg-white" : "bg-gray-100 cursor-not-allowed"
+                  className={`w-full border rounded-lg px-4 py-3 transition-all ${
+                    isEditMode 
+                      ? "bg-white border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-gray-900" 
+                      : "bg-gray-100 border-gray-200 text-gray-600"
                   }`}
                   value={profile.phone}
                   onChange={(e) => {
                     const value = e.target.value.replace(/[^0-9]/g, "");
+                    console.log('📝 Phone onChange:', value);
                     setProfile({ ...profile, phone: value.slice(0, 13) });
                   }}
+                  onFocus={() => {
+                    if (!isEditMode) {
+                      toast({ title: "⚠️ Mode View", description: "Klik 'Edit Profil' untuk mengubah data" });
+                    }
+                  }}
                   placeholder="08xxxxxxxxxx"
-                  disabled={!isEditMode}
+                  readOnly={!isEditMode}
                   required
                 />
               </div>
 
-              {/* ✅ ALAMAT LENGKAP */}
+              {/* ALAMAT LENGKAP */}
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Alamat Lengkap <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  className={`w-full border rounded-lg px-4 py-3 ${
-                    isEditMode ? "bg-white" : "bg-gray-100 cursor-not-allowed"
+                  className={`w-full border rounded-lg px-4 py-3 transition-all ${
+                    isEditMode 
+                      ? "bg-white border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-200 text-gray-900" 
+                        : "bg-gray-100 border-gray-200 text-gray-600"
                   }`}
                   rows={4}
                   value={profile.address}
-                  onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+                  onChange={(e) => {
+                    console.log('📝 Address onChange:', e.target.value);
+                    setProfile({ ...profile, address: e.target.value });
+                  }}
+                  onFocus={() => {
+                    if (!isEditMode) {
+                      toast({ title: "⚠️ Mode View", description: "Klik 'Edit Profil' untuk mengubah data" });
+                    }
+                  }}
                   placeholder="Masukkan alamat lengkap"
-                  disabled={!isEditMode}
+                  readOnly={!isEditMode}
                   required
                 />
               </div>
 
-              {/* ✅ TOMBOL AKSI */}
+              {/* TOMBOL AKSI */}
               <div className="flex gap-3 pt-4">
                 {!isEditMode && isProfileComplete ? (
                   <Button
                     type="button"
-                    onClick={() => setIsEditMode(true)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    onClick={handleEditClick}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 shadow-md hover:shadow-lg transition-all"
                   >
                     <Edit className="w-5 h-5 mr-2" />
                     Edit Profil
@@ -1022,9 +591,14 @@ const Profile = () => {
                     <Button
                       type="submit"
                       disabled={loading}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {loading ? "Menyimpan..." : (
+                      {loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                          Menyimpan...
+                        </>
+                      ) : (
                         <>
                           <Save className="w-5 h-5 mr-2" />
                           Simpan Profil
@@ -1034,11 +608,9 @@ const Profile = () => {
                     {isProfileComplete && (
                       <Button
                         type="button"
-                        onClick={() => {
-                          if (originalProfile) setProfile(originalProfile);
-                          setIsEditMode(false);
-                        }}
-                        className="flex-1 bg-gray-500 hover:bg-gray-600"
+                        onClick={handleCancelEdit}
+                        disabled={loading}
+                        className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 shadow-md hover:shadow-lg transition-all"
                       >
                         <X className="w-5 h-5 mr-2" />
                         Batal
@@ -1048,11 +620,20 @@ const Profile = () => {
                 )}
               </div>
 
-              {/* ✅ NOTIFIKASI */}
+              {/* NOTIFIKASI */}
               {!isProfileComplete && (
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-                  <p className="text-sm text-yellow-800">
-                    ⚠️ Lengkapi profil untuk dapat melakukan booking
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg flex items-center gap-3 shadow-sm">
+                  <span className="text-2xl">⚠️</span>
+                  <p className="text-sm text-yellow-800 font-medium">
+                    Lengkapi profil untuk dapat melakukan booking
+                  </p>
+                </div>
+              )}
+              {isProfileComplete && !isEditMode && (
+                <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-lg flex items-center gap-3 shadow-sm">
+                  <span className="text-2xl">✅</span>
+                  <p className="text-sm text-green-800 font-medium">
+                    Profil lengkap! Klik "Edit Profil" untuk mengubah data.
                   </p>
                 </div>
               )}
