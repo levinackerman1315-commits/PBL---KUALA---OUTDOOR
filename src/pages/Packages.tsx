@@ -17,6 +17,8 @@ import {
   MessageCircle,
   CheckCircle
 } from 'lucide-react'
+// ✅ TAMBAHKAN IMPORT INI
+import { API_BASE_URL } from '@/services/api'
 
 interface PackageItem {
   name: string
@@ -55,96 +57,29 @@ const Packages = () => {
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/packages.php')
-        const data = await response.json()
-
-        if (data.success && Array.isArray(data.data)) {
-          setPackages(data.data)
+        setLoading(true);
+        console.log('🔍 Fetching from:', `${API_BASE_URL}/public/packages.php`); // ✅ DEBUG
+        
+        const response = await fetch(`${API_BASE_URL}/public/packages.php`);
+        const data = await response.json();
+        
+        console.log('📦 API Response:', data); // ✅ DEBUG
+        
+        if (data.success) {
+          setPackages(data.data);
+          console.log('✅ Packages loaded:', data.data.length); // ✅ DEBUG
         } else {
-          throw new Error(data.message || 'Gagal memuat data paket')
+          throw new Error(data.message);
         }
       } catch (error: any) {
-        console.error('Error fetching packages:', error)
+        console.error("❌ Error fetching packages:", error);
         toast({
-          title: 'Error',
-          description: 'Gagal memuat data paket. Menggunakan data statis.',
-          variant: 'destructive'
-        })
-
-        // Fallback ke data statis jika API gagal
-        const mockPackages: Package[] = [
-          {
-            id: 1,
-            name: "PAKET KOMPLIT 6 ORANG",
-            capacity: "6-8 Orang",
-            price: 200000,
-            pricePerDay: "200.000 / HARI",
-            badge: "REKOMENDASI GRUP",
-            badgeColor: "bg-orange-500",
-            popular: true,
-            in_stock: true,
-            available_stock: 3,
-            items: [
-              { name: "TENDA KAPASITAS 6-8 ORANG", quantity: 1 },
-              { name: "TAS GUNUNG 45 LITER", quantity: 2 },
-              { name: "LAMPU TENDA", quantity: 2 },
-              { name: "FLYSHEET UKURAN 3X4", quantity: 1 },
-              { name: "KOMPOR PORTABLE", quantity: 2 },
-              { name: "COOKING SET", quantity: 2 },
-              { name: "GAS", quantity: 4 },
-              { name: "MATRAS", quantity: 6 },
-              { name: "HEADLAMP", quantity: 6 },
-            ]
-          },
-          {
-            id: 2,
-            name: "PAKET KOMPLIT 4 ORANG",
-            capacity: "4-5 Orang",
-            price: 140000,
-            pricePerDay: "140.000 / HARI",
-            badge: "PALING POPULER",
-            badgeColor: "bg-green-500",
-            popular: true,
-            in_stock: true,
-            available_stock: 5,
-            items: [
-              { name: "TENDA KAPASITAS 4-5 ORANG", quantity: 1 },
-              { name: "TAS GUNUNG 45 LITER", quantity: 2 },
-              { name: "LAMPU TENDA", quantity: 1 },
-              { name: "FLYSHEET UKURAN 3X4", quantity: 1 },
-              { name: "KOMPOR PORTABLE", quantity: 1 },
-              { name: "COOKING SET", quantity: 1 },
-              { name: "GAS", quantity: 2 },
-              { name: "MATRAS", quantity: 4 },
-              { name: "HEADLAMP", quantity: 4 },
-            ]
-          },
-          {
-            id: 3,
-            name: "PAKET KOMPLIT 2 ORANG",
-            capacity: "2-3 Orang",
-            price: 100000,
-            pricePerDay: "100.000 / HARI",
-            badge: "HEMAT",
-            badgeColor: "bg-blue-500",
-            in_stock: false,
-            available_stock: 0,
-            items: [
-              { name: "TENDA KAPASITAS 2-3 ORANG", quantity: 1 },
-              { name: "TAS GUNUNG 45 LITER", quantity: 2 },
-              { name: "LAMPU TENDA", quantity: 1 },
-              { name: "FLYSHEET UKURAN 3X4", quantity: 1 },
-              { name: "KOMPOR PORTABLE", quantity: 1 },
-              { name: "COOKING SET", quantity: 1 },
-              { name: "GAS", quantity: 4 },
-              { name: "MATRAS", quantity: 2 },
-              { name: "HEADLAMP", quantity: 2 },
-            ]
-          },
-        ]
-        setPackages(mockPackages)
+          title: "Error",
+          description: "Gagal memuat paket: " + error.message,
+          variant: "destructive",
+        });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
