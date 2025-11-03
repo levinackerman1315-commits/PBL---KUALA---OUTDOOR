@@ -17,7 +17,9 @@ import {
   RefreshCw,
   Trash2,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  History,
+  AlertCircle
 } from "lucide-react";
 
 const BookingManagement = () => {
@@ -27,10 +29,9 @@ const BookingManagement = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [loading, setLoading] = useState(true);
-  const [showCompleted, setShowCompleted] = useState(false); // ✅ TAMBAH STATE
-
-  // ✅ COUNTDOWN STATE
+  const [showHistory, setShowHistory] = useState(false);
   const [countdowns, setCountdowns] = useState({});
+  const [lateReturnCountdowns, setLateReturnCountdowns] = useState({}); // ✅ TIMER KETERLAMBATAN
 
   // ✅ FETCH DATA DARI API
   const fetchBookings = async () => {
@@ -67,10 +68,11 @@ const BookingManagement = () => {
     fetchBookings();
   }, []);
 
-  // ✅ COUNTDOWN TIMER UNTUK BOOKING AKTIF
+  // ✅ COUNTDOWN TIMER UNTUK BOOKING AKTIF + LATE RETURN
   useEffect(() => {
     const interval = setInterval(() => {
       const newCountdowns = {};
+      const newLateCountdowns = {};
       
       bookings.forEach(booking => {
         if (booking.status === 'active') {
@@ -79,6 +81,7 @@ const BookingManagement = () => {
           const diff = endDate.getTime() - now.getTime();
           
           if (diff > 0) {
+            // ⏰ WAKTU NORMAL - COUNTDOWN MUNDUR
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -92,32 +95,54 @@ const BookingManagement = () => {
               isOverdue: false
             };
           } else {
-            // Sudah melewati batas waktu
+            // ⚠️ TERLAMBAT - COUNTDOWN MAJU (DENDA)
+            const lateDiff = Math.abs(diff);
+            const lateDays = Math.floor(lateDiff / (1000 * 60 * 60 * 24));
+            const lateHours = Math.floor((lateDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const lateMinutes = Math.floor((lateDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const lateSeconds = Math.floor((lateDiff % (1000 * 60)) / 1000);
+            
             newCountdowns[booking.booking_id] = {
               days: 0,
               hours: 0,
               minutes: 0,
               seconds: 0,
-              isOverdue: true,
-              overdueTime: Math.abs(diff)
+              isOverdue: true
+            };
+            
+            newLateCountdowns[booking.booking_id] = {
+              days: lateDays,
+              hours: lateHours,
+              minutes: lateMinutes,
+              seconds: lateSeconds,
+              totalMinutes: Math.floor(lateDiff / (1000 * 60))
             };
           }
         }
       });
       
       setCountdowns(newCountdowns);
+      setLateReturnCountdowns(newLateCountdowns);
     }, 1000);
     
     return () => clearInterval(interval);
   }, [bookings]);
 
-  // Filter bookings
+  // ✅ FILTER BOOKING - PISAHKAN AKTIF DAN RIWAYAT
   useEffect(() => {
     let filtered = bookings;
     
-    // ✅ FILTER COMPLETED BERDASARKAN TOGGLE
-    if (!showCompleted) {
-      filtered = filtered.filter(booking => booking.status !== 'completed');
+    // ✅ FILTER BERDASARKAN MODE (AKTIF/RIWAYAT)
+    if (showHistory) {
+      // Mode Riwayat: hanya tampilkan completed & cancelled
+      filtered = filtered.filter(booking => 
+        booking.status === 'completed' || booking.status === 'cancelled'
+      );
+    } else {
+      // Mode Aktif: tampilkan semua kecuali completed & cancelled
+      filtered = filtered.filter(booking => 
+        booking.status !== 'completed' && booking.status !== 'cancelled'
+      );
     }
     
     // Search filter
@@ -140,7 +165,7 @@ const BookingManagement = () => {
     }
     
     setFilteredBookings(filtered);
-  }, [bookings, searchTerm, statusFilter, paymentFilter, showCompleted]);
+  }, [bookings, searchTerm, statusFilter, paymentFilter, showHistory]);
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -299,11 +324,93 @@ const BookingManagement = () => {
     }
   };
 
+  // ✅ FUNGSI KONFIRMASI PENGEMBALIAN TERLAMBAT
+  const handleConfirmLateReturn = async (booking) => {
+    const lateData = lateReturnCountdowns[booking.booking_id];
+    
+    if (!lateData) {
+      alert('❌ Data keterlambatan tidak ditemukan');
+      return;
+    }
+
+    // Tampilkan info waktu keterlambatan
+    const lateInfo = `⏰ WAKTU KETERLAMBATAN:\n\n` +
+      `📦 Booking: ${booking.booking_code}\n` +
+      `👤 Penyewa: ${booking.customer_name}\n\n` +
+      `⏱️ Durasi Terlambat:\n` +
+      `${lateData.days} hari, ${lateData.hours} jam, ${lateData.minutes} menit, ${lateData.seconds} detik\n\n` +
+      `📊 Total: ${Math.floor(lateData.totalMinutes / 1440)} hari ${Math.floor((lateData.totalMinutes % 1440) / 60)} jam`;
+
+    alert(lateInfo);
+
+    // Input manual denda
+    const lateFeeInput = prompt(
+      `💰 MASUKKAN BESARAN DENDA\n\n` +
+      `Waktu Terlambat: ${lateData.days} hari, ${lateData.hours} jam, ${lateData.minutes} menit\n\n` +
+      `Masukkan jumlah denda (hanya angka, tanpa Rp dan titik):\n` +
+      `Contoh: 50000 untuk Rp 50.000`
+    );
+
+    if (lateFeeInput === null) return; // Cancel
+
+    const lateFee = parseInt(lateFeeInput.replace(/\D/g, ''));
+
+    if (isNaN(lateFee) || lateFee < 0) {
+      alert('❌ Input denda tidak valid! Masukkan angka yang benar.');
+      return;
+    }
+
+    const confirmMessage = `⚠️ KONFIRMASI PENGEMBALIAN TERLAMBAT\n\n` +
+      `Booking: ${booking.booking_code}\n` +
+      `Penyewa: ${booking.customer_name}\n\n` +
+      `⏰ Waktu Terlambat:\n` +
+      `${lateData.days} hari, ${lateData.hours} jam, ${lateData.minutes} menit\n\n` +
+      `💰 Denda yang Dikenakan:\n` +
+      `Rp ${lateFee.toLocaleString('id-ID')}\n\n` +
+      `💵 Biaya Sewa: Rp ${Number(booking.total_estimated_cost).toLocaleString('id-ID')}\n` +
+      `💰 Denda: Rp ${lateFee.toLocaleString('id-ID')}\n` +
+      `━━━━━━━━━━━━━━━━━━━━\n` +
+      `📊 TOTAL BIAYA: Rp ${(Number(booking.total_estimated_cost) + lateFee).toLocaleString('id-ID')}\n\n` +
+      `Lanjutkan konfirmasi?`;
+
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/confirm_late_return.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          booking_id: booking.booking_id,
+          late_minutes: lateData.totalMinutes,
+          late_fee: lateFee
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert(`✅ PENGEMBALIAN BERHASIL DIKONFIRMASI!\n\n` +
+              `⏰ Terlambat: ${lateData.days} hari, ${lateData.hours} jam, ${lateData.minutes} menit\n` +
+              `💰 Denda: Rp ${lateFee.toLocaleString('id-ID')}\n` +
+              `📊 Total Biaya: Rp ${(Number(booking.total_estimated_cost) + lateFee).toLocaleString('id-ID')}\n\n` +
+              `📦 Stok equipment telah dikembalikan`);
+        
+        fetchBookings();
+      } else {
+        alert('❌ Gagal konfirmasi denda: ' + result.message);
+      }
+    } catch (error) {
+      alert('❌ Error: ' + error.message);
+    }
+  };
+
   const stats = {
     total: bookings.length,
     pending: bookings.filter(b => b.status === 'pending').length,
     confirmed: bookings.filter(b => b.status === 'confirmed').length,
     active: bookings.filter(b => b.status === 'active').length,
+    completed: bookings.filter(b => b.status === 'completed').length,
+    cancelled: bookings.filter(b => b.status === 'cancelled').length,
     unpaid: bookings.filter(b => b.payment_status === 'unpaid').length,
     partial: bookings.filter(b => b.payment_status === 'partial').length,
   };
@@ -322,19 +429,37 @@ const BookingManagement = () => {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Kelola Booking</h1>
-                <p className="text-gray-600">Konfirmasi dan tracking semua booking</p>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {showHistory ? "📜 Riwayat Booking" : "📦 Kelola Booking Aktif"}
+                </h1>
+                <p className="text-gray-600">
+                  {showHistory 
+                    ? "Lihat booking yang sudah selesai atau dibatalkan" 
+                    : "Konfirmasi dan tracking booking yang masih berlangsung"}
+                </p>
               </div>
             </div>
             
-            <Button 
-              onClick={fetchBookings}
-              className="bg-green-600 hover:bg-green-700"
-              disabled={loading}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh Data
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={fetchBookings}
+                className="bg-green-600 hover:bg-green-700"
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              
+              {/* ✅ TOGGLE RIWAYAT */}
+              <Button
+                variant={showHistory ? "default" : "outline"}
+                onClick={() => setShowHistory(!showHistory)}
+                className={showHistory ? "bg-purple-600 hover:bg-purple-700" : ""}
+              >
+                <History className="h-4 w-4 mr-2" />
+                {showHistory ? "Lihat Booking Aktif" : "Lihat Riwayat"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -368,14 +493,14 @@ const BookingManagement = () => {
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-red-600">{stats.unpaid}</div>
-              <div className="text-sm text-gray-600">Belum Bayar</div>
+              <div className="text-2xl font-bold text-gray-600">{stats.completed}</div>
+              <div className="text-sm text-gray-600">Selesai</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-yellow-600">{stats.partial}</div>
-              <div className="text-sm text-gray-600">DP Paid</div>
+              <div className="text-2xl font-bold text-red-600">{stats.cancelled}</div>
+              <div className="text-sm text-gray-600">Dibatalkan</div>
             </CardContent>
           </Card>
         </div>
@@ -402,11 +527,18 @@ const BookingManagement = () => {
                 className="px-3 py-2 border rounded-md"
               >
                 <option value="all">Semua Status</option>
-                <option value="pending">Menunggu</option>
-                <option value="confirmed">Dikonfirmasi</option>
-                <option value="active">Berlangsung</option>
-                <option value="completed">Selesai</option>
-                <option value="cancelled">Dibatalkan</option>
+                {!showHistory ? (
+                  <>
+                    <option value="pending">Menunggu</option>
+                    <option value="confirmed">Dikonfirmasi</option>
+                    <option value="active">Berlangsung</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="completed">Selesai</option>
+                    <option value="cancelled">Dibatalkan</option>
+                  </>
+                )}
               </select>
               
               <select 
@@ -419,15 +551,6 @@ const BookingManagement = () => {
                 <option value="partial">DP Paid</option>
                 <option value="paid">Lunas</option>
               </select>
-              
-              {/* ✅ TOGGLE SHOW COMPLETED */}
-              <Button
-                variant={showCompleted ? "default" : "outline"}
-                onClick={() => setShowCompleted(!showCompleted)}
-                className="whitespace-nowrap"
-              >
-                {showCompleted ? "🔍 Sembunyikan Selesai" : "👁️ Tampilkan Selesai"}
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -446,7 +569,12 @@ const BookingManagement = () => {
         {!loading && (
           <Card>
             <CardHeader>
-              <CardTitle>Daftar Booking ({filteredBookings.length})</CardTitle>
+              <CardTitle>
+                {showHistory 
+                  ? `📜 Riwayat Booking (${filteredBookings.length})`
+                  : `📦 Daftar Booking Aktif (${filteredBookings.length})`
+                }
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -455,7 +583,8 @@ const BookingManagement = () => {
                     booking.status === 'active' ? 'border-l-green-500' : 
                     booking.status === 'confirmed' ? 'border-l-blue-500' :
                     booking.status === 'pending' ? 'border-l-yellow-500' :
-                    'border-l-gray-500'
+                    booking.status === 'completed' ? 'border-l-gray-500' :
+                    'border-l-red-500'
                   }`}>
                     <CardContent className="p-6">
                       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -509,45 +638,48 @@ const BookingManagement = () => {
                               </span>
                             </div>
                             
-                            {/* ✅ COUNTDOWN TIMER UNTUK BOOKING AKTIF */}
+                            {/* ✅ COUNTDOWN - UNTUK BOOKING AKTIF */}
                             {booking.status === 'active' && countdowns[booking.booking_id] && (
-                              <div className={`mt-3 p-3 rounded-lg ${
+                              <div className={`mt-3 p-4 rounded-lg border-2 ${
                                 countdowns[booking.booking_id].isOverdue 
-                                  ? 'bg-red-100 border border-red-300' 
-                                  : 'bg-green-100 border border-green-300'
+                                  ? 'bg-red-50 border-red-300' 
+                                  : 'bg-green-50 border-green-300'
                               }`}>
                                 <div className="flex items-center gap-2 mb-2">
-                                  <Clock className={`h-4 w-4 ${
+                                  <Clock className={`h-5 w-5 ${
                                     countdowns[booking.booking_id].isOverdue ? 'text-red-600' : 'text-green-600'
                                   }`} />
-                                  <span className={`font-semibold ${
+                                  <span className={`font-bold ${
                                     countdowns[booking.booking_id].isOverdue ? 'text-red-600' : 'text-green-600'
                                   }`}>
-                                    {countdowns[booking.booking_id].isOverdue ? '⚠️ TERLAMBAT!' : '⏰ Waktu Pengembalian'}
+                                    {countdowns[booking.booking_id].isOverdue 
+                                      ? '⚠️ WAKTU KETERLAMBATAN (DENDA)' 
+                                      : '⏰ Waktu Pengembalian'}
                                   </span>
                                 </div>
                                 
                                 {!countdowns[booking.booking_id].isOverdue ? (
+                                  // ⏰ COUNTDOWN NORMAL (HIJAU)
                                   <div className="grid grid-cols-4 gap-2 text-center">
-                                    <div className="bg-white rounded p-2">
+                                    <div className="bg-white rounded p-2 border border-green-200">
                                       <div className="text-2xl font-bold text-green-600">
                                         {countdowns[booking.booking_id].days}
                                       </div>
                                       <div className="text-xs text-gray-600">Hari</div>
                                     </div>
-                                    <div className="bg-white rounded p-2">
+                                    <div className="bg-white rounded p-2 border border-green-200">
                                       <div className="text-2xl font-bold text-green-600">
                                         {countdowns[booking.booking_id].hours}
                                       </div>
                                       <div className="text-xs text-gray-600">Jam</div>
                                     </div>
-                                    <div className="bg-white rounded p-2">
+                                    <div className="bg-white rounded p-2 border border-green-200">
                                       <div className="text-2xl font-bold text-green-600">
                                         {countdowns[booking.booking_id].minutes}
                                       </div>
                                       <div className="text-xs text-gray-600">Menit</div>
                                     </div>
-                                    <div className="bg-white rounded p-2">
+                                    <div className="bg-white rounded p-2 border border-green-200">
                                       <div className="text-2xl font-bold text-green-600">
                                         {countdowns[booking.booking_id].seconds}
                                       </div>
@@ -555,16 +687,59 @@ const BookingManagement = () => {
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="flex items-center gap-2">
-                                    <AlertTriangle className="h-5 w-5 text-red-600" />
-                                    <span className="text-red-600 font-semibold">
-                                      Barang sudah melewati batas waktu pengembalian!
-                                    </span>
-                                  </div>
+                                  // ⚠️ COUNTDOWN TERLAMBAT (MERAH) - BERJALAN MAJU
+                                  <>
+                                    <div className="grid grid-cols-4 gap-2 text-center mb-3">
+                                      <div className="bg-white rounded p-2 border-2 border-red-300">
+                                        <div className="text-2xl font-bold text-red-600 animate-pulse">
+                                          {lateReturnCountdowns[booking.booking_id]?.days || 0}
+                                        </div>
+                                        <div className="text-xs text-gray-600">Hari</div>
+                                      </div>
+                                      <div className="bg-white rounded p-2 border-2 border-red-300">
+                                        <div className="text-2xl font-bold text-red-600 animate-pulse">
+                                          {lateReturnCountdowns[booking.booking_id]?.hours || 0}
+                                        </div>
+                                        <div className="text-xs text-gray-600">Jam</div>
+                                      </div>
+                                      <div className="bg-white rounded p-2 border-2 border-red-300">
+                                        <div className="text-2xl font-bold text-red-600 animate-pulse">
+                                          {lateReturnCountdowns[booking.booking_id]?.minutes || 0}
+                                        </div>
+                                        <div className="text-xs text-gray-600">Menit</div>
+                                      </div>
+                                      <div className="bg-white rounded p-2 border-2 border-red-300">
+                                        <div className="text-2xl font-bold text-red-600 animate-pulse">
+                                          {lateReturnCountdowns[booking.booking_id]?.seconds || 0}
+                                        </div>
+                                        <div className="text-xs text-gray-600">Detik</div>
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-2 p-2 bg-red-100 rounded mb-3">
+                                      <AlertTriangle className="h-5 w-5 text-red-600" />
+                                      <span className="text-red-600 font-semibold text-sm">
+                                        Total: {Math.floor(lateReturnCountdowns[booking.booking_id]?.totalMinutes / 1440) || 0} hari, {' '}
+                                        {Math.floor((lateReturnCountdowns[booking.booking_id]?.totalMinutes % 1440) / 60) || 0} jam, {' '}
+                                        {(lateReturnCountdowns[booking.booking_id]?.totalMinutes % 60) || 0} menit terlambat
+                                      </span>
+                                    </div>
+                                    
+                                    {/* ✅ TOMBOL KONFIRMASI PENGEMBALIAN + INPUT DENDA */}
+                                    <Button 
+                                      onClick={() => handleConfirmLateReturn(booking)}
+                                      className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold"
+                                      size="sm"
+                                    >
+                                      <AlertCircle className="h-4 w-4 mr-2" />
+                                      Konfirmasi Pengembalian + Input Denda
+                                    </Button>
+                                  </>
                                 )}
                               </div>
                             )}
                             
+
                             {booking.notes && (
                               <div className="flex items-start gap-2 mt-2 p-2 bg-gray-50 rounded">
                                 <span className="text-xs text-gray-600">
@@ -579,8 +754,8 @@ const BookingManagement = () => {
                         <div className="lg:col-span-2">
                           <div className="space-y-3">
                             
-                            {/* ✅ HANYA TAMPILKAN TOMBOL STATUS & PAYMENT JIKA BELUM COMPLETED */}
-                            {booking.status !== 'completed' && booking.status !== 'cancelled' && (
+                            {/* ACTIONS - HANYA UNTUK BOOKING AKTIF */}
+                            {!showHistory && (
                               <>
                                 {/* STATUS ACTIONS */}
                                 <div>
@@ -667,32 +842,36 @@ const BookingManagement = () => {
                               </>
                             )}
 
-                            {/* ✅ TAMPILKAN INFO JIKA BOOKING SUDAH SELESAI/CANCELLED */}
-                            {booking.status === 'completed' && (
-                              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                                <div className="flex items-center gap-2 text-green-700">
-                                  <CheckCircle className="h-5 w-5" />
-                                  <span className="font-semibold">Booking Selesai</span>
-                                </div>
-                                <p className="text-sm text-green-600 mt-1">
-                                  Equipment sudah dikembalikan dan stok telah dipulihkan.
-                                </p>
-                              </div>
-                            )}
-                            
-                            {booking.status === 'cancelled' && (
-                              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                                <div className="flex items-center gap-2 text-red-700">
-                                  <XCircle className="h-5 w-5" />
-                                  <span className="font-semibold">Booking Dibatalkan</span>
-                                </div>
-                                <p className="text-sm text-red-600 mt-1">
-                                  Booking ini telah dibatalkan oleh admin.
-                                </p>
-                              </div>
+                            {/* INFO UNTUK RIWAYAT */}
+                            {showHistory && (
+                              <>
+                                {booking.status === 'completed' && (
+                                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                                    <div className="flex items-center gap-2 text-green-700">
+                                      <CheckCircle className="h-5 w-5" />
+                                      <span className="font-semibold">Booking Selesai</span>
+                                    </div>
+                                    <p className="text-sm text-green-600 mt-1">
+                                      Equipment sudah dikembalikan dan stok telah dipulihkan.
+                                    </p>
+                                  </div>
+                                )}
+                                
+                                {booking.status === 'cancelled' && (
+                                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                    <div className="flex items-center gap-2 text-red-700">
+                                      <XCircle className="h-5 w-5" />
+                                      <span className="font-semibold">Booking Dibatalkan</span>
+                                    </div>
+                                    <p className="text-sm text-red-600 mt-1">
+                                      Booking ini telah dibatalkan.
+                                    </p>
+                                  </div>
+                                )}
+                              </>
                             )}
 
-                            {/* ✅ DETAIL & HAPUS - SELALU TAMPIL */}
+                            {/* DETAIL & HAPUS */}
                             <div className="flex gap-2 pt-2 border-t">
                               <Link to={`/admin/bookings/${booking.booking_id}`}>
                                 <Button size="sm" variant="outline">
@@ -720,8 +899,17 @@ const BookingManagement = () => {
               
               {filteredBookings.length === 0 && (
                 <div className="text-center py-8">
-                  <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Tidak ada booking yang ditemukan</p>
+                  {showHistory ? (
+                    <>
+                      <History className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">Belum ada riwayat booking</p>
+                    </>
+                  ) : (
+                    <>
+                      <Package className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">Tidak ada booking aktif</p>
+                    </>
+                  )}
                 </div>
               )}
             </CardContent>
