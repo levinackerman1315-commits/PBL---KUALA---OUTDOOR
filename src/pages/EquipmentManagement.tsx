@@ -20,7 +20,9 @@ import {
   Upload,
   Image as ImageIcon,
   Weight,
-  Ruler
+  Ruler,
+  BookOpen,
+  Shield
 } from "lucide-react";
 
 // ✅ INTERFACE untuk equipment dengan images array
@@ -28,6 +30,23 @@ interface EquipmentImage {
   image_id: number;
   image_url: string;
   is_primary: boolean;
+  display_order: number;
+}
+
+// ✅ INTERFACE untuk Usage Guide
+interface UsageGuideStep {
+  guide_id?: number;
+  step_number: number;
+  title: string;
+  description: string;
+  image_url?: string;
+}
+
+// ✅ INTERFACE untuk Rental Terms
+interface RentalTerm {
+  term_id?: number;
+  category: string;
+  term_text: string;
   display_order: number;
 }
 
@@ -49,8 +68,10 @@ interface Equipment {
   condition: string;
   equipment_type?: string;
   image_url?: string;
-  images: EquipmentImage[];  // ✅ Array of images
+  images: EquipmentImage[];
   primary_image?: string;
+  usage_guide?: UsageGuideStep[];  // ✅ TAMBAH INI
+  rental_terms?: RentalTerm[];     // ✅ TAMBAH INI
   created_at: string;
 }
 
@@ -76,6 +97,13 @@ const EquipmentManagement = () => {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // ✅ STATE UNTUK TAB MODAL
+  const [activeModalTab, setActiveModalTab] = useState<'basic' | 'guide' | 'terms'>('basic');
+  
+  // ✅ STATE UNTUK USAGE GUIDE & RENTAL TERMS
+  const [usageGuideSteps, setUsageGuideSteps] = useState<UsageGuideStep[]>([]);
+  const [rentalTerms, setRentalTerms] = useState<RentalTerm[]>([]);
 
   // ✅ REF UNTUK FILE INPUT
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -369,6 +397,8 @@ const EquipmentManagement = () => {
     e.preventDefault();
     
     console.log('🚀 Form submission started...');
+    console.log('📋 Usage Guide Steps:', usageGuideSteps);
+    console.log('📋 Rental Terms:', rentalTerms);
     
     // Validations
     if (codeValidation.isDuplicate) {
@@ -459,6 +489,62 @@ const EquipmentManagement = () => {
         }
       }
 
+      // ✅ Save Usage Guide Steps
+      if (usageGuideSteps.length > 0) {
+        console.log('📖 Saving usage guide steps for equipment_id:', equipmentId);
+        console.log('📖 Steps data:', JSON.stringify(usageGuideSteps, null, 2));
+        try {
+          const guideResponse = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/usage_guide.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              equipment_id: equipmentId,
+              steps: usageGuideSteps
+            })
+          });
+
+          const guideResult = await guideResponse.json();
+          console.log('📖 Usage guide response:', guideResult);
+
+          if (!guideResponse.ok || !guideResult.success) {
+            throw new Error(guideResult.message || 'Failed to save usage guide');
+          }
+          
+          console.log('✅ Usage guide saved successfully');
+        } catch (guideError: any) {
+          console.error('❌ Usage guide save failed:', guideError);
+          alert('⚠️ Equipment berhasil disimpan, tapi panduan penggunaan gagal disimpan: ' + guideError.message);
+        }
+      }
+
+      // ✅ Save Rental Terms
+      if (rentalTerms.length > 0) {
+        console.log('📜 Saving rental terms for equipment_id:', equipmentId);
+        console.log('📜 Terms data:', JSON.stringify(rentalTerms, null, 2));
+        try {
+          const termsResponse = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/rental_terms.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              equipment_id: equipmentId,
+              terms: rentalTerms
+            })
+          });
+
+          const termsResult = await termsResponse.json();
+          console.log('📜 Rental terms response:', termsResult);
+
+          if (!termsResponse.ok || !termsResult.success) {
+            throw new Error(termsResult.message || 'Failed to save rental terms');
+          }
+          
+          console.log('✅ Rental terms saved successfully');
+        } catch (termsError: any) {
+          console.error('❌ Rental terms save failed:', termsError);
+          alert('⚠️ Equipment berhasil disimpan, tapi ketentuan sewa gagal disimpan: ' + termsError.message);
+        }
+      }
+
       alert(editingEquipment ? '✅ Equipment berhasil diupdate!' : '✅ Equipment berhasil ditambahkan!');
       await fetchEquipments();
       resetForm();
@@ -520,10 +606,25 @@ const EquipmentManagement = () => {
       condition: equipment.condition || 'baik'
     });
     
+    // ✅ Load Usage Guide
+    if (equipment.usage_guide && equipment.usage_guide.length > 0) {
+      setUsageGuideSteps(equipment.usage_guide);
+    } else {
+      setUsageGuideSteps([]);
+    }
+    
+    // ✅ Load Rental Terms
+    if (equipment.rental_terms && equipment.rental_terms.length > 0) {
+      setRentalTerms(equipment.rental_terms);
+    } else {
+      setRentalTerms([]);
+    }
+    
     setCodeValidation({ isChecking: false, isDuplicate: false, message: '' });
     setImageFiles([]);
     setImagePreviews([]);
     clearFileInput();
+    setActiveModalTab('basic');
     
     setEditingEquipment(equipment);
     setShowAddModal(true);
@@ -542,6 +643,9 @@ const EquipmentManagement = () => {
     setCodeValidation({ isChecking: false, isDuplicate: false, message: '' });
     setImageFiles([]);
     setImagePreviews([]);
+    setUsageGuideSteps([]);
+    setRentalTerms([]);
+    setActiveModalTab('basic');
     setShowAddModal(false);
     setEditingEquipment(null);
     clearFileInput();
@@ -945,10 +1049,10 @@ const EquipmentManagement = () => {
         )}
       </div>
 
-      {/* ✅ MODAL ADD/EDIT - UPDATED WITH EXISTING IMAGES DISPLAY */}
+      {/* ✅ MODAL ADD/EDIT - WITH 3 TABS */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <Card className="w-full max-w-3xl my-8">
+          <Card className="w-full max-w-4xl my-8">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>
@@ -962,8 +1066,44 @@ const EquipmentManagement = () => {
                   <X className="h-4 w-4" />
                 </Button>
               </div>
+              
+              {/* ✅ TAB NAVIGATION */}
+              <div className="flex gap-2 mt-4 border-b">
+                <button
+                  onClick={() => setActiveModalTab('basic')}
+                  className={`px-4 py-2 font-medium transition-colors ${
+                    activeModalTab === 'basic' 
+                      ? 'border-b-2 border-green-600 text-green-600' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  📦 Info Dasar
+                </button>
+                <button
+                  onClick={() => setActiveModalTab('guide')}
+                  className={`px-4 py-2 font-medium transition-colors ${
+                    activeModalTab === 'guide' 
+                      ? 'border-b-2 border-green-600 text-green-600' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  📖 Panduan Pakai
+                </button>
+                <button
+                  onClick={() => setActiveModalTab('terms')}
+                  className={`px-4 py-2 font-medium transition-colors ${
+                    activeModalTab === 'terms' 
+                      ? 'border-b-2 border-green-600 text-green-600' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  📋 Ketentuan Sewa
+                </button>
+              </div>
             </CardHeader>
             <CardContent className="max-h-[70vh] overflow-y-auto">
+              {/* ✅ TAB CONTENT: INFO DASAR */}
+              {activeModalTab === 'basic' && (
               <form onSubmit={handleSubmit} className="space-y-6">
                 
                 {/* ✅ IMAGE UPLOAD SECTION WITH EXISTING IMAGES */}
@@ -1285,6 +1425,186 @@ const EquipmentManagement = () => {
                   </Button>
                 </div>
               </form>
+              )}
+
+              {/* ✅ TAB CONTENT: PANDUAN PAKAI */}
+              {activeModalTab === 'guide' && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">Panduan Penggunaan Equipment</h3>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        setUsageGuideSteps([...usageGuideSteps, {
+                          step_number: usageGuideSteps.length + 1,
+                          title: '',
+                          description: ''
+                        }]);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Tambah Step
+                    </Button>
+                  </div>
+
+                  {usageGuideSteps.map((step, idx) => (
+                    <Card key={idx} className="border-green-200">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-green-700">Step {idx + 1}</span>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              setUsageGuideSteps(usageGuideSteps.filter((_, i) => i !== idx));
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        <Input
+                          placeholder="Judul step (contoh: Persiapan Area)"
+                          value={step.title}
+                          onChange={(e) => {
+                            const updated = [...usageGuideSteps];
+                            updated[idx].title = e.target.value;
+                            setUsageGuideSteps(updated);
+                          }}
+                        />
+                        
+                        <Textarea
+                          placeholder="Deskripsi lengkap cara menggunakan..."
+                          value={step.description}
+                          rows={3}
+                          onChange={(e) => {
+                            const updated = [...usageGuideSteps];
+                            updated[idx].description = e.target.value;
+                            setUsageGuideSteps(updated);
+                          }}
+                        />
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {usageGuideSteps.length === 0 && (
+                    <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed">
+                      <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-500">Belum ada panduan penggunaan</p>
+                      <p className="text-sm text-gray-400 mt-1">Klik "Tambah Step" untuk mulai</p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-4 border-t">
+                    <Button 
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleSubmit(e as any);
+                      }}
+                      className="bg-green-600 hover:bg-green-700"
+                      disabled={loading}
+                    >
+                      {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                      Simpan
+                    </Button>
+                    <Button type="button" variant="outline" onClick={resetForm}>
+                      Batal
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* ✅ TAB CONTENT: KETENTUAN SEWA */}
+              {activeModalTab === 'terms' && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">Ketentuan Sewa Equipment</h3>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        setRentalTerms([...rentalTerms, {
+                          category: 'Umum',
+                          term_text: '',
+                          display_order: rentalTerms.length
+                        }]);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Tambah Ketentuan
+                    </Button>
+                  </div>
+
+                  {rentalTerms.map((term, idx) => (
+                    <Card key={idx} className="border-blue-200">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex justify-between items-center gap-2">
+                          <Input
+                            placeholder="Kategori (contoh: Peminjaman, Pengembalian)"
+                            value={term.category}
+                            className="flex-1"
+                            onChange={(e) => {
+                              const updated = [...rentalTerms];
+                              updated[idx].category = e.target.value;
+                              setRentalTerms(updated);
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              setRentalTerms(rentalTerms.filter((_, i) => i !== idx));
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        <Textarea
+                          placeholder="Isi ketentuan..."
+                          value={term.term_text}
+                          rows={2}
+                          onChange={(e) => {
+                            const updated = [...rentalTerms];
+                            updated[idx].term_text = e.target.value;
+                            setRentalTerms(updated);
+                          }}
+                        />
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {rentalTerms.length === 0 && (
+                    <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed">
+                      <Shield className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-500">Belum ada ketentuan sewa</p>
+                      <p className="text-sm text-gray-400 mt-1">Klik "Tambah Ketentuan" untuk mulai</p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-4 border-t">
+                    <Button 
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleSubmit(e as any);
+                      }}
+                      className="bg-green-600 hover:bg-green-700"
+                      disabled={loading}
+                    >
+                      {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                      Simpan
+                    </Button>
+                    <Button type="button" variant="outline" onClick={resetForm}>
+                      Batal
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

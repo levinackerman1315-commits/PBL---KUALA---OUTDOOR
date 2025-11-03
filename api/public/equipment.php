@@ -47,6 +47,52 @@ try {
         return $images;
     }
     
+    // ✅ HELPER FUNCTION: Get usage guide steps
+    function getUsageGuide($pdo, $equipment_id) {
+        $stmt = $pdo->prepare("
+            SELECT guide_id, step_number, title, description
+            FROM equipment_usage_guides
+            WHERE equipment_id = ?
+            ORDER BY step_number ASC
+        ");
+        $stmt->execute([$equipment_id]);
+        
+        $steps = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $steps[] = [
+                'guide_id' => (int)$row['guide_id'],
+                'step_number' => (int)$row['step_number'],
+                'title' => $row['title'],
+                'description' => $row['description']
+            ];
+        }
+        
+        return $steps;
+    }
+    
+    // ✅ HELPER FUNCTION: Get rental terms
+    function getRentalTerms($pdo, $equipment_id) {
+        $stmt = $pdo->prepare("
+            SELECT term_id, category, term_text, display_order
+            FROM equipment_rental_terms
+            WHERE equipment_id = ?
+            ORDER BY display_order ASC
+        ");
+        $stmt->execute([$equipment_id]);
+        
+        $terms = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $terms[] = [
+                'term_id' => (int)$row['term_id'],
+                'category' => $row['category'],
+                'term_text' => $row['term_text'],
+                'display_order' => (int)$row['display_order']
+            ];
+        }
+        
+        return $terms;
+    }
+    
     $method = $_SERVER['REQUEST_METHOD'];
     
     switch($method) {
@@ -79,6 +125,8 @@ try {
                         "equipment_type" => $equipment['equipment_type'] ?? 'single',
                         "image_url" => $equipment['image_url'] ? 'http://localhost/PBL-KELANA-OUTDOOR' . $equipment['image_url'] : null,
                         "images" => getEquipmentImages($pdo, $equipment['equipment_id']),
+                        "usage_guide" => getUsageGuide($pdo, $equipment['equipment_id']), // ✅ TAMBAH INI
+                        "rental_terms" => getRentalTerms($pdo, $equipment['equipment_id']), // ✅ TAMBAH INI
                         "created_at" => $equipment['created_at']
                     ];
                     

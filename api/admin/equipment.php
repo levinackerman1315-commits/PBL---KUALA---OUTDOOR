@@ -45,6 +45,52 @@ try {
         return $images;
     }
     
+    // ✅ HELPER FUNCTION: Get usage guide steps
+    function getUsageGuide($pdo, $equipment_id) {
+        $stmt = $pdo->prepare("
+            SELECT guide_id, step_number, title, description
+            FROM equipment_usage_guides
+            WHERE equipment_id = ?
+            ORDER BY step_number ASC
+        ");
+        $stmt->execute([$equipment_id]);
+        
+        $steps = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $steps[] = [
+                'guide_id' => (int)$row['guide_id'],
+                'step_number' => (int)$row['step_number'],
+                'title' => $row['title'],
+                'description' => $row['description']
+            ];
+        }
+        
+        return $steps;
+    }
+    
+    // ✅ HELPER FUNCTION: Get rental terms
+    function getRentalTerms($pdo, $equipment_id) {
+        $stmt = $pdo->prepare("
+            SELECT term_id, category, term_text, display_order
+            FROM equipment_rental_terms
+            WHERE equipment_id = ?
+            ORDER BY display_order ASC
+        ");
+        $stmt->execute([$equipment_id]);
+        
+        $terms = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $terms[] = [
+                'term_id' => (int)$row['term_id'],
+                'category' => $row['category'],
+                'term_text' => $row['term_text'],
+                'display_order' => (int)$row['display_order']
+            ];
+        }
+        
+        return $terms;
+    }
+    
     $method = $_SERVER['REQUEST_METHOD'];
     error_log("Equipment API called with method: " . $method);
     
@@ -85,6 +131,12 @@ try {
                     // Get images dari tabel equipment_images
                     $images = getEquipmentImages($pdo, $equipment['equipment_id']);
                     
+                    // Get usage guide steps
+                    $usageGuide = getUsageGuide($pdo, $equipment['equipment_id']);
+                    
+                    // Get rental terms
+                    $rentalTerms = getRentalTerms($pdo, $equipment['equipment_id']);
+                    
                     $response = [
                         "equipment_id" => (int)$equipment['equipment_id'],
                         "name" => $equipment['name'],
@@ -105,6 +157,8 @@ try {
                         "image_url" => $equipment['image_url'] ?? null,
                         "images" => $images,  // ✅ Array of images
                         "primary_image" => !empty($images) ? $images[0]['image_url'] : ($equipment['image_url'] ?? null),
+                        "usage_guide" => $usageGuide,  // ✅ Array of usage guide steps
+                        "rental_terms" => $rentalTerms,  // ✅ Array of rental terms
                         "created_at" => $equipment['created_at']
                     ];
                     
@@ -121,6 +175,12 @@ try {
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     // Get images untuk setiap equipment
                     $images = getEquipmentImages($pdo, $row['equipment_id']);
+                    
+                    // Get usage guide steps
+                    $usageGuide = getUsageGuide($pdo, $row['equipment_id']);
+                    
+                    // Get rental terms
+                    $rentalTerms = getRentalTerms($pdo, $row['equipment_id']);
                     
                     $equipments[] = [
                         "equipment_id" => (int)$row['equipment_id'],
@@ -142,6 +202,8 @@ try {
                         "image_url" => $row['image_url'] ?? null,
                         "images" => $images,  // ✅ Array of images
                         "primary_image" => !empty($images) ? $images[0]['image_url'] : ($row['image_url'] ?? null),
+                        "usage_guide" => $usageGuide,  // ✅ Array of usage guide steps
+                        "rental_terms" => $rentalTerms,  // ✅ Array of rental terms
                         "created_at" => $row['created_at']
                     ];
                 }

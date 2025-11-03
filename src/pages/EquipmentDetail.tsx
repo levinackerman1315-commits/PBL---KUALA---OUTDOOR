@@ -23,6 +23,28 @@ interface EquipmentImage {
   display_order: number;
 }
 
+// ✅ INTERFACE USAGE GUIDE
+interface UsageGuideStep {
+  guide_id?: number;
+  step_number: number;
+  title: string;
+  description: string;
+}
+
+// ✅ INTERFACE RENTAL TERMS
+interface RentalTerm {
+  term_id?: number;
+  category: string;
+  term_text: string;
+  display_order: number;
+}
+
+// ✅ EXTEND Equipment TYPE
+interface EquipmentWithGuides extends Equipment {
+  usage_guide?: UsageGuideStep[];
+  rental_terms?: RentalTerm[];
+}
+
 const EquipmentDetailV2 = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -34,7 +56,7 @@ const EquipmentDetailV2 = () => {
   const [quantity, setQuantity] = useState(1)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   
-  const [equipment, setEquipment] = useState<Equipment | null>(null) // ✅ TYPE Equipment DARI CARTCONTEXT
+  const [equipment, setEquipment] = useState<EquipmentWithGuides | null>(null) // ✅ GUNAKAN TYPE YANG SUDAH EXTEND
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -66,7 +88,7 @@ const EquipmentDetailV2 = () => {
 
       if (data.equipment_id) {
         // ✅ TRANSFORM DATA UNTUK MATCH DENGAN INTERFACE CARTCONTEXT
-        const transformedEquipment: Equipment = {
+        const transformedEquipment: EquipmentWithGuides = {
           equipment_id: data.equipment_id,
           name: data.name,
           code: data.code,
@@ -85,15 +107,19 @@ const EquipmentDetailV2 = () => {
           available_stock: data.available_stock || data.stock_quantity,
           reserved_stock: data.reserved_stock || 0,
           rented_stock: data.rented_stock || 0,
-          images: data.images || []
+          images: data.images || [],
+          usage_guide: data.usage_guide || [], // ✅ TAMBAH INI
+          rental_terms: data.rental_terms || [] // ✅ TAMBAH INI
         }
         
         setEquipment(transformedEquipment)
         console.log('✅ Equipment loaded:', data.name)
+        console.log('📖 Usage Guide:', data.usage_guide)
+        console.log('📜 Rental Terms:', data.rental_terms)
       } else if (Array.isArray(data) && data.length > 0) {
         const foundEquipment = data.find((item: any) => item.equipment_id === equipmentId)
         if (foundEquipment) {
-          const transformedEquipment: Equipment = {
+          const transformedEquipment: EquipmentWithGuides = {
             equipment_id: foundEquipment.equipment_id,
             name: foundEquipment.name,
             code: foundEquipment.code,
@@ -112,10 +138,14 @@ const EquipmentDetailV2 = () => {
             available_stock: foundEquipment.available_stock || foundEquipment.stock_quantity,
             reserved_stock: foundEquipment.reserved_stock || 0,
             rented_stock: foundEquipment.rented_stock || 0,
-            images: foundEquipment.images || []
+            images: foundEquipment.images || [],
+            usage_guide: foundEquipment.usage_guide || [], // ✅ TAMBAH INI
+            rental_terms: foundEquipment.rental_terms || [] // ✅ TAMBAH INI
           }
           setEquipment(transformedEquipment)
           console.log('✅ Equipment loaded from array:', foundEquipment.name)
+          console.log('📖 Usage Guide:', foundEquipment.usage_guide)
+          console.log('📜 Rental Terms:', foundEquipment.rental_terms)
         } else {
           throw new Error('Equipment tidak ditemukan')
         }
@@ -127,8 +157,8 @@ const EquipmentDetailV2 = () => {
       console.error('❌ Error fetching equipment:', err)
       setError('Gagal memuat detail equipment: ' + err.message)
       
-      // ✅ FALLBACK EQUIPMENT YANG SESUAI DENGAN INTERFACE CARTCONTEXT
-      const fallbackEquipment: Equipment = {
+      // ✅ FALLBACK EQUIPMENT YANG SESUAI DENGAN INTERFACE
+      const fallbackEquipment: EquipmentWithGuides = {
         equipment_id: parseInt(id || '1'),
         name: "Tenda Dome 4 Orang Premium",
         code: "TENDA-001",
@@ -154,7 +184,9 @@ const EquipmentDetailV2 = () => {
             is_primary: true,
             display_order: 1
           }
-        ]
+        ],
+        usage_guide: [],
+        rental_terms: []
       }
       
       setEquipment(fallbackEquipment)
@@ -317,23 +349,9 @@ const EquipmentDetailV2 = () => {
     }
   ]
 
-  const usageGuide = [
-    {
-      step: 1,
-      title: "Persiapan Area",
-      description: "Pilih area datar, bersihkan dari batu/duri. Bentangkan groundsheet terlebih dahulu."
-    }
-  ]
-
-  const terms = [
-    {
-      title: "Ketentuan Peminjaman",
-      items: [
-        "Peminjaman minimal 1 hari (24 jam)",
-        "Booking minimal H-1 (tidak bisa same-day)"
-      ]
-    }
-  ]
+  // ✅ GUNAKAN DATA DARI API (bukan hardcoded)
+  const usageGuide = equipment?.usage_guide || []
+  const terms = equipment?.rental_terms || []
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -622,6 +640,91 @@ const EquipmentDetailV2 = () => {
                         </li>
                       </ul>
                     </div>
+                  </div>
+                )}
+
+                {/* ✅ TAB CARA PAKAI - GUNAKAN DATA DARI API */}
+                {activeTab === 'guide' && (
+                  <div className="space-y-4">
+                    {usageGuide.length > 0 ? (
+                      usageGuide.map((guide, idx) => (
+                        <div key={guide.guide_id || idx} className="border-l-4 border-green-500 pl-4 py-2">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-semibold">
+                              {guide.step_number}
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-base mb-2">{guide.title}</h4>
+                              <p className="text-gray-600 text-sm leading-relaxed">{guide.description}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-12">
+                        <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500 font-medium">Panduan penggunaan belum tersedia</p>
+                        <p className="text-sm text-gray-400 mt-1">Admin belum menambahkan panduan untuk equipment ini</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* ✅ TAB REVIEWS */}
+                {activeTab === 'reviews' && (
+                  <div className="space-y-4">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="border-b pb-4 last:border-0">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <p className="font-semibold">{review.user}</p>
+                            <p className="text-xs text-gray-500">{review.date}</p>
+                          </div>
+                          {renderStars(review.rating)}
+                        </div>
+                        <p className="text-gray-600 text-sm">{review.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* ✅ TAB PERJANJIAN SEWA - GUNAKAN DATA DARI API */}
+                {activeTab === 'terms' && (
+                  <div className="space-y-6">
+                    {terms.length > 0 ? (
+                      (() => {
+                        // Group terms by category
+                        const groupedTerms = terms.reduce((acc: any, term) => {
+                          const cat = term.category || 'Umum'
+                          if (!acc[cat]) acc[cat] = []
+                          acc[cat].push(term)
+                          return acc
+                        }, {})
+
+                        return Object.entries(groupedTerms).map(([category, items]: [string, any]) => (
+                          <div key={category}>
+                            <h4 className="font-semibold text-base mb-3 flex items-center gap-2">
+                              <Shield className="h-5 w-5 text-blue-600" />
+                              {category}
+                            </h4>
+                            <ul className="space-y-2 ml-7">
+                              {items.map((term: RentalTerm, idx: number) => (
+                                <li key={term.term_id || idx} className="flex items-start gap-2 text-sm text-gray-600">
+                                  <span className="text-blue-600 mt-1">•</span>
+                                  <span>{term.term_text}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))
+                      })()
+                    ) : (
+                      <div className="text-center py-12">
+                        <Shield className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500 font-medium">Ketentuan sewa belum tersedia</p>
+                        <p className="text-sm text-gray-400 mt-1">Admin belum menambahkan ketentuan untuk equipment ini</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
