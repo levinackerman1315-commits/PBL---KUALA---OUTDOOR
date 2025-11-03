@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Mountain, ShoppingCart, Shield, User, LogOut } from "lucide-react";
+import { Mountain, ShoppingCart, Shield, User, LogOut, UserCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const Navbar = () => {
@@ -85,13 +85,21 @@ export const Navbar = () => {
                   {user.name}
                 </Button>
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg z-10">
+                  <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg z-10">
+                    <Link
+                      to="/profile"
+                      onClick={() => setDropdownOpen(false)}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700"
+                    >
+                      <UserCircle className="h-4 w-4" />
+                      Profil
+                    </Link>
                     <button
                       onClick={() => {
                         signOut();
                         setDropdownOpen(false);
                       }}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2"
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-2 text-gray-700 border-t"
                     >
                       <LogOut className="h-4 w-4" />
                       Keluar
