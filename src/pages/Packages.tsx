@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { Navbar } from '@/components/Navbar'
@@ -12,10 +13,15 @@ import {
   Shield, 
   Check, 
   ShoppingCart,
-  ArrowLeft 
+  ArrowLeft,
+  MessageCircle,
+  CheckCircle
 } from 'lucide-react'
 
-// ...existing interfaces...
+interface PackageItem {
+  name: string
+  quantity: number
+}
 
 interface Package {
   id: number
@@ -36,39 +42,107 @@ interface Package {
   items: PackageItem[]
 }
 
-interface PackageItem {
-  name: string
-  quantity: number
-}
-
 const Packages = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { toast } = useToast()
-  
+
   const [packages, setPackages] = useState<Package[]>([])
   const [loading, setLoading] = useState(true)
   const [addingToCart, setAddingToCart] = useState<number | null>(null)
 
-  // ✅ Fetch packages dari API
+  // FETCH PACKAGES DARI API
   useEffect(() => {
     const fetchPackages = async () => {
       try {
         const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/packages.php')
         const data = await response.json()
-        
-        if (data.success) {
+
+        if (data.success && Array.isArray(data.data)) {
           setPackages(data.data)
         } else {
-          throw new Error(data.message)
+          throw new Error(data.message || 'Gagal memuat data paket')
         }
       } catch (error: any) {
         console.error('Error fetching packages:', error)
         toast({
-          title: '❌ Error',
-          description: 'Gagal memuat data paket',
+          title: 'Error',
+          description: 'Gagal memuat data paket. Menggunakan data statis.',
           variant: 'destructive'
         })
+
+        // Fallback ke data statis jika API gagal
+        const mockPackages: Package[] = [
+          {
+            id: 1,
+            name: "PAKET KOMPLIT 6 ORANG",
+            capacity: "6-8 Orang",
+            price: 200000,
+            pricePerDay: "200.000 / HARI",
+            badge: "REKOMENDASI GRUP",
+            badgeColor: "bg-orange-500",
+            popular: true,
+            in_stock: true,
+            available_stock: 3,
+            items: [
+              { name: "TENDA KAPASITAS 6-8 ORANG", quantity: 1 },
+              { name: "TAS GUNUNG 45 LITER", quantity: 2 },
+              { name: "LAMPU TENDA", quantity: 2 },
+              { name: "FLYSHEET UKURAN 3X4", quantity: 1 },
+              { name: "KOMPOR PORTABLE", quantity: 2 },
+              { name: "COOKING SET", quantity: 2 },
+              { name: "GAS", quantity: 4 },
+              { name: "MATRAS", quantity: 6 },
+              { name: "HEADLAMP", quantity: 6 },
+            ]
+          },
+          {
+            id: 2,
+            name: "PAKET KOMPLIT 4 ORANG",
+            capacity: "4-5 Orang",
+            price: 140000,
+            pricePerDay: "140.000 / HARI",
+            badge: "PALING POPULER",
+            badgeColor: "bg-green-500",
+            popular: true,
+            in_stock: true,
+            available_stock: 5,
+            items: [
+              { name: "TENDA KAPASITAS 4-5 ORANG", quantity: 1 },
+              { name: "TAS GUNUNG 45 LITER", quantity: 2 },
+              { name: "LAMPU TENDA", quantity: 1 },
+              { name: "FLYSHEET UKURAN 3X4", quantity: 1 },
+              { name: "KOMPOR PORTABLE", quantity: 1 },
+              { name: "COOKING SET", quantity: 1 },
+              { name: "GAS", quantity: 2 },
+              { name: "MATRAS", quantity: 4 },
+              { name: "HEADLAMP", quantity: 4 },
+            ]
+          },
+          {
+            id: 3,
+            name: "PAKET KOMPLIT 2 ORANG",
+            capacity: "2-3 Orang",
+            price: 100000,
+            pricePerDay: "100.000 / HARI",
+            badge: "HEMAT",
+            badgeColor: "bg-blue-500",
+            in_stock: false,
+            available_stock: 0,
+            items: [
+              { name: "TENDA KAPASITAS 2-3 ORANG", quantity: 1 },
+              { name: "TAS GUNUNG 45 LITER", quantity: 2 },
+              { name: "LAMPU TENDA", quantity: 1 },
+              { name: "FLYSHEET UKURAN 3X4", quantity: 1 },
+              { name: "KOMPOR PORTABLE", quantity: 1 },
+              { name: "COOKING SET", quantity: 1 },
+              { name: "GAS", quantity: 4 },
+              { name: "MATRAS", quantity: 2 },
+              { name: "HEADLAMP", quantity: 2 },
+            ]
+          },
+        ]
+        setPackages(mockPackages)
       } finally {
         setLoading(false)
       }
@@ -77,23 +151,21 @@ const Packages = () => {
     fetchPackages()
   }, [toast])
 
-  // ✅ HANDLER ADD TO CART (GANTI DARI handleWhatsAppBooking)
+  // ADD TO CART
   const handleAddToCart = async (pkg: Package) => {
-    // 1. Cek login
     if (!user) {
       toast({
-        title: '⚠️ Login Required',
-        description: 'Silakan login terlebih dahulu untuk melakukan booking',
+        title: 'Login Diperlukan',
+        description: 'Silakan login terlebih dahulu untuk booking paket',
         variant: 'destructive'
       })
       navigate('/auth', { state: { from: '/packages' } })
       return
     }
 
-    // 2. Cek stock
     if (!pkg.in_stock) {
       toast({
-        title: '❌ Stock Habis',
+        title: 'Stock Habis',
         description: 'Maaf, paket ini sedang tidak tersedia',
         variant: 'destructive'
       })
@@ -103,32 +175,30 @@ const Packages = () => {
     try {
       setAddingToCart(pkg.id)
 
-      // 3. Default rental: besok, 3 hari
       const startDate = new Date()
       startDate.setDate(startDate.getDate() + 1)
       const endDate = new Date(startDate)
       endDate.setDate(endDate.getDate() + 3)
 
       const rental_days = 3
-      const total_price = pkg.price * rental_days * 1
+      const total_price = pkg.price * rental_days
 
-      // 4. POST ke API
       const response = await fetch(
         'http://localhost/PBL-KELANA-OUTDOOR/api/customer/package-cart.php',
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            customer_id: Number(user.id),  // ✅ user.id (bukan user.user_id)
+            customer_id: Number(user.id),
             package_id: pkg.id,
-            package_name: pkg.name,         // ✅ TAMBAH
-            capacity: pkg.capacity,         // ✅ TAMBAH
+            package_name: pkg.name,
+            capacity: pkg.capacity,
             quantity: 1,
             rental_start_date: startDate.toISOString().split('T')[0],
             rental_end_date: endDate.toISOString().split('T')[0],
-            rental_days: rental_days,
+            rental_days,
             price_per_day: pkg.price,
-            total_price: total_price
+            total_price
           })
         }
       )
@@ -136,30 +206,30 @@ const Packages = () => {
       const data = await response.json()
 
       if (data.success) {
-        // 5. Toast success
         toast({
-          title: '✅ Ditambahkan ke Keranjang!',
-          description: `${pkg.name} berhasil ditambahkan. Mengarahkan ke keranjang...`,
+          title: 'Sukses!',
+          description: `${pkg.name} ditambahkan ke keranjang. Mengarahkan...`,
         })
-
-        // 6. Redirect ke cart setelah 1 detik
-        setTimeout(() => {
-          navigate('/cart')
-        }, 1000)
-
+        setTimeout(() => navigate('/cart'), 1000)
       } else {
-        throw new Error(data.message || 'Gagal menambahkan paket')
+        throw new Error(data.message)
       }
     } catch (error: any) {
-      console.error('Add to cart error:', error)
       toast({
-        title: '❌ Gagal',
+        title: 'Gagal',
         description: error.message || 'Gagal menambahkan ke keranjang',
         variant: 'destructive'
       })
     } finally {
       setAddingToCart(null)
     }
+  }
+
+  // WHATSAPP BOOKING
+  const handleWhatsAppBooking = (pkg: Package) => {
+    const message = `Halo! Saya tertarik dengan *${pkg.name}*\n\nHarga: Rp ${pkg.price.toLocaleString()} / hari\nKapasitas: ${pkg.capacity}\n\nMohon info ketersediaan dan booking. Terima kasih!`
+    const url = `https://wa.me/6285787553404?text=${encodeURIComponent(message)}`
+    window.open(url, '_blank')
   }
 
   if (loading) {
@@ -176,66 +246,66 @@ const Packages = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
       <Navbar />
-      
-      <div className="container mx-auto px-4 py-8">
-        {/* Back Button */}
-        <Button
-          onClick={() => navigate('/')}
-          variant="ghost"
-          className="mb-6 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Kembali ke Home
-        </Button>
 
-        {/* Header */}
+      <div className="container mx-auto px-4 py-8">
+        {/* BACK BUTTON */}
+        <Link to="/">
+          <Button variant="ghost" className="mb-6 hover:bg-white/50">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Kembali ke Home
+          </Button>
+        </Link>
+
+        {/* HEADER */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-yellow-500 mb-4">
-            Paket Rental Equipment
+          <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-yellow-600 mb-4">
+            Paket Rental Outdoor
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Pilih paket lengkap untuk petualangan Anda! Sudah termasuk semua peralatan yang dibutuhkan.
+          <p className="text-gray-700 text-lg max-w-2xl mx-auto">
+            Pilih paket lengkap untuk petualangan Anda dengan harga spesial dan kemudahan booking!
           </p>
         </div>
 
-        {/* Packages Grid */}
+        {/* PACKAGES GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           {packages.map((pkg) => (
             <Card 
-              key={pkg.id}
-              className="relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border-2 border-orange-200"
+              key={pkg.id} 
+              className={`relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 ${
+                pkg.popular ? 'border-2 border-orange-400 shadow-lg' : 'border border-gray-200'
+              }`}
             >
-              {/* Badge */}
+              {/* BADGE */}
               {pkg.badge && (
-                <div className={`absolute top-4 right-4 px-4 py-2 rounded-full text-white font-bold text-sm shadow-lg z-10 ${
-                  pkg.badgeColor === 'blue' ? 'bg-blue-500' : 'bg-red-500'
-                }`}>
-                  {pkg.badge}
+                <div className="absolute top-4 right-4 z-10">
+                  <Badge className={`${pkg.badgeColor} text-white px-3 py-1 text-xs font-bold`}>
+                    {pkg.badge}
+                  </Badge>
                 </div>
               )}
 
-              {/* Header */}
-              <div className="bg-gradient-to-br from-orange-500 to-yellow-500 p-6 text-white">
-                <h3 className="text-3xl font-bold mb-2">{pkg.name}</h3>
-                <div className="flex items-center gap-2 text-orange-100">
+              <CardHeader className="bg-gradient-to-r from-amber-100 to-yellow-100 pb-6">
+                <CardTitle className="text-2xl font-bold text-amber-900 mb-2">
+                  {pkg.name}
+                </CardTitle>
+                <div className="flex items-center gap-2 text-amber-700">
                   <Users className="h-5 w-5" />
-                  <span className="text-lg font-semibold">{pkg.capacity}</span>
+                  <span className="font-semibold">{pkg.capacity}</span>
                 </div>
-              </div>
+              </CardHeader>
 
               <CardContent className="pt-6 pb-6">
-                {/* Price */}
+                {/* PRICE & STOCK */}
                 <div className="mb-6 text-center">
-                  <div className="text-5xl font-extrabold text-orange-600 mb-2">
+                  <p className="text-4xl font-bold text-orange-600">
                     Rp {pkg.price.toLocaleString('id-ID')}
-                  </div>
-                  <div className="text-gray-500 text-lg">per hari</div>
-                  
-                  {/* Stock Info */}
+                  </p>
+                  <p className="text-gray-500 text-sm mt-1">per hari</p>
+
                   <div className="mt-3">
                     {pkg.in_stock ? (
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-700">
-                        <Check className="h-4 w-4 mr-1" />
+                        <CheckCircle className="h-4 w-4 mr-1" />
                         Tersedia ({pkg.available_stock} paket)
                       </span>
                     ) : (
@@ -246,84 +316,88 @@ const Packages = () => {
                   </div>
                 </div>
 
-                {/* Items List */}
+                {/* ITEMS LIST */}
                 <div className="mb-6">
-                  <h4 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <p className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <Tent className="h-5 w-5 text-orange-600" />
                     Termasuk:
-                  </h4>
+                  </p>
                   <ul className="space-y-2">
-                    {pkg.items.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-gray-700">
-                        <span className="text-orange-500 font-bold mt-1">{item.quantity}</span>
+                    {pkg.items.map((item, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
+                        <span className="text-orange-500 font-bold mt-0.5">{item.quantity}</span>
                         <span>{item.name}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                {/* ✅ BUTTON ADD TO CART (GANTI DARI WHATSAPP) */}
-                <Button 
-                  onClick={() => handleAddToCart(pkg)}
-                  disabled={!pkg.in_stock || addingToCart === pkg.id}
-                  className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-semibold py-6 text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {addingToCart === pkg.id ? (
-                    <>
-                      <span className="animate-spin mr-2">⏳</span>
-                      Menambahkan...
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="h-5 w-5 mr-2" />
-                      Tambah ke Keranjang
-                    </>
-                  )}
-                </Button>
+                {/* ACTION BUTTONS */}
+                <div className="flex flex-col gap-3">
+                  <Button
+                    onClick={() => handleAddToCart(pkg)}
+                    disabled={!pkg.in_stock || addingToCart === pkg.id}
+                    className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-semibold py-6 text-lg shadow-lg disabled:opacity-50"
+                  >
+                    {addingToCart === pkg.id ? (
+                      <>
+                        <span className="animate-spin mr-2">Loading...</span>
+                        Menambahkan...
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="h-5 w-5 mr-2" />
+                        Tambah ke Keranjang
+                      </>
+                    )}
+                  </Button>
+
+                  <Button
+                    onClick={() => handleWhatsAppBooking(pkg)}
+                    variant="outline"
+                    className="w-full border-orange-500 text-orange-600 hover:bg-orange-50 font-medium"
+                  >
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    Tanya via WhatsApp
+                  </Button>
+                </div>
 
                 <p className="text-center text-xs text-gray-500 mt-3">
-                  {addingToCart === pkg.id 
-                    ? 'Sedang memproses...' 
-                    : pkg.in_stock 
-                      ? 'Item akan ditambahkan ke keranjang Anda' 
-                      : 'Paket tidak tersedia'}
+                  {pkg.in_stock ? 'Bisa langsung dipesan' : 'Hubungi admin untuk info ketersediaan'}
                 </p>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Info Section */}
+        {/* INFO SECTION */}
         <Card className="bg-white/80 backdrop-blur-sm border-2 border-orange-200">
           <CardContent className="pt-8 pb-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-800 mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
                 Kenapa Pilih Paket Kami?
-              </h2>
-              
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div className="text-center p-4">
+                  <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Equipment Berkualitas</h4>
+                  <p className="text-gray-600 text-sm">Semua peralatan dalam kondisi prima dan terawat</p>
+                </div>
+                <div className="text-center p-4">
+                  <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                    <ShoppingCart className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Booking Mudah</h4>
+                  <p className="text-gray-600 text-sm">Tambah ke keranjang atau chat langsung via WhatsApp</p>
+                </div>
                 <div className="text-center p-4">
                   <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
                     <Users className="h-8 w-8 text-orange-600" />
                   </div>
-                  <h3 className="font-bold text-lg mb-2 text-gray-800">Lengkap</h3>
-                  <p className="text-gray-600">Semua peralatan sudah termasuk dalam satu paket</p>
-                </div>
-                
-                <div className="text-center p-4">
-                  <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
-                    <Shield className="h-8 w-8 text-green-600" />
-                  </div>
-                  <h3 className="font-bold text-lg mb-2 text-gray-800">Berkualitas</h3>
-                  <p className="text-gray-600">Equipment terawat dan kondisi prima</p>
-                </div>
-                
-                <div className="text-center p-4">
-                  <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
-                    <Check className="h-8 w-8 text-blue-600" />
-                  </div>
-                  <h3 className="font-bold text-lg mb-2 text-gray-800">Hemat</h3>
-                  <p className="text-gray-600">Harga paket lebih murah dari rental satuan</p>
+                  <h4 className="font-semibold text-gray-900 mb-2">Fleksibel</h4>
+                  <p className="text-gray-600 text-sm">Pilih paket sesuai jumlah orang dan durasi</p>
                 </div>
               </div>
             </div>

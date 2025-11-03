@@ -3,22 +3,32 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Calendar, User, Phone, Mail, MessageSquare, MessageCircle, Package, ShoppingCart } from 'lucide-react'
-import { useContact } from '@/contexts/ContactContext' // ✅ IMPORT CONTEXT
+import {
+  ArrowLeft,
+  Calendar,
+  User,
+  Phone,
+  Mail,
+  MessageSquare,
+  MessageCircle,
+  Package,
+  ShoppingCart,
+} from 'lucide-react'
+import { useContact } from '@/contexts/ContactContext' // Gunakan nomor WA dari context
 
 const BookingForm = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const { contactInfo } = useContact() // ✅ GUNAKAN CONTEXT
-  
-  // ✅ TERIMA DATA DARI CART
+  const { contactInfo } = useContact() // Ambil nomor WA dari context
+
+  // TERIMA DATA DARI CART
   const { cartItems, totalItems, totalPrice, fromCart } = location.state || {}
-  
+
   const [bookingData, setBookingData] = useState({
     customerName: '',
     phone: '',
     email: '',
-    identityNumber: '', // ✅ TAMBAH NO KTP
+    identityNumber: '',
     rentalStartDate: '',
     rentalEndDate: '',
     notes: ''
@@ -26,11 +36,11 @@ const BookingForm = () => {
 
   const [loading, setLoading] = useState(false)
 
-  // ✅ CEK APAKAH ADA DATA CART
+  // CEK APAKAH ADA DATA CART
   useEffect(() => {
     if (!cartItems || cartItems.length === 0) {
       const confirmRedirect = window.confirm(
-        '⚠️ Keranjang kosong!\n\nKlik OK untuk kembali ke halaman keranjang.'
+        'Keranjang kosong!\n\nKlik OK untuk kembali ke halaman keranjang.'
       )
       if (confirmRedirect) {
         navigate('/cart')
@@ -38,7 +48,7 @@ const BookingForm = () => {
     }
   }, [cartItems, navigate])
 
-  // ✅ HITUNG DURASI RENTAL
+  // HITUNG DURASI RENTAL
   const calculateDays = () => {
     if (!bookingData.rentalStartDate || !bookingData.rentalEndDate) return 0
     const start = new Date(bookingData.rentalStartDate)
@@ -51,72 +61,74 @@ const BookingForm = () => {
   const rentalDays = calculateDays()
   const grandTotal = totalPrice * rentalDays
 
-  // ✅ GENERATE PESAN WHATSAPP DENGAN FORMAT YANG LEBIH BAIK
+  // GENERATE PESAN WHATSAPP
   const generateWhatsAppMessage = () => {
-    const itemsList = cartItems.map((item: any) => 
-      `• ${item.equipment.name} (${item.quantity}x) - Rp ${item.equipment.price_per_day.toLocaleString('id-ID')}/hari`
-    ).join('\n')
+    const itemsList = cartItems
+      .map((item: any) => 
+        `• ${item.equipment.name} (${item.quantity}x) - Rp ${item.equipment.price_per_day.toLocaleString('id-ID')}/hari`
+      )
+      .join('\n')
 
     return `
-⛰️ *BOOKING KUALA OUTDOOR*
+*BOOKING KUALA OUTDOOR*
 
-👤 *DATA PENYEWA:*
+*DATA PENYEWA:*
 • Nama: ${bookingData.customerName}
 • HP: ${bookingData.phone}
 • Email: ${bookingData.email || '-'}
 • No. KTP: ${bookingData.identityNumber || '-'}
 
-🛍️ *PERALATAN:*
+*PERALATAN:*
 ${itemsList}
 
-🗓️ *PERIODE SEWA:*
+*PERIODE SEWA:*
 • Mulai: ${bookingData.rentalStartDate}
 • Selesai: ${bookingData.rentalEndDate}
 • Durasi: ${rentalDays} hari
 
-💰 *ESTIMASI BIAYA TOTAL:*
+*ESTIMASI BIAYA TOTAL:*
 Rp ${grandTotal.toLocaleString('id-ID')}
 
-📒 *CATATAN:*
+*CATATAN:*
 ${bookingData.notes || 'Tidak ada catatan khusus'}
 
 ---
-Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
+Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
     `.trim()
   }
 
-  // ✅ HANDLE KIRIM VIA WHATSAPP
+  // KIRIM VIA WHATSAPP
   const handleWhatsApp = () => {
     if (!bookingData.customerName || !bookingData.phone || !bookingData.rentalStartDate || !bookingData.rentalEndDate) {
-      alert('⚠️ Mohon lengkapi nama, telepon, dan tanggal rental terlebih dahulu!')
+      alert('Mohon lengkapi nama, telepon, dan tanggal rental terlebih dahulu!')
       return
     }
 
     const message = generateWhatsAppMessage()
-    const whatsappUrl = `https://wa.me/${contactInfo.phone1.replace(/[^\d]/g, '')}?text=${encodeURIComponent(message)}`
+    const phone = contactInfo.phone1.replace(/[^\d]/g, '')
+    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
     
     window.open(whatsappUrl, '_blank')
   }
 
-  // ✅ HANDLE SUBMIT FORM
+  // SUBMIT KE API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    
+
     // Validasi
     if (!bookingData.customerName || !bookingData.phone || !bookingData.rentalStartDate || !bookingData.rentalEndDate) {
-      alert('⚠️ Mohon lengkapi semua data yang wajib diisi!')
+      alert('Mohon lengkapi semua data yang wajib diisi!')
       setLoading(false)
       return
     }
 
     if (new Date(bookingData.rentalEndDate) <= new Date(bookingData.rentalStartDate)) {
-      alert('❌ Tanggal selesai harus setelah tanggal mulai')
+      alert('Tanggal selesai harus setelah tanggal mulai')
       setLoading(false)
       return
     }
 
-    // ✅ KIRIM DATA KE API TERMASUK IDENTITY NUMBER
     try {
       const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/booking.php', {
         method: 'POST',
@@ -125,7 +137,7 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
           customer_name: bookingData.customerName,
           customer_phone: bookingData.phone,
           customer_email: bookingData.email,
-          customer_identity_number: bookingData.identityNumber, // ✅ PASTIKAN INI ADA
+          customer_identity_number: bookingData.identityNumber,
           customer_id: null,
           start_date: bookingData.rentalStartDate,
           end_date: bookingData.rentalEndDate,
@@ -136,23 +148,23 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
           }))
         })
       })
-      
+
       const result = await response.json()
-      
+
       if (!result.success) {
-        throw new Error(result.message)
+        throw new Error(result.message || 'Gagal membuat booking')
       }
 
-      // Tanya user mau konfirmasi via WhatsApp
+      // Konfirmasi WhatsApp
       const confirmWhatsApp = window.confirm(
-        `✅ Booking berhasil dibuat!\n\nKode Booking: ${result.booking_code}\n💰 Total: Rp ${result.total_price.toLocaleString('id-ID')}\n📅 Durasi: ${rentalDays} hari\n\nApakah Anda ingin mengirim konfirmasi via WhatsApp?`
+        `Booking berhasil dibuat!\n\nKode Booking: ${result.booking_code}\nTotal: Rp ${result.total_price.toLocaleString('id-ID')}\nDurasi: ${rentalDays} hari\n\nKirim konfirmasi via WhatsApp?`
       )
-      
+
       if (confirmWhatsApp) {
         handleWhatsApp()
       }
-      
-      // Redirect ke halaman sukses
+
+      // Redirect ke success
       navigate('/booking/success', {
         state: {
           bookingData: {
@@ -165,13 +177,13 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
         }
       })
     } catch (error: any) {
-      alert('❌ Gagal membuat booking: ' + error.message)
+      alert('Gagal membuat booking: ' + error.message)
     } finally {
       setLoading(false)
     }
   }
 
-  // ✅ LOADING STATE
+  // LOADING STATE
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -183,7 +195,7 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
     )
   }
 
-  // ✅ JIKA KERANJANG KOSONG
+  // KERANJANG KOSONG
   if (!cartItems || cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -360,7 +372,7 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
               <CardContent className="space-y-4">
                 {/* Item List */}
                 <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                  {cartItems && cartItems.map((item: any) => (
+                  {cartItems.map((item: any) => (
                     <div key={item.equipment.equipment_id} className="flex justify-between border-b pb-2">
                       <div className="flex-1">
                         <p className="font-medium text-sm">{item.equipment.name}</p>
@@ -391,7 +403,7 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
                   </div>
                 </div>
 
-                {/* ✅ TOMBOL WHATSAPP - MENGGUNAKAN NOMOR DARI CONTEXT */}
+                {/* TOMBOL WHATSAPP */}
                 <Button 
                   variant="outline" 
                   className="w-full h-12"
@@ -404,9 +416,9 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih! 🙏
 
                 {/* Info */}
                 <div className="bg-blue-50 p-3 rounded-lg text-xs text-blue-700 space-y-1">
-                  <p>📞 Admin: {contactInfo.phone1}</p>
-                  <p>📦 Gratis pickup & return di lokasi kami</p>
-                  <p>⏰ Konfirmasi via WhatsApp max 1 jam</p>
+                  <p>Admin: {contactInfo.phone1}</p>
+                  <p>Gratis pickup & return di lokasi kami</p>
+                  <p>Konfirmasi via WhatsApp max 1 jam</p>
                 </div>
               </CardContent>
             </Card>

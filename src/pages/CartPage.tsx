@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { useCart } from '@/contexts/CartContext'
@@ -18,7 +18,6 @@ import {
   RefreshCw,
   Package
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +30,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Footer } from '@/components/Footer'
 
-// ✅ INTERFACE IMAGE (sama seperti di EquipmentDetail & Browse)
 interface EquipmentImage {
   image_id: number
   image_url: string
@@ -39,7 +37,6 @@ interface EquipmentImage {
   display_order: number
 }
 
-// ✅ INTERFACE EQUIPMENT - LENGKAP DENGAN IMAGES
 interface Equipment {
   equipment_id: number
   name: string
@@ -88,8 +85,8 @@ const CartPage = () => {
   const [deleting, setDeleting] = useState<number | null>(null)
   const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
-  // ✅ GET PRIMARY IMAGE
   const getPrimaryImage = (equipment?: Equipment): string | null => {
     if (!equipment) return null
     
@@ -107,7 +104,6 @@ const CartPage = () => {
     return equipment.image_url || null
   }
 
-  // ✅ BUILD IMAGE URL
   const buildImageUrl = (imageUrl?: string | null): string | null => {
     if (!imageUrl) return null
     if (imageUrl.startsWith('http')) return imageUrl
@@ -116,7 +112,6 @@ const CartPage = () => {
     return `http://localhost/PBL-KELANA-OUTDOOR/uploads/equipment/${imageUrl}`
   }
 
-  // ✅ HANDLE IMAGE ERROR
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.target as HTMLImageElement
     img.style.display = 'none'
@@ -126,7 +121,6 @@ const CartPage = () => {
     }
   }
 
-  // ✅ FETCH EQUIPMENT + PACKAGE CART
   useEffect(() => {
     const fetchAllCarts = async () => {
       if (!user) {
@@ -139,7 +133,6 @@ const CartPage = () => {
       try {
         console.log('🔄 Fetching cart for customer_id:', user.id)
 
-        // 1️⃣ EQUIPMENT CART
         const equipmentItems: CartItem[] = equipmentCartItems.map(item => ({
           cart_id: item.equipment.equipment_id,
           cart_type: 'equipment' as const,
@@ -152,7 +145,6 @@ const CartPage = () => {
           is_checked: true
         }))
 
-        // 2️⃣ PACKAGE CART
         const packageResponse = await fetch(
           `http://localhost/PBL-KELANA-OUTDOOR/api/customer/package-cart.php?customer_id=${user.id}`
         )
@@ -178,7 +170,6 @@ const CartPage = () => {
             }))
           : []
 
-        // 3️⃣ GABUNGKAN & SORT
         const combined = [...equipmentItems, ...packageItems].sort((a, b) => {
           if (a.cart_type === 'package' && b.cart_type === 'equipment') return -1
           if (a.cart_type === 'equipment' && b.cart_type === 'package') return 1
@@ -203,7 +194,22 @@ const CartPage = () => {
     fetchAllCarts()
   }, [user, equipmentCartItems, toast])
 
-  // ✅ UPDATE QUANTITY - TANPA rental_days UNTUK PACKAGE
+  const handleRefreshCart = async () => {
+    setIsRefreshing(true)
+    try {
+      window.location.reload()
+    } catch (error) {
+      console.error('Error refreshing cart:', error)
+      toast({
+        title: '❌ Error',
+        description: 'Gagal refresh keranjang',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
   const handleUpdateQuantity = async (item: CartItem, newQuantity: number) => {
     if (newQuantity <= 0) return
 
@@ -218,7 +224,6 @@ const CartPage = () => {
           description: 'Quantity berhasil diupdate'
         })
       } else if (item.cart_type === 'package') {
-        // ✅ KALKULASI BARU: quantity × price_per_day (TANPA rental_days)
         const newTotalPrice = item.price_per_day * newQuantity
 
         const response = await fetch(
@@ -263,7 +268,6 @@ const CartPage = () => {
     }
   }
 
-  // ✅ DELETE ITEM
   const handleDelete = async (item: CartItem) => {
     try {
       setDeleting(item.cart_id)
@@ -306,7 +310,6 @@ const CartPage = () => {
     }
   }
 
-  // ✅ CLEAR ALL CART
   const handleClearCart = async () => {
     try {
       clearCart()
@@ -333,11 +336,9 @@ const CartPage = () => {
     }
   }
 
-  // ✅ CALCULATE TOTAL
   const getTotalPrice = () => allCartItems.reduce((sum, item) => sum + item.total_price, 0)
   const getTotalItems = () => allCartItems.reduce((sum, item) => sum + item.quantity, 0)
 
-  // ✅ LOADING
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -349,7 +350,6 @@ const CartPage = () => {
     )
   }
 
-  // ✅ EMPTY CART
   if (allCartItems.length === 0) {
     return (
       <>
@@ -386,7 +386,6 @@ const CartPage = () => {
     <>
       <div className="min-h-screen bg-gray-50 py-8 flex flex-col">
         <div className="container mx-auto px-4 flex-1">
-          {/* HEADER */}
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center">
               <Link to="/">
@@ -397,22 +396,22 @@ const CartPage = () => {
               </Link>
               <h1 className="text-3xl font-bold">Keranjang Belanja</h1>
               <Badge variant="secondary" className="ml-4 bg-green-100 text-green-800">
-                {allCartItems.length} items
+                {getTotalItems()} items
               </Badge>
             </div>
             
             <Button 
               variant="outline" 
-              onClick={() => window.location.reload()}
+              onClick={handleRefreshCart}
+              disabled={isRefreshing}
               className="gap-2"
             >
-              <RefreshCw className="h-4 w-4" />
-              Refresh
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Memperbarui...' : 'Refresh'}
             </Button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* CART ITEMS */}
             <div className="lg:col-span-2 space-y-4">
               {allCartItems.map((item) => {
                 const primaryImageUrl = item.cart_type === 'equipment' 
@@ -424,7 +423,6 @@ const CartPage = () => {
                   <Card key={`${item.cart_type}-${item.cart_id}`} className="overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex gap-4">
-                        {/* IMAGE SECTION */}
                         <div className="w-24 h-24 bg-gray-200 rounded flex items-center justify-center overflow-hidden flex-shrink-0 relative">
                           {item.cart_type === 'equipment' && displayImageUrl ? (
                             <>
@@ -460,30 +458,15 @@ const CartPage = () => {
                                 </>
                               ) : (
                                 <>
-                                  {item.equipment ? (
-                                    <div className="flex flex-col items-center">
-                                      <span className="text-3xl font-bold text-gray-500">
-                                        {item.equipment.name.charAt(0).toUpperCase()}
-                                      </span>
-                                      <p className="text-[10px] text-gray-400 mt-1">
-                                        {item.equipment.code}
-                                      </p>
-                                    </div>
-                                  ) : (
-                                    <>
-                                      <ImageIcon className="h-8 w-8 mx-auto mb-1" />
-                                      <p className="text-xs">No image</p>
-                                    </>
-                                  )}
+                                  <ImageIcon className="h-8 w-8 mx-auto mb-1" />
+                                  <p className="text-xs">No image</p>
                                 </>
                               )}
                             </div>
                           )}
                         </div>
 
-                        {/* INFO */}
                         <div className="flex-1">
-                          {/* NAME + PRICE */}
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex-1">
                               <h3 className="font-semibold text-lg mb-1">
@@ -494,7 +477,6 @@ const CartPage = () => {
                               </p>
                             </div>
 
-                            {/* ✅ TOTAL PRICE - TANPA × rental_days */}
                             <div className="text-right ml-4">
                               <p className="font-bold text-xl text-green-700">
                                 Rp {item.total_price.toLocaleString('id-ID')}
@@ -505,7 +487,6 @@ const CartPage = () => {
                             </div>
                           </div>
 
-                          {/* BADGE */}
                           <div className="mb-3">
                             {item.cart_type === 'package' ? (
                               <Badge className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white border-0 text-xs">
@@ -518,28 +499,18 @@ const CartPage = () => {
                             )}
                           </div>
 
-                          {/* STOCK & CONDITION (equipment) */}
                           {item.cart_type === 'equipment' && (
                             <p className="text-xs text-gray-500 mb-3">
                               Stok: {item.equipment?.stock_quantity} | Kondisi: {item.equipment?.condition}
                             </p>
                           )}
 
-                          {/* CAPACITY (package) */}
                           {item.capacity && (
                             <p className="text-sm text-gray-600 mb-2">
                               👥 Kapasitas: {item.capacity}
                             </p>
                           )}
 
-                          {/* ✅ INFO PLACEHOLDER */}
-                          {item.cart_type === 'package' && (
-                            <p className="text-xs text-gray-500 mb-3 italic">
-                              📅 Tanggal sewa akan ditentukan saat checkout
-                            </p>
-                          )}
-
-                          {/* QUANTITY CONTROLS */}
                           <div className="flex items-center gap-3 mt-4">
                             <Button
                               size="sm"
@@ -559,7 +530,7 @@ const CartPage = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleUpdateQuantity(item, item.quantity + 1)}
-                              disabled={updating === item.cart_id}
+                              disabled={updating === item.cart_id || (item.cart_type === 'equipment' && item.quantity >= (item.equipment?.stock_quantity || 0))}
                               className="h-8 w-8 p-0"
                             >
                               <Plus className="h-4 w-4" />
@@ -579,7 +550,7 @@ const CartPage = () => {
                             </Button>
 
                             {item.cart_type === 'equipment' && item.equipment_id && (
-                              <Link to={`/equipment/${item.equipment_id}`}>
+                              <Link to={`/equipment/${item.equipment_id}?from=cart`}>
                                 <Button variant="outline" size="sm" className="ml-2">
                                   <ExternalLink className="h-3 w-3 mr-1" />
                                   Lihat Detail
@@ -595,7 +566,6 @@ const CartPage = () => {
               })}
             </div>
 
-            {/* SUMMARY */}
             <div className="lg:col-span-1">
               <Card className="sticky top-4">
                 <CardContent className="p-6">
@@ -604,7 +574,7 @@ const CartPage = () => {
                   <div className="space-y-2 mb-4">
                     <div className="flex justify-between text-sm">
                       <span>Jumlah Item</span>
-                      <span>{allCartItems.length} items</span>
+                      <span>{getTotalItems()} items</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Subtotal</span>
@@ -618,10 +588,8 @@ const CartPage = () => {
                     </div>
                   </div>
                   
-                  {/* ✅ PERBAIKAN: TOMBOL LANJUT KE PEMBAYARAN - KIRIM DATA CART */}
                   <Button 
                     onClick={() => {
-                      // ✅ VALIDASI: Cek apakah ada barang di cart
                       if (allCartItems.length === 0) {
                         toast({
                           title: '⚠️ Keranjang Kosong',
@@ -631,7 +599,6 @@ const CartPage = () => {
                         return
                       }
 
-                      // ✅ FORMAT DATA UNTUK BOOKINGFORM
                       const cartItemsForBooking = allCartItems.map(item => ({
                         cart_type: item.cart_type,
                         equipment: item.cart_type === 'equipment' ? item.equipment : null,
@@ -644,7 +611,6 @@ const CartPage = () => {
 
                       console.log('📦 Sending cart data to booking form:', cartItemsForBooking)
 
-                      // ✅ NAVIGATE DENGAN STATE
                       navigate('/booking/form', {
                         state: {
                           cartItems: cartItemsForBooking,
@@ -679,9 +645,52 @@ const CartPage = () => {
               </Card>
             </div>
           </div>
+
+          <div className="max-w-4xl mx-auto mt-8 space-y-4">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-semibold text-lg">Butuh peralatan lain?</h3>
+                    <p className="text-gray-600">Browse koleksi lengkap peralatan outdoor kami</p>
+                  </div>
+                  <Link to="/browse?from=cart">
+                    <Button variant="outline">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Tambah Peralatan
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <div className="text-center">
+                <h3 className="font-semibold text-blue-800 mb-2">
+                  🎒 Siap untuk petualangan?
+                </h3>
+                <p className="text-blue-600 mb-4">
+                  Booking seluruh keranjang sekaligus atau hubungi kami langsung
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <div className="sm:border-l sm:border-blue-300 sm:pl-6">
+                    <p className="text-sm text-blue-600 mb-2">Atau hubungi langsung</p>
+                    <a
+                      href={`https://wa.me/${contactInfo.phone1.replace(/[^\d]/g, '')}?text=Halo,%20saya%20tertarik%20dengan%20peralatan%20di%20keranjang%20saya`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button className="bg-green-600 hover:bg-green-700">
+                        Chat WhatsApp
+                      </Button>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* DELETE DIALOG */}
         <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
