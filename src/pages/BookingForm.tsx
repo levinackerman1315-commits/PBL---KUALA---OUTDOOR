@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -13,15 +14,18 @@ import {
   MessageCircle,
   Package,
   ShoppingCart,
+  AlertCircle,
 } from 'lucide-react'
-import { useContact } from '@/contexts/ContactContext' // Gunakan nomor WA dari context
+import { useContact } from '@/contexts/ContactContext'
+import { useToast } from '@/hooks/use-toast'
 
 const BookingForm = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const { contactInfo } = useContact() // Ambil nomor WA dari context
+  const { user } = useAuth()
+  const { contactInfo } = useContact()
+  const { toast } = useToast()
 
-  // TERIMA DATA DARI CART
   const { cartItems, totalItems, totalPrice, fromCart } = location.state || {}
 
   const [bookingData, setBookingData] = useState({
@@ -35,6 +39,95 @@ const BookingForm = () => {
   })
 
   const [loading, setLoading] = useState(false)
+  const [profileLoading, setProfileLoading] = useState(true)
+
+  // ✅ FETCH PROFILE - AUTO-FILL FORM
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) {
+        console.log('⚠️ User belum login')
+        setProfileLoading(false)
+        return
+      }
+
+      try {
+        console.log('🔄 Fetching profile for customer_id:', user.id)
+
+        const response = await fetch(
+          `http://localhost/PBL-KELANA-OUTDOOR/api/customer/profile.php?id=${user.id}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+
+        console.log('📡 Response status:', response.status)
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+        console.log('📦 API Response:', data)
+
+        if (data.success && data.data) {
+          console.log('✅ Customer data loaded:', data.data)
+          
+          // ✅ SET DATA KE FORM
+          setBookingData(prev => ({
+            ...prev,
+            customerName: data.data.full_name || '',
+            phone: data.data.phone || '',
+            email: data.data.email || '',
+            identityNumber: data.data.identity_number || ''
+          }))
+
+          // ✅ CEK KELENGKAPAN DATA
+          const isComplete = data.data.full_name && 
+                            data.data.phone && 
+                            data.data.email && 
+                            data.data.identity_number
+
+          if (isComplete) {
+            toast({
+              title: '✅ Data Terisi Otomatis',
+              description: 'Data penyewa diambil dari profil Anda',
+            })
+          } else {
+            toast({
+              title: '⚠️ Profil Belum Lengkap',
+              description: 'Silakan lengkapi profil Anda terlebih dahulu',
+              variant: 'destructive'
+            })
+          }
+        } else {
+          throw new Error(data.message || 'Gagal memuat profil')
+        }
+      } catch (error: any) {
+        console.error('❌ Error fetching profile:', error)
+        
+        let errorMessage = 'Tidak dapat memuat data profil. Silakan isi manual.'
+        
+        if (error.message.includes('404')) {
+          errorMessage = 'API profile tidak ditemukan. Hubungi admin.'
+        } else if (error.message.includes('CORS')) {
+          errorMessage = 'Masalah koneksi server. Coba refresh halaman.'
+        }
+        
+        toast({
+          title: '⚠️ Peringatan',
+          description: errorMessage,
+          variant: 'destructive'
+        })
+      } finally {
+        setProfileLoading(false)
+      }
+    }
+
+    fetchUserProfile()
+  }, [user, toast])
 
   // CEK APAKAH ADA DATA CART
   useEffect(() => {
@@ -64,13 +157,16 @@ const BookingForm = () => {
   // GENERATE PESAN WHATSAPP
   const generateWhatsAppMessage = () => {
     const itemsList = cartItems
-      .map((item: any) => 
-        `• ${item.equipment.name} (${item.quantity}x) - Rp ${item.equipment.price_per_day.toLocaleString('id-ID')}/hari`
-      )
+      .map((item: any) => {
+        if (item.cart_type === 'package') {
+          return `• ${item.package_name} (${item.quantity}x) - Rp ${item.price_per_day.toLocaleString('id-ID')}/hari`
+        }
+        return `• ${item.equipment.name} (${item.quantity}x) - Rp ${item.equipment.price_per_day.toLocaleString('id-ID')}/hari`
+      })
       .join('\n')
 
     return `
-*BOOKING KUALA OUTDOOR*
+*BOOKING KELANA OUTDOOR*
 
 *DATA PENYEWA:*
 • Nama: ${bookingData.customerName}
@@ -100,7 +196,11 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
   // KIRIM VIA WHATSAPP
   const handleWhatsApp = () => {
     if (!bookingData.customerName || !bookingData.phone || !bookingData.rentalStartDate || !bookingData.rentalEndDate) {
-      alert('Mohon lengkapi nama, telepon, dan tanggal rental terlebih dahulu!')
+      toast({
+        title: '⚠️ Data Belum Lengkap',
+        description: 'Mohon lengkapi nama, telepon, dan tanggal rental terlebih dahulu!',
+        variant: 'destructive'
+      })
       return
     }
 
@@ -118,18 +218,34 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
 
     // Validasi
     if (!bookingData.customerName || !bookingData.phone || !bookingData.rentalStartDate || !bookingData.rentalEndDate) {
-      alert('Mohon lengkapi semua data yang wajib diisi!')
+      toast({
+        title: '⚠️ Data Belum Lengkap',
+        description: 'Mohon lengkapi semua data yang wajib diisi!',
+        variant: 'destructive'
+      })
       setLoading(false)
       return
     }
 
     if (new Date(bookingData.rentalEndDate) <= new Date(bookingData.rentalStartDate)) {
-      alert('Tanggal selesai harus setelah tanggal mulai')
+      toast({
+        title: '⚠️ Tanggal Tidak Valid',
+        description: 'Tanggal selesai harus setelah tanggal mulai',
+        variant: 'destructive'
+      })
       setLoading(false)
       return
     }
 
     try {
+      // Format equipment items
+      const equipmentItems = cartItems
+        .filter((item: any) => item.cart_type === 'equipment')
+        .map((item: any) => ({
+          equipment_id: item.equipment.equipment_id,
+          quantity: item.quantity
+        }))
+
       const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/booking.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -138,14 +254,11 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
           customer_phone: bookingData.phone,
           customer_email: bookingData.email,
           customer_identity_number: bookingData.identityNumber,
-          customer_id: null,
+          customer_id: user?.id || null,
           start_date: bookingData.rentalStartDate,
           end_date: bookingData.rentalEndDate,
           notes: bookingData.notes,
-          equipment_items: cartItems.map((item: any) => ({
-            equipment_id: item.equipment.equipment_id,
-            quantity: item.quantity
-          }))
+          equipment_items: equipmentItems
         })
       })
 
@@ -157,7 +270,7 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
 
       // Konfirmasi WhatsApp
       const confirmWhatsApp = window.confirm(
-        `Booking berhasil dibuat!\n\nKode Booking: ${result.booking_code}\nTotal: Rp ${result.total_price.toLocaleString('id-ID')}\nDurasi: ${rentalDays} hari\n\nKirim konfirmasi via WhatsApp?`
+        `✅ Booking berhasil dibuat!\n\nKode Booking: ${result.booking_code}\nTotal: Rp ${result.total_price.toLocaleString('id-ID')}\nDurasi: ${rentalDays} hari\n\nKirim konfirmasi via WhatsApp?`
       )
 
       if (confirmWhatsApp) {
@@ -177,19 +290,35 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
         }
       })
     } catch (error: any) {
-      alert('Gagal membuat booking: ' + error.message)
+      console.error('❌ Booking error:', error)
+      toast({
+        title: '❌ Gagal Membuat Booking',
+        description: error.message || 'Terjadi kesalahan saat memproses booking',
+        variant: 'destructive'
+      })
     } finally {
       setLoading(false)
     }
   }
 
   // LOADING STATE
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Memuat data profil...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Memproses booking...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Memproses booking...</p>
         </div>
       </div>
     )
@@ -232,6 +361,24 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
           <p className="text-gray-600">Lengkapi data untuk melanjutkan pemesanan</p>
         </div>
 
+        {/* ✅ INFO ALERT - DATA AUTO-FILL */}
+        {user && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-800">
+              <p className="font-semibold mb-1">📋 Data Otomatis Terisi</p>
+              <p className="text-blue-700">
+                Data <strong>Nama, Telepon, Email, dan No. KTP</strong> diambil dari profil Anda.
+                {!bookingData.customerName && (
+                  <span className="block mt-1 text-red-600">
+                    ⚠️ Profil Anda belum lengkap. <button onClick={() => navigate('/profile')} className="underline font-semibold">Lengkapi sekarang</button>
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* FORM */}
           <div className="lg:col-span-2">
@@ -241,7 +388,8 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Nama Lengkap */}
+                  
+                  {/* ✅ NAMA LENGKAP - READONLY */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       <User className="h-4 w-4 inline mr-1" />
@@ -249,15 +397,23 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
                     </label>
                     <input
                       type="text"
-                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                        user ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+                      }`}
                       value={bookingData.customerName}
-                      onChange={(e) => setBookingData({...bookingData, customerName: e.target.value})}
+                      onChange={(e) => !user && setBookingData({...bookingData, customerName: e.target.value})}
                       placeholder="Masukkan nama lengkap"
                       required
+                      readOnly={!!user}
                     />
+                    {user && (
+                      <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                        <span className="text-green-600">✓</span> Data dari profil Anda
+                      </p>
+                    )}
                   </div>
 
-                  {/* No. Telepon */}
+                  {/* ✅ NO. TELEPON - READONLY */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       <Phone className="h-4 w-4 inline mr-1" />
@@ -265,15 +421,23 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
                     </label>
                     <input
                       type="tel"
-                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                        user ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+                      }`}
                       value={bookingData.phone}
-                      onChange={(e) => setBookingData({...bookingData, phone: e.target.value})}
+                      onChange={(e) => !user && setBookingData({...bookingData, phone: e.target.value})}
                       placeholder="08xxxxxxxxxx"
                       required
+                      readOnly={!!user}
                     />
+                    {user && (
+                      <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                        <span className="text-green-600">✓</span> Data dari profil Anda
+                      </p>
+                    )}
                   </div>
 
-                  {/* Email */}
+                  {/* ✅ EMAIL - READONLY */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       <Mail className="h-4 w-4 inline mr-1" />
@@ -281,14 +445,22 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
                     </label>
                     <input
                       type="email"
-                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                        user ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+                      }`}
                       value={bookingData.email}
-                      onChange={(e) => setBookingData({...bookingData, email: e.target.value})}
+                      onChange={(e) => !user && setBookingData({...bookingData, email: e.target.value})}
                       placeholder="email@example.com"
+                      readOnly={!!user}
                     />
+                    {user && (
+                      <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                        <span className="text-green-600">✓</span> Data dari profil Anda
+                      </p>
+                    )}
                   </div>
 
-                  {/* No. KTP */}
+                  {/* ✅ NO. KTP - READONLY */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       <User className="h-4 w-4 inline mr-1" />
@@ -296,14 +468,22 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
                     </label>
                     <input
                       type="text"
-                      className="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      className={`w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                        user ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+                      }`}
                       value={bookingData.identityNumber}
-                      onChange={(e) => setBookingData({...bookingData, identityNumber: e.target.value})}
+                      onChange={(e) => !user && setBookingData({...bookingData, identityNumber: e.target.value})}
                       placeholder="Masukkan nomor KTP"
+                      readOnly={!!user}
                     />
+                    {user && (
+                      <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                        <span className="text-green-600">✓</span> Data dari profil Anda
+                      </p>
+                    )}
                   </div>
                   
-                  {/* Tanggal Rental */}
+                  {/* ✅ TANGGAL RENTAL - USER INPUT */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium mb-2">
@@ -335,7 +515,7 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
                     </div>
                   </div>
                   
-                  {/* Catatan */}
+                  {/* ✅ CATATAN - USER INPUT */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       <MessageSquare className="h-4 w-4 inline mr-1" />
@@ -350,11 +530,11 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
                     />
                   </div>
                   
-                  {/* Submit Button */}
+                  {/* ✅ SUBMIT BUTTON */}
                   <Button
                     type="submit"
                     className="w-full bg-green-600 hover:bg-green-700 text-lg py-3"
-                    disabled={loading}
+                    disabled={loading || !bookingData.customerName || !bookingData.phone}
                   >
                     {loading ? 'Memproses...' : 'Konfirmasi Booking'}
                   </Button>
@@ -372,19 +552,31 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
               <CardContent className="space-y-4">
                 {/* Item List */}
                 <div className="space-y-3 max-h-[300px] overflow-y-auto">
-                  {cartItems.map((item: any) => (
-                    <div key={item.equipment.equipment_id} className="flex justify-between border-b pb-2">
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{item.equipment.name}</p>
-                        <p className="text-xs text-gray-600">
-                          {item.quantity}x • Rp {item.equipment.price_per_day.toLocaleString('id-ID')}/hari
+                  {cartItems.map((item: any) => {
+                    const isPackage = item.cart_type === 'package'
+                    const name = isPackage ? item.package_name : item.equipment.name
+                    const pricePerDay = isPackage ? item.price_per_day : item.equipment.price_per_day
+                    const itemTotal = pricePerDay * item.quantity
+
+                    return (
+                      <div key={isPackage ? `pkg-${item.package_id}` : `eq-${item.equipment.equipment_id}`} className="flex justify-between border-b pb-2">
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">{name}</p>
+                          <p className="text-xs text-gray-600">
+                            {item.quantity}x • Rp {pricePerDay.toLocaleString('id-ID')}/hari
+                          </p>
+                          {isPackage && (
+                            <Badge className="mt-1 bg-orange-100 text-orange-800 text-[10px]">
+                              PAKET
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="font-semibold text-sm">
+                          Rp {itemTotal.toLocaleString('id-ID')}
                         </p>
                       </div>
-                      <p className="font-semibold text-sm">
-                        Rp {(item.equipment.price_per_day * item.quantity).toLocaleString('id-ID')}
-                      </p>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
                 
                 {/* Calculation */}
@@ -395,11 +587,15 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Durasi Sewa</span>
-                    <span className="font-semibold">{rentalDays} hari</span>
+                    <span className="font-semibold">
+                      {rentalDays > 0 ? `${rentalDays} hari` : '-'}
+                    </span>
                   </div>
                   <div className="flex justify-between text-xl font-bold text-green-700 pt-2 border-t">
                     <span>Total</span>
-                    <span>Rp {grandTotal.toLocaleString('id-ID')}</span>
+                    <span>
+                      {rentalDays > 0 ? `Rp ${grandTotal.toLocaleString('id-ID')}` : 'Rp 0'}
+                    </span>
                   </div>
                 </div>
 
@@ -408,7 +604,7 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
                   variant="outline" 
                   className="w-full h-12"
                   onClick={handleWhatsApp}
-                  disabled={!bookingData.customerName || !bookingData.phone}
+                  disabled={!bookingData.customerName || !bookingData.phone || !bookingData.rentalStartDate || !bookingData.rentalEndDate}
                 >
                   <MessageCircle className="h-5 w-5 mr-2" />
                   Kirim via WhatsApp
@@ -416,9 +612,9 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
 
                 {/* Info */}
                 <div className="bg-blue-50 p-3 rounded-lg text-xs text-blue-700 space-y-1">
-                  <p>Admin: {contactInfo.phone1}</p>
-                  <p>Gratis pickup & return di lokasi kami</p>
-                  <p>Konfirmasi via WhatsApp max 1 jam</p>
+                  <p className="font-semibold">📞 Admin: {contactInfo.phone1}</p>
+                  <p>✅ Gratis pickup & return di lokasi kami</p>
+                  <p>⏱️ Konfirmasi via WhatsApp max 1 jam</p>
                 </div>
               </CardContent>
             </Card>
