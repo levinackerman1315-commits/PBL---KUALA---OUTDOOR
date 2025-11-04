@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 // ✅ CONTEXTS
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
-import { ContactProvider } from "./contexts/ContactContext"; // ✅ IMPORT
+import { ContactProvider } from "./contexts/ContactContext";
 
 // ✅ PUBLIC PAGES
 import Index from "./pages/Index";
@@ -23,7 +23,7 @@ import Trips from "./pages/Trips";
 import About from "./pages/About";
 import TambahEquipment from './pages/TambahEquipment'
 import Merchandise from "./pages/Merchandise";
-import ContactManagement from "./pages/ContactManagement"; // ✅ IMPORT
+import ContactManagement from "./pages/ContactManagement";
 
 import TripDetailPage from "./pages/TripDetailPage";
 import TripManagement from "./pages/TripManagement";
@@ -35,6 +35,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import BookingDetail from "./pages/BookingDetail";
 import BookingManagement from "./pages/BookingManagement";
 import EquipmentManagement from "./pages/EquipmentManagement";
+import PackageManagement from "./pages/PackageManagement"; // ✅ TAMBAHKAN INI
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -54,14 +55,16 @@ const Bookings = () => (
 
 const queryClient = new QueryClient();
 
+// ✅ GOOGLE CLIENT ID - Pastikan ini benar
+const GOOGLE_CLIENT_ID = "674921949545-ked4b0t7aml2tc3adqa6h0dlsmnh8g2n.apps.googleusercontent.com";
+
 const App = () => (
-  <GoogleOAuthProvider clientId="674921949545-ked4b0t7aml2tc3adqa6h0dlsmnh8g2n.apps.googleusercontent.com">
+  <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          {/* ✅ WRAP DENGAN CONTACT PROVIDER - INI YANG PENTING! */}
           <ContactProvider>
             <AuthProvider>
               <CartProvider>
@@ -84,6 +87,7 @@ const App = () => (
 
                   {/* ✅ ADMIN ROUTES */}
                   <Route path="/admin/login" element={<AdminLogin />} />
+                  
                   <Route 
                     path="/admin/dashboard" 
                     element={
@@ -92,6 +96,7 @@ const App = () => (
                       </ProtectedRoute>
                     } 
                   />
+                  
                   <Route 
                     path="/admin/bookings" 
                     element={
@@ -100,7 +105,16 @@ const App = () => (
                       </ProtectedRoute>
                     } 
                   />
-                  <Route path="/admin/bookings/:bookingId" element={<BookingDetail />} />
+                  
+                  <Route 
+                    path="/admin/bookings/:bookingId" 
+                    element={
+                      <ProtectedRoute>
+                        <BookingDetail />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
                   <Route 
                     path="/admin/equipment" 
                     element={
@@ -109,6 +123,17 @@ const App = () => (
                       </ProtectedRoute>
                     } 
                   />
+
+                  {/* ✅ PACKAGE MANAGEMENT ROUTE - TAMBAHKAN INI */}
+                  <Route 
+                    path="/admin/packages" 
+                    element={
+                      <ProtectedRoute>
+                        <PackageManagement />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
                   {/* ✅ Contact Management */}
                   <Route 
                     path="/admin/contact" 
@@ -120,21 +145,32 @@ const App = () => (
                   />
                   
                   {/* ✅ Open Trip & Trip Management */}
-                  <Route path="/admin/trips" element={
-                    <ProtectedRoute>
-                      <TripManagement />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/trips/new" element={
-                    <ProtectedRoute>
-                      <TripForm />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/trips/:id/edit" element={
-                    <ProtectedRoute>
-                      <TripForm />
-                    </ProtectedRoute>
-                  } />
+                  <Route 
+                    path="/admin/trips" 
+                    element={
+                      <ProtectedRoute>
+                        <TripManagement />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/trips/new" 
+                    element={
+                      <ProtectedRoute>
+                        <TripForm />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/trips/:id/edit" 
+                    element={
+                      <ProtectedRoute>
+                        <TripForm />
+                      </ProtectedRoute>
+                    } 
+                  />
 
                   {/* ✅ 404 PAGE */}
                   <Route path="*" element={<NotFound />} />
