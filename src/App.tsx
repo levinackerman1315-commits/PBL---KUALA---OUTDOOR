@@ -4,12 +4,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// CONTEXTS
+// ✅ CONTEXTS
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
-import { ContactProvider } from "./contexts/ContactContext";
+import { ContactProvider } from "./contexts/ContactContext"; // ✅ IMPORT
 
-// PUBLIC PAGES
+// ✅ PUBLIC PAGES
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Browse from "./pages/Browse";
@@ -21,15 +21,15 @@ import CartPage from "./pages/CartPage";
 import Packages from "./pages/Packages";
 import Trips from "./pages/Trips";
 import About from "./pages/About";
-import TambahEquipment from "./pages/TambahEquipment";
+import TambahEquipment from './pages/TambahEquipment'
 import Merchandise from "./pages/Merchandise";
-import ContactManagement from "./pages/ContactManagement";
+import ContactManagement from "./pages/ContactManagement"; // ✅ IMPORT
 
 import TripDetailPage from "./pages/TripDetailPage";
 import TripManagement from "./pages/TripManagement";
 import TripForm from "./pages/TripForm";
 
-// ADMIN PAGES
+// ✅ ADMIN PAGES
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import BookingDetail from "./pages/BookingDetail";
@@ -39,7 +39,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-// TEMPORARY BOOKINGS COMPONENT
+// ✅ TEMPORARY BOOKINGS COMPONENT
 const Bookings = () => (
   <div className="min-h-screen bg-gray-50">
     <div className="container mx-auto px-4 py-8">
@@ -61,12 +61,12 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          {/* CONTACT PROVIDER HARUS PALING LUAR */}
+          {/* ✅ WRAP DENGAN CONTACT PROVIDER - INI YANG PENTING! */}
           <ContactProvider>
             <AuthProvider>
               <CartProvider>
                 <Routes>
-                  {/* PUBLIC ROUTES */}
+                  {/* ✅ PUBLIC ROUTES */}
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/browse" element={<Browse />} />
@@ -82,83 +82,61 @@ const App = () => (
                   <Route path="/tambah-equipment" element={<TambahEquipment />} />
                   <Route path="/merchandise" element={<Merchandise />} />
 
-                  {/* ADMIN ROUTES */}
+                  {/* ✅ ADMIN ROUTES */}
                   <Route path="/admin/login" element={<AdminLogin />} />
-                  
-                  <Route
-                    path="/admin/dashboard"
+                  <Route 
+                    path="/admin/dashboard" 
                     element={
                       <ProtectedRoute>
                         <AdminDashboard />
                       </ProtectedRoute>
-                    }
+                    } 
                   />
-                  
-                  <Route
-                    path="/admin/bookings"
+                  <Route 
+                    path="/admin/bookings" 
                     element={
                       <ProtectedRoute>
                         <BookingManagement />
                       </ProtectedRoute>
-                    }
+                    } 
                   />
-                  
-                  <Route
-                    path="/admin/bookings/:bookingId"
-                    element={
-                      <ProtectedRoute>
-                        <BookingDetail />
-                      </ProtectedRoute>
-                    }
-                  />
-                  
-                  <Route
-                    path="/admin/equipment"
+                  <Route path="/admin/bookings/:bookingId" element={<BookingDetail />} />
+                  <Route 
+                    path="/admin/equipment" 
                     element={
                       <ProtectedRoute>
                         <EquipmentManagement />
                       </ProtectedRoute>
-                    }
+                    } 
                   />
-                  
-                  <Route
-                    path="/admin/contact"
+                  {/* ✅ Contact Management */}
+                  <Route 
+                    path="/admin/contact" 
                     element={
                       <ProtectedRoute>
                         <ContactManagement />
                       </ProtectedRoute>
-                    }
+                    } 
                   />
                   
-                  {/* OPEN TRIP MANAGEMENT */}
-                  <Route
-                    path="/admin/trips"
-                    element={
-                      <ProtectedRoute>
-                        <TripManagement />
-                      </ProtectedRoute>
-                    }
-                  />
-                  
-                  <Route
-                    path="/admin/trips/new"
-                    element={
-                      <ProtectedRoute>
-                        <TripForm />
-                      </ProtectedRoute>
-                    }
-                  />
-                  
-                  <Route
-                    path="/admin/trips/:id/edit"
-                    element={
-                      <ProtectedRoute>
-                        <TripForm />
-                      </ProtectedRoute>
-                    }
-                  />
+                  {/* ✅ Open Trip & Trip Management */}
+                  <Route path="/admin/trips" element={
+                    <ProtectedRoute>
+                      <TripManagement />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/trips/new" element={
+                    <ProtectedRoute>
+                      <TripForm />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/trips/:id/edit" element={
+                    <ProtectedRoute>
+                      <TripForm />
+                    </ProtectedRoute>
+                  } />
 
-                  {/* 404 */}
+                  {/* ✅ 404 PAGE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </CartProvider>
@@ -170,4 +148,4 @@ const App = () => (
   </GoogleOAuthProvider>
 );
 
-export default App;z
+export default App;
