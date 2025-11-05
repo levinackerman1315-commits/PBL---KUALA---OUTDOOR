@@ -13,6 +13,8 @@ import {
   ChevronLeft, ChevronRight, ImageIcon, Loader2,
   MessageCircle // ✅ IMPORT UNTUK WHATSAPP
 } from 'lucide-react'
+import { LoginRequiredDialog } from '@/components/LoginRequiredDialog' // ✅ TAMBAHKAN
+import { toast } from "sonner"; // ✅ TAMBAHKAN INI DI BAGIAN IMPORT
 
 // ✅ INTERFACE IMAGE
 interface EquipmentImage {
@@ -58,6 +60,7 @@ const EquipmentDetailV2 = () => {
   const [equipment, setEquipment] = useState<EquipmentWithGuides | null>(null) // ✅ GUNAKAN TYPE YANG SUDAH EXTEND
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false) // ✅ TAMBAHKAN STATE
 
   useEffect(() => {
     if (id) {
@@ -218,17 +221,9 @@ const EquipmentDetailV2 = () => {
 
     console.log('🎯 Starting add to cart process...')
     
-    // ✅ CEK LOGIN
     if (!user) {
-      const confirmLogin = window.confirm(
-        '🔒 Anda harus login terlebih dahulu untuk menambahkan item ke keranjang.\n\n' +
-        'Klik OK untuk login sekarang.'
-      )
-      
-      if (confirmLogin) {
-        sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
-        navigate('/auth')
-      }
+      console.log('❌ User not logged in')
+      setLoginDialogOpen(true)
       return
     }
 
@@ -237,15 +232,30 @@ const EquipmentDetailV2 = () => {
       console.log('📦 Equipment:', equipment.equipment_id)
       console.log('🔢 Quantity:', quantity)
       
-      // ✅ GUNAKAN addToCart DARI useCart (BUKAN FETCH LANGSUNG)
       await addToCart(equipment, quantity)
       
-      alert(`✅ ${equipment.name} (${quantity}x) berhasil ditambahkan ke keranjang!`)
-      setQuantity(1) // Reset quantity
+      // ✅ GANTI ALERT INI:
+      // alert(`✅ ${equipment.name} (${quantity}x) berhasil ditambahkan ke keranjang!`)
+      
+      // ✅ DENGAN TOAST INI:
+      toast.success(`${equipment.name} ditambahkan ke keranjang!`, {
+        description: `${quantity}x • Rp ${(equipment.price_per_day * quantity).toLocaleString('id-ID')}`,
+        duration: 3000,
+      })
+      
+      setQuantity(1)
       
     } catch (error: any) {
       console.error('❌ Add to cart error:', error)
-      alert(`❌ Gagal: ${error.message}`)
+      
+      // ✅ GANTI ALERT ERROR INI:
+      // alert(`❌ Gagal: ${error.message}`)
+      
+      // ✅ DENGAN TOAST ERROR INI:
+      toast.error('Gagal menambahkan ke keranjang', {
+        description: error.message,
+        duration: 4000,
+      })
     }
   }
 
@@ -257,6 +267,11 @@ const EquipmentDetailV2 = () => {
     const whatsappUrl = `https://wa.me/${contactInfo.phone1.replace(/[^\d]/g, '')}?text=${encodeURIComponent(message)}`
     
     window.open(whatsappUrl, '_blank')
+  }
+
+  const handleLoginConfirm = () => {
+    sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
+    navigate('/auth')
   }
 
   const renderStars = (rating: number) => {
@@ -843,6 +858,14 @@ const EquipmentDetailV2 = () => {
           </div>
         </div>
       </div>
+
+      {/* ✅ TAMBAHKAN DIALOG SEBELUM <Footer /> */}
+      <LoginRequiredDialog
+        open={loginDialogOpen}
+        onOpenChange={setLoginDialogOpen}
+        onConfirm={handleLoginConfirm}
+      />
+      
       <Footer />
     </div>
   )

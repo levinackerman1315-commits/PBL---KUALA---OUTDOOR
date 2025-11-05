@@ -1,6 +1,6 @@
 // export default Browse
 import { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom'; // ✅ TAMBAHKAN
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,8 +9,8 @@ import { Search, Package, ArrowLeft, Weight, Ruler, AlertTriangle, Image as Imag
 import { Link } from 'react-router-dom'
 import { useCart } from '@/contexts/CartContext'
 import { useAuth } from '@/contexts/AuthContext'
-
- // ✅ TAMBAHKAN
+import { LoginRequiredDialog } from '@/components/LoginRequiredDialog' // ✅ TAMBAHKAN
+import { toast } from "sonner"; // ✅ TAMBAHKAN INI DI BAGIAN IMPORT
 
 interface EquipmentImage {
   image_id: number;
@@ -42,8 +42,8 @@ interface Equipment {
 }
 
 const Browse = () => {
-  const navigate = useNavigate(); // ✅ TAMBAHKAN
-  const { user } = useAuth(); // ✅ TAMBAHKAN - Ambil user dari AuthContext
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [equipment, setEquipment] = useState<Equipment[]>([])
   const [allEquipment, setAllEquipment] = useState<Equipment[]>([])
   const [categories, setCategories] = useState<string[]>(['all'])
@@ -51,6 +51,7 @@ const Browse = () => {
   const [searchKeyword, setSearchKeyword] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false) // ✅ TAMBAHKAN
 
   const { addToCart, isInCart, getCartItem } = useCart()
 
@@ -173,26 +174,29 @@ const Browse = () => {
     setEquipment(allEquipment)
   }
 
-  // ✅ PERBAIKAN: ADD TO CART DENGAN VALIDASI LOGIN
+  // ✅ UPDATE handleAddToCart
   const handleAddToCart = (item: Equipment) => {
-    // ✅ CEK LOGIN TERLEBIH DAHULU
     if (!user) {
-      const confirmLogin = window.confirm(
-        '🔒 Anda harus login terlebih dahulu untuk menambahkan item ke keranjang.\n\n' +
-        'Klik OK untuk login sekarang.'
-      )
-      
-      if (confirmLogin) {
-        // ✅ SIMPAN URL SAAT INI untuk redirect setelah login
-        sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
-        navigate('/auth')
-      }
-      return // ❌ STOP di sini jika belum login
+      setLoginDialogOpen(true) // ✅ BUKA DIALOG CANTIK
+      return
     }
 
-    // ✅ Jika sudah login, lanjutkan add to cart
     addToCart(item, 1)
-    alert(`✅ ${item.name} ditambahkan ke keranjang!\n💰 Rp ${item.price_per_day.toLocaleString('id-ID')}/hari`)
+    
+    // ✅ GANTI ALERT INI:
+    // alert(`✅ ${item.name} ditambahkan ke keranjang!\n💰 Rp ${item.price_per_day.toLocaleString('id-ID')}/hari`)
+    
+    // ✅ DENGAN TOAST INI:
+    toast.success(`${item.name} ditambahkan ke keranjang!`, {
+      description: `Rp ${item.price_per_day.toLocaleString('id-ID')}/hari`,
+      duration: 3000,
+    })
+  }
+
+  // ✅ TAMBAHKAN FUNGSI INI
+  const handleLoginConfirm = () => {
+    sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
+    navigate('/auth')
   }
 
   return (
@@ -511,6 +515,13 @@ const Browse = () => {
           </div>
         )}
       </div>
+
+      {/* ✅ TAMBAHKAN DIALOG SEBELUM </div> TERAKHIR */}
+      <LoginRequiredDialog
+        open={loginDialogOpen}
+        onOpenChange={setLoginDialogOpen}
+        onConfirm={handleLoginConfirm}
+      />
     </div>
   )
 }
