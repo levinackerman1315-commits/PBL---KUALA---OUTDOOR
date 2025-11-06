@@ -1,128 +1,131 @@
-import { useEffect, useState, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { tripAdminApi } from "@/lib/triApi";
-import { Trip } from "@/types/trip";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, MapPin, Calendar, Users, Search, Filter } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert' // ✅ IMPORT Alert
+import { Plus, Search, Edit, Trash2, Calendar, MapPin, Users } from 'lucide-react'
+import { tripAdminApi, type TripData } from '@/lib/triApi'
 
 export default function TripManagement() {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [error, setError] = useState("");
+  const navigate = useNavigate()
+  const [trips, setTrips] = useState<TripData[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [error, setError] = useState('') // ✅ TAMBAHKAN INI!
 
+  // ✅ Fetch trips saat component mount
   useEffect(() => {
-    if (!localStorage.getItem("admin_token")) {
-      navigate("/admin/login");
-      return;
-    }
-    loadTrips();
-  }, [navigate]);
+    fetchTrips()
+  }, [])
 
-  const loadTrips = async () => {
-    setLoading(true);
-    setError("");
+  // ✅ Function fetch trips
+  const fetchTrips = async () => {
+    setLoading(true)
+    setError('') // ✅ Reset error
     try {
-      const response = await tripAdminApi.getAll();
-      setTrips(response.records || []);
+      const result = await tripAdminApi.getAll()
+      
+      if (result.success) {
+        setTrips(result.records || [])
+      } else {
+        setTrips([])
+        setError('Gagal memuat data trip')
+      }
     } catch (err: any) {
-      setError(err.message || "Gagal memuat data trip");
-      console.error(err);
+      console.error('Error fetching trips:', err)
+      setError(err.message || 'Gagal memuat data trip')
+      setTrips([])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
+  // ✅ Delete trip
   const handleDelete = async (id: number, title: string) => {
-    if (!confirm(`Hapus trip "${title}"?`)) return;
-    
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus trip "${title}"?`)) {
+      return
+    }
+
     try {
-      await tripAdminApi.delete(id);
-      setTrips(prev => prev.filter(t => t.trip_id !== id));
-      alert("Trip berhasil dihapus");
+      const result = await tripAdminApi.delete(id)
+      
+      if (result.success) {
+        alert('Trip berhasil dihapus!')
+        fetchTrips() // Reload list
+      } else {
+        alert(result.error || 'Gagal menghapus trip')
+      }
     } catch (err: any) {
-      alert(err.message || "Gagal menghapus trip");
+      alert(err.message || 'Terjadi kesalahan')
     }
-  };
+  }
 
-  const filteredTrips = useMemo(() => {
-    return trips.filter(trip => {
-      const matchSearch = !searchQuery || 
-        trip.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        trip.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        trip.category.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchStatus = statusFilter === "all" || trip.status === statusFilter;
-      const matchCategory = categoryFilter === "all" || trip.category === categoryFilter;
-      
-      return matchSearch && matchStatus && matchCategory;
-    });
-  }, [trips, searchQuery, statusFilter, categoryFilter]);
+  // ✅ Filter trips by search query
+  const filteredTrips = trips.filter(trip => 
+    trip.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    trip.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    trip.category.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
-  const difficultyColor = (difficulty: string) => {
-    switch(difficulty) {
-      case 'Mudah': return 'bg-green-100 text-green-800';
-      case 'Sedang': return 'bg-yellow-100 text-yellow-800';
-      case 'Berat': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const statusColor = (status: string) => {
-    switch(status) {
-      case 'active': return 'bg-emerald-100 text-emerald-800';
-      case 'inactive': return 'bg-gray-100 text-gray-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  // ✅ Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto"></div>
+          <p className="text-gray-600 mt-4 text-lg font-semibold">Memuat data trip...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4">
+        {/* ✅ Header */}
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              🗺️ Kelola Open Trip
-            </h1>
-            <p className="text-gray-600 mt-1">Manajemen trip dan paket perjalanan</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">🗺️ Kelola Open Trip</h1>
+            <p className="text-gray-600">Manajemen trip dan paket perjalanan</p>
           </div>
-          <Link to="/admin/trips/new">
-            <Button className="bg-green-600 hover:bg-green-700 gap-2">
-              <Plus className="h-4 w-4" />
-              Trip Baru
-            </Button>
-          </Link>
+          
+          <Button
+            onClick={() => navigate('/admin/trips/new')}
+            className="bg-green-600 hover:bg-green-700"
+            size="lg"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Trip Baru
+          </Button>
         </div>
 
+        {/* ✅ TAMPILKAN ERROR (JIKA ADA) */}
         {error && (
           <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setError('')}
+              >
+                ✕
+              </Button>
+            </AlertDescription>
           </Alert>
         )}
 
-        {/* Filters */}
+        {/* ✅ Filter & Search */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Filter className="h-5 w-5" />
-              Filter & Pencarian
-            </CardTitle>
+            <CardTitle className="text-lg">Filter & Pencarian</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="md:col-span-2">
+            <div className="flex gap-4">
+              <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
                     placeholder="Cari trip, lokasi, kategori..."
                     value={searchQuery}
@@ -131,156 +134,172 @@ export default function TripManagement() {
                   />
                 </div>
               </div>
-              
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Kategori" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Kategori</SelectItem>
-                  <SelectItem value="Mendaki">Mendaki</SelectItem>
-                  <SelectItem value="Pantai">Pantai</SelectItem>
-                  <SelectItem value="Wisata">Wisata</SelectItem>
-                  <SelectItem value="Petualangan">Petualangan</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </CardContent>
         </Card>
 
-        {/* Trip List */}
+        {/* ✅ Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-sm text-gray-600 mb-1">Total Trip</div>
+              <div className="text-3xl font-bold text-gray-800">{trips.length}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-sm text-gray-600 mb-1">Upcoming</div>
+              <div className="text-3xl font-bold text-blue-600">
+                {trips.filter(t => t.status === 'upcoming').length}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-sm text-gray-600 mb-1">Ongoing</div>
+              <div className="text-3xl font-bold text-orange-600">
+                {trips.filter(t => t.status === 'ongoing').length}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-sm text-gray-600 mb-1">Completed</div>
+              <div className="text-3xl font-bold text-green-600">
+                {trips.filter(t => t.status === 'completed').length}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* ✅ Daftar Trip */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">
+            <CardTitle>
               Daftar Trip ({filteredTrips.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {filteredTrips.length === 0 ? (
               <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-                <p className="text-gray-600 mt-4">Memuat data...</p>
-              </div>
-            ) : filteredTrips.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Tidak ada trip yang ditemukan</p>
+                <div className="text-6xl mb-4">📭</div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                  {searchQuery ? 'Tidak ada hasil' : 'Belum ada trip'}
+                </h3>
+                <p className="text-gray-500 mb-6">
+                  {searchQuery 
+                    ? 'Coba kata kunci lain' 
+                    : 'Klik tombol "Trip Baru" untuk menambahkan trip pertama'}
+                </p>
+                {!searchQuery && (
+                  <Button
+                    onClick={() => navigate('/admin/trips/new')}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Plus className="h-5 w-5 mr-2" />
+                    Tambah Trip Pertama
+                  </Button>
+                )}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Trip
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Kategori
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Tanggal
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Kuota
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Aksi
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredTrips.map((trip) => (
-                      <tr key={trip.trip_id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-12 w-12">
-                              <img 
-                                className="h-12 w-12 rounded-lg object-cover" 
-                                src={trip.cover_image || '/placeholder-trip.jpg'} 
-                                alt={trip.title}
-                              />
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
-                                {trip.title}
-                              </div>
-                              <div className="text-sm text-gray-500 flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                {trip.location}
-                              </div>
+              <div className="space-y-4">
+                {filteredTrips.map((trip) => (
+                  <div
+                    key={trip.trip_id}
+                    className="border rounded-lg p-6 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex gap-6">
+                      {/* ✅ Image */}
+                      <div className="flex-shrink-0">
+                        <img
+                          src={trip.cover_image || 'https://via.placeholder.com/200x150?text=No+Image'}
+                          alt={trip.title}
+                          className="w-48 h-32 object-cover rounded-lg"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://via.placeholder.com/200x150?text=No+Image'
+                          }}
+                        />
+                      </div>
+
+                      {/* ✅ Content */}
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-800 mb-1">
+                              {trip.title}
+                            </h3>
+                            <div className="flex gap-2 mb-2">
+                              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
+                                {trip.category}
+                              </span>
+                              <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-semibold">
+                                {trip.difficulty}
+                              </span>
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                trip.status === 'upcoming' ? 'bg-green-100 text-green-800' :
+                                trip.status === 'ongoing' ? 'bg-orange-100 text-orange-800' :
+                                trip.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {trip.status}
+                              </span>
                             </div>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge className="bg-blue-100 text-blue-800">
-                            {trip.category}
-                          </Badge>
-                          <Badge className={`ml-2 ${difficultyColor(trip.difficulty)}`}>
-                            {trip.difficulty}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4" />
-                            {new Date(trip.start_date).toLocaleDateString('id-ID')}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            {trip.duration_days} hari
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4" />
-                            {trip.remaining_quota}/{trip.total_quota}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge className={statusColor(trip.status)}>
-                            {trip.status}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex justify-end gap-2">
-                            <Link to={`/admin/trips/${trip.trip_id}/edit`}>
-                              <Button variant="outline" size="sm" className="gap-1">
-                                <Pencil className="h-3 w-3" />
-                                Edit
-                              </Button>
-                            </Link>
-                            <Button 
-                              variant="destructive" 
-                              size="sm" 
-                              className="gap-1"
-                              onClick={() => handleDelete(trip.trip_id!, trip.title)}
+
+                          {/* ✅ Actions */}
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/admin/trips/edit/${trip.trip_id}`)}
                             >
-                              <Trash2 className="h-3 w-3" />
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDelete(trip.trip_id, trip.title)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
                               Hapus
                             </Button>
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+
+                        {/* ✅ Info */}
+                        <div className="grid grid-cols-3 gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4" />
+                            <span>{trip.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            <span>{new Date(trip.start_date).toLocaleDateString('id-ID')}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            <span>{trip.remaining_quota}/{trip.total_quota} slot</span>
+                          </div>
+                        </div>
+
+                        {trip.short_description && (
+                          <p className="text-gray-600 text-sm mt-3 line-clamp-2">
+                            {trip.short_description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
         </Card>
       </div>
     </div>
-  );
+  )
 }

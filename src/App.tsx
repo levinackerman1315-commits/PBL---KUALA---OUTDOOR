@@ -1,11 +1,8 @@
-
-
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // ✅ CONTEXTS
 import { AuthProvider } from "./contexts/AuthContext";
@@ -62,88 +59,91 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <Router>
           {/* ✅ WRAP DENGAN CONTACT PROVIDER - INI YANG PENTING! */}
           <ContactProvider>
             <AuthProvider>
               <CartProvider>
-                <Routes>
-                  {/* ✅ PUBLIC ROUTES */}
-                  <Route path="/" element={<Index />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/browse" element={<Browse />} />
-                  <Route path="/packages" element={<Packages />} />
-                  <Route path="/trips" element={<Trips />} />
-                  <Route path="/trips/:id" element={<TripDetailPage />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/cart" element={<CartPage />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/bookings" element={<Bookings />} />
-                  <Route path="/equipment/:id" element={<EquipmentDetail />} />
-                  <Route path="/booking/form" element={<BookingForm />} />
-                  <Route path="/tambah-equipment" element={<TambahEquipment />} />
-                  <Route path="/merchandise" element={<Merchandise />} />
+                <div className="min-h-screen bg-gray-50">
+                  {/* <Navbar /> */}
+                  <Routes>
+                    {/* ✅ PUBLIC ROUTES */}
+                    <Route path="/" element={<Index />} />
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="/browse" element={<Browse />} />
+                    <Route path="/packages" element={<Packages />} />
+                    <Route path="/trips" element={<Trips />} />
+                    <Route path="/trips/:id" element={<TripDetailPage />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/cart" element={<CartPage />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/bookings" element={<Bookings />} />
+                    <Route path="/equipment/:id" element={<EquipmentDetail />} />
+                    <Route path="/booking/form" element={<BookingForm />} />
+                    <Route path="/tambah-equipment" element={<TambahEquipment />} />
+                    <Route path="/merchandise" element={<Merchandise />} />
 
-                  {/* ✅ ADMIN ROUTES */}
-                  <Route path="/admin/login" element={<AdminLogin />} />
-                  <Route 
-                    path="/admin/dashboard" 
-                    element={
+                    {/* ✅ ADMIN ROUTES */}
+                    <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route 
+                      path="/admin/dashboard" 
+                      element={
+                        <ProtectedRoute>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/admin/bookings" 
+                      element={
+                        <ProtectedRoute>
+                          <BookingManagement />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    <Route 
+                      path="/admin/equipment" 
+                      element={
+                        <ProtectedRoute>
+                          <EquipmentManagement />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    {/* ✅ Contact Management */}
+                    <Route 
+                      path="/admin/contact" 
+                      element={
+                        <ProtectedRoute>
+                          <ContactManagement />
+                        </ProtectedRoute>
+                      } 
+                    />
+                    
+                    {/* ✅ Open Trip & Trip Management */}
+                    <Route path="/admin/trips" element={
                       <ProtectedRoute>
-                        <AdminDashboard />
+                        <TripManagement />
                       </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/bookings" 
-                    element={
+                    } />
+                    <Route path="/admin/trips/new" element={
                       <ProtectedRoute>
-                        <BookingManagement />
+                        <TripForm />
                       </ProtectedRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin/equipment" 
-                    element={
+                    } />
+                    <Route path="/admin/trips/:id/edit" element={
                       <ProtectedRoute>
-                        <EquipmentManagement />
+                        <TripForm />
                       </ProtectedRoute>
-                    } 
-                  />
-                  {/* ✅ Contact Management */}
-                  <Route 
-                    path="/admin/contact" 
-                    element={
-                      <ProtectedRoute>
-                        <ContactManagement />
-                      </ProtectedRoute>
-                    } 
-                  />
-                  
-                  {/* ✅ Open Trip & Trip Management */}
-                  <Route path="/admin/trips" element={
-                    <ProtectedRoute>
-                      <TripManagement />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/trips/new" element={
-                    <ProtectedRoute>
-                      <TripForm />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/admin/trips/:id/edit" element={
-                    <ProtectedRoute>
-                      <TripForm />
-                    </ProtectedRoute>
-                  } />
+                    } />
 
-                  {/* ✅ 404 PAGE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                    {/* ✅ 404 PAGE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </div>
               </CartProvider>
             </AuthProvider>
           </ContactProvider>
-        </BrowserRouter>
+        </Router>
       </TooltipProvider>
     </QueryClientProvider>
   </GoogleOAuthProvider>

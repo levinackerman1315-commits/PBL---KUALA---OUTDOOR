@@ -1,91 +1,218 @@
-const API_BASE = 'http://localhost/PBL-KELANA-OUTDOOR/api'; // ✅ SESUAIKAN DENGAN XAMPP ANDA
+const API_BASE_URL = "http://localhost/PBL-KELANA-OUTDOOR/api";
 
-// Atau bisa relatif jika React dan PHP di folder yang sama
-// const API_BASE = '/api';
-
-async function handleResponse(response: Response) {
-  const contentType = response.headers.get("content-type");
-  
-  // ✅ CEK APAKAH RESPONSE BENAR-BENAR JSON
-  if (!contentType || !contentType.includes("application/json")) {
-    const text = await response.text();
-    console.error("Response bukan JSON:", text);
-    throw new Error("Server tidak mengembalikan JSON. Cek error di console.");
-  }
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Network response was not ok');
-  }
-  
-  return response.json();
+export interface TripData {
+  trip_id: number;
+  title: string;
+  location: string;
+  category: string;
+  difficulty: string;
+  start_date: string;
+  start_time?: string;
+  duration_days: number;
+  total_quota: number;
+  remaining_quota: number;
+  status: string;
+  short_description?: string;
+  cover_image?: string;
+  images?: string[];
+  map_url?: string;
+  meeting_point_name?: string;
+  meeting_point_address?: string;
+  meeting_point_map_url?: string;
+  contact_name: string;
+  contact_whatsapp: string;
+  contact_role?: string;
+  search_tags?: string[];
+  itinerary?: string[];
+  required_gear?: string[];
+  rules?: string[];
+  created_at?: string;
 }
 
-// ============= ADMIN API (untuk admin) =============
+export const tripPublicApi = {
+  /**
+   * Get all trips
+   */
+  async getAll(): Promise<TripData[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/trips.php?action=list`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch trips');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        return result.records || [];
+      } else {
+        throw new Error(result.error || 'Failed to fetch trips');
+      }
+    } catch (error) {
+      console.error('Error fetching trips:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Get trip by ID
+   */
+  async getById(id: string | number): Promise<TripData | null> {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/trips.php?action=detail&id=${id}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch trip detail');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        return result.data;
+      } else {
+        throw new Error(result.error || 'Trip not found');
+      }
+    } catch (error) {
+      console.error('Error fetching trip detail:', error);
+      return null;
+    }
+  }
+};
+
+// Admin API (untuk CRUD)
 export const tripAdminApi = {
-  // Get all trips (including inactive)
-  getAll: async () => {
-    const token = localStorage.getItem('admin_token');
-    const response = await fetch(`${API_BASE}/admin/trips.php`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json' // ✅ TAMBAHKAN INI
+  /**
+   * Create new trip
+   */
+  async create(data: Partial<TripData>): Promise<{ success: boolean; trip_id?: number; error?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/trips.php?action=create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await response.json();
+      return result;
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Failed to create trip'
+      };
+    }
+  },
+
+  /**
+   * Update trip
+   */
+  async update(id: number, data: Partial<TripData>): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/trips.php?action=update&id=${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await response.json();
+      return result;
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Failed to update trip'
+      };
+    }
+  },
+
+  /**
+   * Delete trip
+   */
+  async delete(id: number): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/trips.php?action=delete&id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const result = await response.json();
+      return result;
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Failed to delete trip'
+      };
+    }
+  },
+
+  /**
+   * Get all trips (admin view)
+   */
+  async getAll(): Promise<{ success: boolean; records: TripData[]; total: number }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/trips.php?action=list`);
+      const result = await response.json();
+      
+      if (result.success) {
+        return {
+          success: true,
+          records: result.records || [],
+          total: result.total || 0
+        };
       }
-    });
-    return handleResponse(response);
-  },
+      
+      return { success: false, records: [], total: 0 };
+    } catch (error) {
+      return { success: false, records: [], total: 0 };
+    }
+  }
+};
 
-  // Get single trip
-  getById: async (id: number) => {
-    const token = localStorage.getItem('admin_token');
-    const response = await fetch(`${API_BASE}/admin/trips.php?id=${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    return handleResponse(response);
-  },
-
-  // Create new trip
-  create: async (data: any) => {
-    const token = localStorage.getItem('admin_token');
-    const response = await fetch(`${API_BASE}/admin/trips.php`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(data)
-    });
-    return handleResponse(response);
-  },
-
-  // Update trip
-  update: async (id: number, data: any) => {
-    const token = localStorage.getItem('admin_token');
-    const response = await fetch(`${API_BASE}/admin/trips.php`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ ...data, trip_id: id })
-    });
-    return handleResponse(response);
-  },
-
-  // Delete trip
-  delete: async (id: number) => {
-    const token = localStorage.getItem('admin_token');
-    const response = await fetch(`${API_BASE}/admin/trips.php`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ trip_id: id })
-    });
-    return handleResponse(response);
+// Upload API
+export const tripUploadApi = {
+  /**
+   * Upload trip images (cover or gallery)
+   */
+  async uploadImages(files: File[]): Promise<{ success: boolean; urls?: string[]; error?: string }> {
+    try {
+      const formData = new FormData();
+      
+      files.forEach((file, index) => {
+        formData.append(`files[${index}]`, file);
+      });
+      
+      const response = await fetch(
+        `${API_BASE_URL.replace('/api', '')}/upload/upload-trip-images.php`,
+        {
+          method: 'POST',
+          body: formData
+        }
+      );
+      
+      const result = await response.json();
+      return result;
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Failed to upload images'
+      };
+    }
   }
 };
