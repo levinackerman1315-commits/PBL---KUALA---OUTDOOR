@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Upload, Image as ImageIcon } from "lucide-react";
 
 const emptyForm: TripFormData = {
   title: "",
@@ -46,6 +46,8 @@ export default function TripForm() {
   const [form, setForm] = useState<TripFormData>(emptyForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string>("");
 
   useEffect(() => {
     if (!localStorage.getItem("admin_token")) {
@@ -81,17 +83,68 @@ export default function TripForm() {
         contact_role: trip.contact_role || "PIC Trip",
         status: trip.status || "active",
         cover_image: trip.cover_image || "",
-        images: Array.isArray(trip.images) ? trip.images.join(", ") : trip.images || "",
-        search_tags: Array.isArray(trip.search_tags) ? trip.search_tags.join(", ") : trip.search_tags || "",
-        map_url: trip.map_url || "",
-        itinerary: Array.isArray(trip.itinerary) ? JSON.stringify(trip.itinerary, null, 2) : trip.itinerary || "",
-        required_gear: Array.isArray(trip.required_gear) ? trip.required_gear.join(", ") : trip.required_gear || "",
-        rules: Array.isArray(trip.rules) ? trip.rules.join(", ") : trip.rules || ""
+        images: "",
+        search_tags: "",
+        map_url: "",
+        itinerary: "",
+        required_gear: "",
+        rules: ""
       });
+      setPreviewImage(trip.cover_image || "");
     } catch (err: any) {
       setError(err.message || "Gagal memuat data trip");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ✅ UPLOAD GAMBAR
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validasi ukuran (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Ukuran file maksimal 5MB');
+      return;
+    }
+
+    // Validasi tipe
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Format file harus JPG, PNG, atau WEBP');
+      return;
+    }
+
+    setUploadingImage(true);
+    setError("");
+    
+    const formDataImg = new FormData();
+    formDataImg.append('image', file);
+
+    try {
+      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/uploads/trips/trips.php', {
+        method: 'POST',
+        body: formDataImg
+      });
+
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        setForm(prev => ({
+          ...prev,
+          cover_image: result.data.url
+        }));
+        setPreviewImage(result.data.url);
+        alert('✅ Gambar berhasil diupload!');
+      } else {
+        setError(result.message || 'Gagal mengupload gambar');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      setError('Terjadi kesalahan saat mengupload gambar');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -100,23 +153,34 @@ export default function TripForm() {
     setLoading(true);
     setError("");
 
+    // Validasi gambar
+    if (!form.cover_image) {
+      setError("Gambar cover wajib diupload!");
+      setLoading(false);
+      return;
+    }
+
     // Prepare data untuk API
     const payload: any = {
-      ...form,
-      images: form.images ? form.images.split(",").map(s => s.trim()).filter(Boolean) : [],
-      search_tags: form.search_tags ? form.search_tags.split(",").map(s => s.trim()).filter(Boolean) : [],
-      required_gear: form.required_gear ? form.required_gear.split(",").map(s => s.trim()).filter(Boolean) : [],
-      rules: form.rules ? form.rules.split(",").map(s => s.trim()).filter(Boolean) : [],
+      title: form.title,
+      location: form.location,
+      category: form.category,
+      difficulty: form.difficulty,
+      start_date: form.start_date,
+      start_time: form.start_time,
+      duration_days: form.duration_days,
+      total_quota: form.total_quota,
+      remaining_quota: form.remaining_quota,
+      short_description: form.short_description,
+      meeting_point_name: form.meeting_point_name,
+      meeting_point_address: form.meeting_point_address,
+      meeting_point_map_url: form.meeting_point_map_url,
+      contact_name: form.contact_name,
+      contact_whatsapp: form.contact_whatsapp,
+      contact_role: form.contact_role,
+      status: form.status,
+      cover_image: form.cover_image
     };
-
-    // Parse itinerary jika ada
-    if (form.itinerary) {
-      try {
-        payload.itinerary = JSON.parse(form.itinerary);
-      } catch {
-        payload.itinerary = [];
-      }
-    }
 
     try {
       if (isEdit && id) {
@@ -151,7 +215,7 @@ export default function TripForm() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <Button 
           variant="ghost" 
           className="mb-4 gap-2"
@@ -175,7 +239,7 @@ export default function TripForm() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Basic Info */}
+              {/* ✅ INFORMASI DASAR */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Informasi Dasar</h3>
                 
@@ -244,7 +308,7 @@ export default function TripForm() {
                 </div>
               </div>
 
-              {/* Schedule & Quota */}
+              {/* ✅ JADWAL & KUOTA */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold border-b pb-2">Jadwal & Kuota</h3>
                 
@@ -277,7 +341,7 @@ export default function TripForm() {
                       type="number"
                       min="1"
                       value={form.duration_days}
-                      onChange={(e) => updateField("duration_days", parseInt(e.target.value))}
+                      onChange={(e) => updateField("duration_days", parseInt(e.target.value) || 1)}
                       required
                     />
                   </div>
@@ -305,32 +369,106 @@ export default function TripForm() {
                       type="number"
                       min="1"
                       value={form.total_quota}
-                      onChange={(e) => updateField("total_quota", parseInt(e.target.value))}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        updateField("total_quota", val);
+                        // Auto-set remaining_quota = total_quota (jika baru)
+                        if (!isEdit) {
+                          updateField("remaining_quota", val);
+                        }
+                      }}
                       required
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="remaining_quota">Sisa Kuota *</Label>
+                    <Label htmlFor="remaining_quota">Sisa Kuota</Label>
                     <Input
                       id="remaining_quota"
                       type="number"
                       min="0"
+                      max={form.total_quota}
                       value={form.remaining_quota}
-                      onChange={(e) => updateField("remaining_quota", parseInt(e.target.value))}
-                      required
+                      onChange={(e) => updateField("remaining_quota", parseInt(e.target.value) || 0)}
                     />
+                    <p className="text-xs text-gray-500 mt-1">Terbooking: {form.total_quota - form.remaining_quota}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Meeting Point */}
+              {/* ✅ UPLOAD GAMBAR COVER */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Titik Kumpul</h3>
+                <h3 className="text-lg font-semibold border-b pb-2">
+                  Gambar Cover Trip *
+                </h3>
                 
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Label
+                      htmlFor="image-upload"
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md cursor-pointer hover:bg-green-700 transition-colors"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {uploadingImage ? "Uploading..." : "Pilih Gambar"}
+                    </Label>
+                    <Input
+                      id="image-upload"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                      className="hidden"
+                    />
+                    <span className="text-sm text-gray-500">
+                      Max 5MB • JPG, PNG, WEBP
+                    </span>
+                  </div>
+
+                  {uploadingImage && (
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <span className="text-sm">Mengupload gambar...</span>
+                    </div>
+                  )}
+
+                  {(previewImage || form.cover_image) && (
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <div className="flex items-start gap-4">
+                        <img
+                          src={previewImage || form.cover_image}
+                          alt="Preview"
+                          className="w-48 h-48 object-cover rounded-lg shadow-md"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-700 mb-2">
+                            ✅ Gambar berhasil diupload
+                          </p>
+                          <p className="text-xs text-gray-500 break-all">
+                            {form.cover_image}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {!form.cover_image && !uploadingImage && (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                      <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">
+                        Belum ada gambar yang diupload
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ✅ TITIK KUMPUL & KONTAK */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">Titik Kumpul & Kontak</h3>
+                
+                <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="meeting_point_name">Nama Lokasi</Label>
+                    <Label htmlFor="meeting_point_name">Nama Lokasi Kumpul</Label>
                     <Input
                       id="meeting_point_name"
                       value={form.meeting_point_name}
@@ -340,31 +478,16 @@ export default function TripForm() {
                   </div>
 
                   <div>
-                    <Label htmlFor="meeting_point_address">Alamat</Label>
+                    <Label htmlFor="meeting_point_address">Alamat Lengkap</Label>
                     <Input
                       id="meeting_point_address"
                       value={form.meeting_point_address}
                       onChange={(e) => updateField("meeting_point_address", e.target.value)}
-                      placeholder="Alamat lengkap"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="meeting_point_map_url">Link Google Maps</Label>
-                    <Input
-                      id="meeting_point_map_url"
-                      value={form.meeting_point_map_url}
-                      onChange={(e) => updateField("meeting_point_map_url", e.target.value)}
-                      placeholder="https://maps.google.com/..."
+                      placeholder="Alamat lokasi kumpul"
                     />
                   </div>
                 </div>
-              </div>
 
-              {/* Contact Person */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Kontak Person</h3>
-                
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="contact_name">Nama PIC *</Label>
@@ -372,7 +495,7 @@ export default function TripForm() {
                       id="contact_name"
                       value={form.contact_name}
                       onChange={(e) => updateField("contact_name", e.target.value)}
-                      placeholder="Nama kontak person"
+                      placeholder="Nama guide/leader"
                       required
                     />
                   </div>
@@ -394,106 +517,18 @@ export default function TripForm() {
                       id="contact_role"
                       value={form.contact_role}
                       onChange={(e) => updateField("contact_role", e.target.value)}
-                      placeholder="PIC Trip"
+                      placeholder="Guide/Leader"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Media */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Media & URL</h3>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="cover_image">Cover Image URL</Label>
-                    <Input
-                      id="cover_image"
-                      value={form.cover_image}
-                      onChange={(e) => updateField("cover_image", e.target.value)}
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="map_url">Map URL</Label>
-                    <Input
-                      id="map_url"
-                      value={form.map_url}
-                      onChange={(e) => updateField("map_url", e.target.value)}
-                      placeholder="https://maps.google.com/..."
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="images">Gambar Lainnya (pisahkan dengan koma)</Label>
-                  <Textarea
-                    id="images"
-                    value={form.images}
-                    onChange={(e) => updateField("images", e.target.value)}
-                    placeholder="url1, url2, url3"
-                    rows={2}
-                  />
-                </div>
-              </div>
-
-              {/* Additional Info */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Informasi Tambahan</h3>
-                
-                <div>
-                  <Label htmlFor="search_tags">Tags Pencarian (pisahkan dengan koma)</Label>
-                  <Textarea
-                    id="search_tags"
-                    value={form.search_tags}
-                    onChange={(e) => updateField("search_tags", e.target.value)}
-                    placeholder="gunung, mendaki, camping, petualangan"
-                    rows={2}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="required_gear">Perlengkapan Wajib (pisahkan dengan koma)</Label>
-                  <Textarea
-                    id="required_gear"
-                    value={form.required_gear}
-                    onChange={(e) => updateField("required_gear", e.target.value)}
-                    placeholder="Carrier, Sleeping bag, Matras"
-                    rows={2}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="rules">Peraturan Trip (pisahkan dengan koma)</Label>
-                  <Textarea
-                    id="rules"
-                    value={form.rules}
-                    onChange={(e) => updateField("rules", e.target.value)}
-                    placeholder="Tidak buang sampah, Ikuti instruksi guide"
-                    rows={2}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="itinerary">Itinerary (JSON format - optional)</Label>
-                  <Textarea
-                    id="itinerary"
-                    value={form.itinerary}
-                    onChange={(e) => updateField("itinerary", e.target.value)}
-                    placeholder='[{"day": 1, "title": "...", "activities": ["..."]}]'
-                    rows={4}
-                    className="font-mono text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Submit Buttons */}
+              {/* ✅ SUBMIT BUTTONS */}
               <div className="flex gap-3 pt-4 border-t">
                 <Button 
                   type="submit" 
-                  className="bg-green-600 hover:bg-green-700 gap-2"
-                  disabled={loading}
+                  className="bg-green-600 hover:bg-green-700 gap-2 flex-1"
+                  disabled={loading || uploadingImage || !form.cover_image}
                 >
                   <Save className="h-4 w-4" />
                   {loading ? "Menyimpan..." : (isEdit ? "Update Trip" : "Simpan Trip")}
@@ -508,6 +543,12 @@ export default function TripForm() {
                   Batal
                 </Button>
               </div>
+
+              {!form.cover_image && (
+                <p className="text-sm text-red-600 text-center font-medium">
+                  ⚠️ Gambar cover wajib diupload sebelum menyimpan trip
+                </p>
+              )}
             </form>
           </CardContent>
         </Card>

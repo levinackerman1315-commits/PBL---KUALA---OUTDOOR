@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, MapPin, Calendar, Users, Search, Filter } from "lucide-react";
+import { Plus, Pencil, Trash2, MapPin, Calendar, Users, Search, Filter, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function TripManagement() {
@@ -88,6 +88,18 @@ export default function TripManagement() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
+        {/* ✅ TOMBOL KEMBALI */}
+        <div className="mb-4">
+          <Button 
+            variant="ghost" 
+            className="gap-2 text-gray-600 hover:text-gray-900"
+            onClick={() => navigate("/admin/dashboard")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Kembali ke Dashboard
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
