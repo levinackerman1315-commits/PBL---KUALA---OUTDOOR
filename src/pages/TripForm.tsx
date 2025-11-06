@@ -340,8 +340,18 @@ export default function TripForm() {
                       id="duration_days"
                       type="number"
                       min="1"
-                      value={form.duration_days}
-                      onChange={(e) => updateField("duration_days", parseInt(e.target.value) || 1)}
+                      value={form.duration_days === 0 ? "" : form.duration_days}
+                      onChange={(e) => {
+                        const val = e.target.value === "" ? 0 : parseInt(e.target.value);
+                        updateField("duration_days", val);
+                      }}
+                      onBlur={(e) => {
+                        // Set minimal 1 saat blur jika kosong
+                        if (e.target.value === "" || parseInt(e.target.value) < 1) {
+                          updateField("duration_days", 1);
+                        }
+                      }}
+                      placeholder="Hari"
                       required
                     />
                   </div>
@@ -368,15 +378,25 @@ export default function TripForm() {
                       id="total_quota"
                       type="number"
                       min="1"
-                      value={form.total_quota}
+                      value={form.total_quota === 0 ? "" : form.total_quota}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value) || 0;
+                        const val = e.target.value === "" ? 0 : parseInt(e.target.value);
                         updateField("total_quota", val);
                         // Auto-set remaining_quota = total_quota (jika baru)
                         if (!isEdit) {
                           updateField("remaining_quota", val);
                         }
                       }}
+                      onBlur={(e) => {
+                        // Set minimal 1 saat blur jika kosong
+                        if (e.target.value === "" || parseInt(e.target.value) < 1) {
+                          updateField("total_quota", 1);
+                          if (!isEdit) {
+                            updateField("remaining_quota", 1);
+                          }
+                        }
+                      }}
+                      placeholder="Jumlah slot"
                       required
                     />
                   </div>
@@ -388,8 +408,22 @@ export default function TripForm() {
                       type="number"
                       min="0"
                       max={form.total_quota}
-                      value={form.remaining_quota}
-                      onChange={(e) => updateField("remaining_quota", parseInt(e.target.value) || 0)}
+                      value={form.remaining_quota === 0 ? "" : form.remaining_quota}
+                      onChange={(e) => {
+                        const val = e.target.value === "" ? 0 : parseInt(e.target.value);
+                        updateField("remaining_quota", val);
+                      }}
+                      onBlur={(e) => {
+                        // Set 0 jika kosong saat blur
+                        if (e.target.value === "") {
+                          updateField("remaining_quota", 0);
+                        }
+                        // Validasi tidak boleh lebih dari total
+                        if (parseInt(e.target.value) > form.total_quota) {
+                          updateField("remaining_quota", form.total_quota);
+                        }
+                      }}
+                      placeholder="Slot tersisa"
                     />
                     <p className="text-xs text-gray-500 mt-1">Terbooking: {form.total_quota - form.remaining_quota}</p>
                   </div>
