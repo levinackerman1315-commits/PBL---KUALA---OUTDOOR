@@ -29,7 +29,7 @@ const AdminDashboard = () => {
     totalEquipment: 0,
     availableEquipment: 0,
     totalCustomers: 0,
-    totalRevenue: 0,
+    totalCompletedValue: 0, // ✅ UBAH NAMA
     pendingBookings: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -58,8 +58,16 @@ const AdminDashboard = () => {
       const pendingBookings = bookings.filter(b => b.status === 'pending').length;
       const completedBookings = bookings.filter(b => b.status === 'completed');
 
-      const totalRevenue = completedBookings.reduce((sum, booking) => {
-        return sum + (parseFloat(booking.total_actual_cost) || parseFloat(booking.total_estimated_cost) || 0);
+      // ✅ UBAH NAMA: totalRevenue → totalCompletedValue (atau totalEarnings jika ada payment)
+      const totalCompletedValue = completedBookings.reduce((sum, booking) => {
+        // Cek semua kemungkinan field biaya
+        const actualCost = parseFloat(booking.total_actual_cost || booking.actual_cost || 0);
+        const estimatedCost = parseFloat(booking.total_estimated_cost || booking.estimated_cost || booking.total_cost || 0);
+        
+        // Prioritas: actual_cost > estimated_cost
+        const bookingValue = actualCost > 0 ? actualCost : estimatedCost;
+        
+        return sum + bookingValue;
       }, 0);
 
       const totalEquipment = equipment.length;
@@ -74,9 +82,18 @@ const AdminDashboard = () => {
         totalEquipment,
         availableEquipment,
         totalCustomers,
-        totalRevenue,
+        totalCompletedValue, // ✅ UBAH DI SINI
         pendingBookings,
       });
+      
+      // Debug log
+      console.log('📊 Dashboard Stats:', {
+        totalBookings,
+        completedBookings: completedBookings.length,
+        totalCompletedValue,
+        formatted: `Rp ${totalCompletedValue.toLocaleString('id-ID')}`
+      });
+      
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
     } finally {
@@ -117,9 +134,9 @@ const AdminDashboard = () => {
       link: "/admin/customers"
     },
     { 
-      label: "Revenue", 
-      value: loading ? "..." : `Rp ${(stats.totalRevenue / 1000000).toFixed(1)}jt`,
-      subValue: "completed bookings",
+      label: "Completed Value", // ✅ UBAH LABEL
+      value: loading ? "..." : `Rp ${(stats.totalCompletedValue / 1000000).toFixed(1)}jt`,
+      subValue: "from completed bookings", // ✅ LEBIH JELAS
       icon: DollarSign, 
       color: "bg-yellow-500", 
       link: "/admin/bookings"
@@ -380,7 +397,7 @@ const AdminDashboard = () => {
               {loading ? (
                 <Loader2 className="h-10 w-10 animate-spin" />
               ) : (
-                `Rp ${stats.totalRevenue.toLocaleString('id-ID')}`
+                `Rp ${stats.totalCompletedValue.toLocaleString('id-ID')}`
               )}
             </div>
             <p className="text-gray-600">
