@@ -174,15 +174,7 @@ const AdminDashboard = () => {
       color: "group-hover:text-orange-600",
       desc: "Atur dan kelola paket rental equipment outdoor"
     },
-    {
-      to: "/admin/customers",
-      icon: <Users className="h-10 w-10 text-purple-600 group-hover:text-white transition-colors" />,
-      bg: "bg-purple-100 group-hover:bg-purple-500",
-      border: "hover:border-purple-400",
-      title: "Kelola Customer",
-      color: "group-hover:text-purple-600",
-      desc: "Data customer dan history"
-    },
+    
     {
       to: "/admin/trips",
       icon: <Mountain className="h-10 w-10 text-emerald-600 group-hover:text-white transition-colors" />,

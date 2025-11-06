@@ -35,7 +35,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import BookingDetail from "./pages/BookingDetail";
 import BookingManagement from "./pages/BookingManagement";
 import EquipmentManagement from "./pages/EquipmentManagement";
-import PackageManagement from "./pages/PackageManagement"; // ✅ TAMBAHKAN INI
+import PackageManagement from "./pages/PackageManagement";
+import MerchandiseManagement from "./pages/MerchandiseManagement"; // ✅ TAMBAH IMPORT INI
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -124,12 +125,22 @@ const App = () => (
                     } 
                   />
 
-                  {/* ✅ PACKAGE MANAGEMENT ROUTE - TAMBAHKAN INI */}
+                  {/* ✅ PACKAGE MANAGEMENT ROUTE */}
                   <Route 
                     path="/admin/packages" 
                     element={
                       <ProtectedRoute>
                         <PackageManagement />
+                      </ProtectedRoute>
+                    } 
+                  />
+
+                  {/* ✅ MERCHANDISE MANAGEMENT ROUTE - TAMBAH INI */}
+                  <Route 
+                    path="/admin/merchandise" 
+                    element={
+                      <ProtectedRoute>
+                        <MerchandiseManagement />
                       </ProtectedRoute>
                     } 
                   />
