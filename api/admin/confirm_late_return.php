@@ -22,27 +22,31 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = json_decode(file_get_contents("php://input"));
 
-        if (!isset($data->booking_id) || !isset($data->late_minutes) || !isset($data->late_fee)) {
+        if (!isset($data->booking_id) || !isset($data->late_fee)) {
             throw new Exception("Data tidak lengkap");
         }
 
-        // ✅ Update booking dengan data keterlambatan + waktu pengembalian
+        // ✅ UPDATE DENGAN KOLOM YANG SUDAH ADA
         $query = "UPDATE bookings 
                   SET status = 'completed',
-                      late_return_time = :late_minutes,
                       late_fee = :late_fee,
+                      late_return_time = :late_minutes,
                       total_actual_cost = total_estimated_cost + :late_fee,
                       updated_at = NOW()
                   WHERE booking_id = :booking_id";
         
         $stmt = $db->prepare($query);
-        $stmt->bindParam(':late_minutes', $data->late_minutes);
         $stmt->bindParam(':late_fee', $data->late_fee);
+        $stmt->bindParam(':late_minutes', $data->late_minutes);
         $stmt->bindParam(':booking_id', $data->booking_id);
 
         if ($stmt->execute()) {
             // Kembalikan stok equipment
-            $query_items = "SELECT equipment_id, quantity FROM booking_items WHERE booking_id = :booking_id";
+            $query_items = "SELECT equipment_id, quantity 
+                           FROM booking_items 
+                           WHERE booking_id = :booking_id 
+                           AND equipment_id IS NOT NULL";
+            
             $stmt_items = $db->prepare($query_items);
             $stmt_items->bindParam(':booking_id', $data->booking_id);
             $stmt_items->execute();
@@ -60,13 +64,12 @@ try {
 
             echo json_encode([
                 'success' => true,
-                'message' => 'Denda keterlambatan berhasil dikonfirmasi',
-                'late_minutes' => $data->late_minutes,
+                'message' => 'Pengembalian terlambat berhasil dikonfirmasi',
                 'late_fee' => $data->late_fee,
-                'return_time' => date('Y-m-d H:i:s') // ✅ WAKTU PENGEMBALIAN
+                'late_minutes' => $data->late_minutes
             ]);
         } else {
-            throw new Exception("Gagal konfirmasi denda");
+            throw new Exception("Gagal konfirmasi pengembalian");
         }
     } else {
         http_response_code(405);
