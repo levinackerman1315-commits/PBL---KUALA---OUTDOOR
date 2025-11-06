@@ -317,7 +317,7 @@ const Packages = () => {
                   <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
                     <CheckCircle className="h-8 w-8 text-green-600" />
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Equipment Berkualitas</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">Peralatan Berkualitas</h4>
                   <p className="text-gray-600 text-sm">Semua peralatan dalam kondisi prima dan terawat</p>
                 </div>
                 <div className="text-center p-4">

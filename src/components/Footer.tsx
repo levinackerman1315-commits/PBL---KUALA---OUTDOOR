@@ -27,7 +27,7 @@ export const Footer = () => {
               </div>
               <div>
                 <h3 className="text-xl font-bold">KUALA OUTDOOR</h3>
-                <p className="text-green-400 text-sm">Rental Equipment</p>
+                <p className="text-green-400 text-sm">Rental Peralatan</p>
               </div>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed">
@@ -42,7 +42,7 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to="/browse" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
-                  Browse Equipment
+                  Pencarian Peralatan
                 </Link>
               </li>
               <li>
@@ -52,7 +52,7 @@ export const Footer = () => {
               </li>
               <li>
                 <Link to="/trips" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
-                  Open Trip
+                  Trip Seru
                 </Link>
               </li>
               <li>

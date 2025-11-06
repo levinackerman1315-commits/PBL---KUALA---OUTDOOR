@@ -59,7 +59,7 @@ const Index = () => {
           <div className="flex gap-4 justify-center flex-wrap">
             <Link to="/browse">
               <Button size="lg" className="text-lg bg-white text-green-600 hover:bg-gray-100">
-                🎒 Browse Equipment
+                🎒 Jelajahi & Lihat Peralatan
               </Button>
             </Link>
             {/* ✅ TOMBOL WHATSAPP MENGGUNAKAN NOMOR DARI CONTEXT */}
@@ -88,7 +88,7 @@ const Index = () => {
         </div>
         <div>
           <div className="text-3xl font-bold text-purple-600 mb-2">100%</div>
-          <div className="text-gray-600">Equipment Terawat</div>
+          <div className="text-gray-600">Peralatan Terawat</div>
         </div>
         <div>
           <div className="text-3xl font-bold text-orange-600 mb-2">Terjangkau</div>
@@ -100,7 +100,7 @@ const Index = () => {
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">🚀 Cara Rental Equipment</h2>
+            <h2 className="text-4xl font-bold mb-4">🚀 Cara Rental Peralatan</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Proses rental yang mudah dan cepat untuk mendukung petualangan outdoor Anda
             </p>
@@ -112,9 +112,9 @@ const Index = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
                   <Search className="h-8 w-8" />
                 </div>
-                <h3 className="font-semibold text-lg mb-2">1. Browse & Pilih</h3>
+                <h3 className="font-semibold text-lg mb-2">1. Cari & Pilih</h3>
                 <p className="text-gray-600 text-sm">
-                  Cari dan pilih equipment yang Anda butuhkan dari katalog lengkap kami
+                  Cari dan pilih peralatan yang Anda butuhkan dari katalog lengkap kami
                 </p>
               </CardContent>
             </Card>
@@ -136,9 +136,9 @@ const Index = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 text-purple-600 mb-4">
                   <ShoppingBag className="h-8 w-8" />
                 </div>
-                <h3 className="font-semibold text-lg mb-2">3. Pickup & Bayar</h3>
+                <h3 className="font-semibold text-lg mb-2">3. Ambil & Bayar</h3>
                 <p className="text-gray-600 text-sm">
-                  Ambil equipment di lokasi kami dan lakukan pembayaran sewa
+                  Ambil peralatan di lokasi kami dan lakukan pembayaran sewa
                 </p>
               </CardContent>
             </Card>
@@ -150,7 +150,7 @@ const Index = () => {
                 </div>
                 <h3 className="font-semibold text-lg mb-2">4. Petualangan!</h3>
                 <p className="text-gray-600 text-sm">
-                  Nikmati petualangan Anda dan kembalikan equipment tepat waktu
+                  Nikmati petualangan Anda dan kembalikan peralatan tepat waktu
                 </p>
               </CardContent>
             </Card>
@@ -162,7 +162,7 @@ const Index = () => {
       <section className="py-20 px-4 bg-gray-50">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">🎒 Kategori Equipment</h2>
+            <h2 className="text-4xl font-bold mb-4">🎒 Kategori Peralatan</h2>
             <p className="text-xl text-gray-600">
               Berbagai macam peralatan outdoor berkualitas siap mendukung petualangan Anda
             </p>
@@ -199,7 +199,7 @@ const Index = () => {
               <Card className="hover:shadow-xl transition-all duration-300 cursor-pointer group">
                 <CardContent className="p-8 text-center">
                   <Mountain className="h-16 w-16 text-purple-600 mx-auto mb-4 group-hover:scale-110 transition-transform" />
-                  <h3 className="text-xl font-semibold mb-2">🍳 Cooking & Tools</h3>
+                  <h3 className="text-xl font-semibold mb-2">🍳 Peralatan Masak</h3>
                   <p className="text-gray-600 mb-4">Peralatan masak dan tools pendakian</p>
                   <Button variant="outline" className="group-hover:bg-purple-600 group-hover:text-white transition-colors">
                     Lihat Koleksi
@@ -222,8 +222,8 @@ const Index = () => {
             <div className="flex gap-4">
               <CheckCircle className="h-8 w-8 text-green-600 flex-shrink-0 mt-1" />
               <div>
-                <h3 className="font-semibold text-lg mb-2">Equipment Berkualitas</h3>
-                <p className="text-gray-600">Semua equipment dalam kondisi prima dan terawat dengan baik</p>
+                <h3 className="font-semibold text-lg mb-2">Peralatan Berkualitas</h3>
+                <p className="text-gray-600">Semua peralatan dalam kondisi prima dan terawat dengan baik</p>
               </div>
             </div>
 
@@ -284,7 +284,7 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/browse">
               <Button size="lg" className="text-lg bg-white text-green-600 hover:bg-gray-100 px-8 py-3">
-                🎒 Mulai Browse Equipment
+                🎒 Jelajahi & Lihat Peralatan
               </Button>
             </Link>
             {/* ✅ TOMBOL WHATSAPP MENGGUNAKAN NOMOR DARI CONTEXT */}

@@ -174,7 +174,7 @@ export const Navbar = () => {
         <div className="hidden md:flex items-center gap-6">
           <Link to="/browse">
             <Button variant="ghost" className="hover:text-green-600 transition-colors">
-              Browse Equipment
+              Lihat Peralatan
             </Button>
           </Link>
           <Link to="/packages">
@@ -184,7 +184,7 @@ export const Navbar = () => {
           </Link>
           <Link to="/trips">
             <Button variant="ghost" className="hover:text-green-600 transition-colors">
-              Open Trip
+              Trip Seru
             </Button>
           </Link>
           <Link to="/about">

@@ -362,7 +362,7 @@ export default function Trips() {
             <div className="relative h-[400px] bg-gradient-to-r from-emerald-800 to-green-700">
               <div className="absolute inset-0 bg-black/40" />
               <div className="relative z-10 h-full flex flex-col justify-center items-center text-white text-center px-4">
-                <h1 className="text-4xl md:text-5xl font-extrabold mb-4">🏔️ Informasi Open Trip</h1>
+                <h1 className="text-4xl md:text-5xl font-extrabold mb-4">🏔️ Informasi Trip Seru</h1>
                 <p className="text-xl text-gray-100 mb-8 max-w-2xl">
                   Temukan trip yang cocok untuk skill dan jadwal Anda — dari pemula sampai yang berpengalaman
                 </p>

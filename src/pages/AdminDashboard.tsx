@@ -160,9 +160,9 @@ const AdminDashboard = () => {
       icon: <Package className="h-10 w-10 text-green-600 group-hover:text-white transition-colors" />,
       bg: "bg-green-100 group-hover:bg-green-500",
       border: "hover:border-green-400",
-      title: "Kelola Equipment",
+      title: "Kelola Peralatan",
       color: "group-hover:text-green-600",
-      desc: "Tambah dan edit equipment"
+      desc: "Tambah dan edit peralatan"
     },
     // ✅ TAMBAH MENU INI
     {
@@ -172,7 +172,7 @@ const AdminDashboard = () => {
       border: "hover:border-orange-400",
       title: "Kelola Paket Rental",
       color: "group-hover:text-orange-600",
-      desc: "Atur dan kelola paket rental equipment outdoor"
+      desc: "Atur dan kelola paket rental peralatan outdoor"
     },
     
     {
@@ -180,7 +180,7 @@ const AdminDashboard = () => {
       icon: <Mountain className="h-10 w-10 text-emerald-600 group-hover:text-white transition-colors" />,
       bg: "bg-emerald-100 group-hover:bg-emerald-500",
       border: "hover:border-emerald-400",
-      title: "Kelola Open Trip",
+      title: "Kelola Trip Seru",
       color: "group-hover:text-emerald-600",
       desc: "Tambah dan edit trip"
     },
