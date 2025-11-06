@@ -76,8 +76,7 @@ export function BookingSuccessDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2">
-          {/* ✅ GANTI BUTTON INI */}
+        <DialogFooter className="flex justify-center sm:justify-center">
           <Button
             onClick={handleWhatsApp}
             className="w-full sm:w-auto bg-green-600 hover:bg-green-700 h-12"
@@ -85,15 +84,6 @@ export function BookingSuccessDialog({
           >
             <MessageCircle className="mr-2 h-5 w-5" />
             Kirim ke WhatsApp
-          </Button>
-          <Button
-            onClick={handleBackToHome}
-            variant="outline"
-            className="w-full sm:w-auto h-12"
-            size="lg"
-          >
-            <Home className="mr-2 h-4 w-4" />
-            Kembali ke Beranda
           </Button>
         </DialogFooter>
       </DialogContent>
