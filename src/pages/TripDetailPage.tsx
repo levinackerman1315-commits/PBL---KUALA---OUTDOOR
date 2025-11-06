@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, MapPin, Users, Calendar, Phone, ChevronLeft, ChevronRight, Map, Clock } from 'lucide-react'
-import { useContact } from '@/contexts/ContactContext'
 
 export interface TripMock {
   id: string
@@ -117,9 +116,6 @@ export default function TripDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   
-  // ✅ GET CONTACT INFO FROM CONTEXT
-  const { contactInfo } = useContact()
-  
   useEffect(() => {
     window.scrollTo(0, 0)
     
@@ -138,9 +134,11 @@ export default function TripDetailPage() {
         console.log('Trip Detail API Response:', data)
         
         if (data.trip_id) {
+          // Direct trip object response
           const normalizedTrip = normalizeTrip(data)
           setTrip(normalizedTrip)
         } else if (data.message) {
+          // Error response
           setError('Trip tidak ditemukan')
           setTrip(null)
         } else {
@@ -196,45 +194,9 @@ export default function TripDetailPage() {
     setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length)
   }
 
-  // ✅ PRIORITAS: Trip contact > Contact Management (phone1)
-  const tripContactWhatsapp = (trip.contact?.whatsapp || trip.contact_whatsapp || '').replace(/[^0-9]/g, '')
-  const fallbackWhatsapp = contactInfo.phone1.replace(/[^0-9]/g, '')
-  const contactWhatsapp = tripContactWhatsapp || fallbackWhatsapp
-  
-  const contactName = trip.contact?.name || trip.contact_name || 'Tim Kuala Outdoor'
-  const contactRole = trip.contact?.role || trip.contact_role || 'Admin'
-
-  // ✅ TEMPLATE PESAN WHATSAPP YANG LEBIH LENGKAP
-  const generateWhatsAppMessage = () => {
-    const tripDate = trip.startDate || trip.start_date 
-      ? new Date(trip.startDate || trip.start_date || '').toLocaleDateString('id-ID', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        })
-      : 'Belum ditentukan'
-
-    const message = `Halo ${contactName} 👋
-
-Saya tertarik dengan Open Trip berikut:
-
-📍 *${trip.title}*
-📅 Tanggal: ${tripDate}
-${trip.startTime || trip.start_time ? `⏰ Jam: ${trip.startTime || trip.start_time} WIB` : ''}
-🏔️ Tingkat: ${trip.difficulty}
-👥 Kuota Tersisa: ${trip.remainingQuota || trip.remaining_quota || 0} dari ${trip.totalQuota || trip.total_quota || 0} slot
-
-Mohon informasi lebih lanjut tentang:
-1. Biaya/harga trip
-2. Detail itinerary perjalanan
-3. Cara pendaftaran & pembayaran
-4. Perlengkapan yang perlu disiapkan
-
-Terima kasih! 🙏`
-
-    return encodeURIComponent(message)
-  }
+  const contactWhatsapp = (trip.contact?.whatsapp || trip.contact_whatsapp || '').replace(/[^0-9]/g, '')
+  const contactName = trip.contact?.name || trip.contact_name || 'Admin'
+  const contactRole = trip.contact?.role || trip.contact_role || 'Tim Kuala Outdoor'
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -317,7 +279,9 @@ Terima kasih! 🙏`
                 <div className="mt-4 flex items-center gap-2 text-primary">
                   <Phone className="h-5 w-5" />
                   <a 
-                    href={`https://wa.me/${contactWhatsapp}?text=${generateWhatsAppMessage()}`}
+                    href={`https://wa.me/${contactWhatsapp}?text=${encodeURIComponent(
+                      `Halo ${contactName}, saya tertarik dengan trip ${trip.title}. Mohon info lebih lanjut.`
+                    )}`}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="hover:underline"
@@ -513,18 +477,7 @@ Terima kasih! 🙏`
 
                 {contactWhatsapp && (
                   <div className="pt-4 border-t">
-                    <Button 
-                      className="w-full" 
-                      size="lg"
-                      onClick={() => {
-                        window.open(
-                          `https://wa.me/${contactWhatsapp}?text=${generateWhatsAppMessage()}`,
-                          '_blank'
-                        )
-                      }}
-                    >
-                      Tanya Info & Daftar via WhatsApp
-                    </Button>
+                    
                   </div>
                 )}
               </div>
