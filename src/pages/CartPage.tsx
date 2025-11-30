@@ -67,6 +67,10 @@ interface CartItem {
   is_checked: boolean
 }
 
+// ✅ API Base URL for production deployment
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/PBL-KELANA-OUTDOOR/api';
+const UPLOADS_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost/PBL-KELANA-OUTDOOR';
+
 const CartPage = () => {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -109,7 +113,7 @@ const CartPage = () => {
     if (imageUrl.startsWith('http')) return imageUrl
     if (imageUrl.startsWith('/uploads/')) return `http://localhost/PBL-KELANA-OUTDOOR${imageUrl}`
     if (imageUrl.startsWith('uploads/')) return `http://localhost/PBL-KELANA-OUTDOOR/${imageUrl}`
-    return `http://localhost/PBL-KELANA-OUTDOOR/uploads/equipment/${imageUrl}`
+    return `${UPLOADS_BASE_URL}/uploads/equipment/${imageUrl}`
   }
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {

@@ -22,6 +22,10 @@ import {
   Gift, // ✅ TAMBAH ICON INI
 } from "lucide-react";
 
+// ✅ API Base URL for production deployment
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/PBL-KELANA-OUTDOOR/api';
+const UPLOADS_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost/PBL-KELANA-OUTDOOR';
+
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalBookings: 0,
@@ -43,12 +47,12 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       // Fetch Bookings
-      const bookingsRes = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/bookings.php');
+      const bookingsRes = await fetch(`${API_BASE_URL}/admin/bookings.php`);
       const bookingsData = await bookingsRes.json();
       const bookings = Array.isArray(bookingsData) ? bookingsData : bookingsData.data || [];
 
       // Fetch Equipment
-      const equipmentRes = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php');
+      const equipmentRes = await fetch(`${API_BASE_URL}/admin/equipment.php`);
       const equipmentData = await equipmentRes.json();
       const equipment = Array.isArray(equipmentData) ? equipmentData : [];
 

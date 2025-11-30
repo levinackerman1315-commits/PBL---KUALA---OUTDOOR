@@ -20,6 +20,10 @@ import {
   Box
 } from "lucide-react";
 
+// ✅ API Base URL for production deployment
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/PBL-KELANA-OUTDOOR/api';
+const UPLOADS_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost/PBL-KELANA-OUTDOOR';
+
 const BookingDetail = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
@@ -33,7 +37,7 @@ const BookingDetail = () => {
   const fetchBookingDetail = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/admin/booking_detail.php?booking_id=${bookingId}`);
+      const response = await fetch(`${API_BASE_URL}/admin/booking_detail.php?booking_id=${bookingId}`);
       const data = await response.json();
       
       console.log('📦 Booking Detail Response:', data); // DEBUG
@@ -421,7 +425,7 @@ export default BookingDetail;
 //   const fetchBookingDetail = async () => {
 //     setLoading(true);
 //     try {
-//       const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/admin/booking_detail.php?booking_id=${bookingId}`);
+//       const response = await fetch(`${API_BASE_URL}/admin/booking_detail.php?booking_id=${bookingId}`);
 //       const data = await response.json();
       
 //       if (data.success) {

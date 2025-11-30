@@ -1,4 +1,3 @@
-// export default Browse
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -9,8 +8,8 @@ import { Search, Package, ArrowLeft, Weight, Ruler, AlertTriangle, Image as Imag
 import { Link } from 'react-router-dom'
 import { useCart } from '@/contexts/CartContext'
 import { useAuth } from '@/contexts/AuthContext'
-import { LoginRequiredDialog } from '@/components/LoginRequiredDialog' // ✅ TAMBAHKAN
-import { toast } from "sonner"; // ✅ TAMBAHKAN INI DI BAGIAN IMPORT
+import { LoginRequiredDialog } from '@/components/LoginRequiredDialog'
+import { toast } from "sonner";
 
 interface EquipmentImage {
   image_id: number;
@@ -41,6 +40,10 @@ interface Equipment {
   created_at: string;
 }
 
+// ✅ FIXED: API Base URL untuk production deployment
+const API_BASE_URL = import.meta.env.NEXT_PUBLIC_API_URL || 'https://kualaoutdoor.free.nf/api/public';
+const UPLOADS_BASE_URL = 'https://kualaoutdoor.free.nf';
+
 const Browse = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -51,7 +54,7 @@ const Browse = () => {
   const [searchKeyword, setSearchKeyword] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [loginDialogOpen, setLoginDialogOpen] = useState(false) // ✅ TAMBAHKAN
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false)
 
   const { addToCart, isInCart, getCartItem } = useCart()
 
@@ -72,9 +75,9 @@ const Browse = () => {
     
     if (!imageUrl) return null;
     if (imageUrl.startsWith('http')) return imageUrl;
-    if (imageUrl.startsWith('/uploads/')) return `http://localhost/PBL-KELANA-OUTDOOR${imageUrl}`;
-    if (imageUrl.startsWith('uploads/')) return `http://localhost/PBL-KELANA-OUTDOOR/${imageUrl}`;
-    return `http://localhost/PBL-KELANA-OUTDOOR/uploads/equipment/${imageUrl}`;
+    if (imageUrl.startsWith('/uploads/')) return `${UPLOADS_BASE_URL}${imageUrl}`;
+    if (imageUrl.startsWith('uploads/')) return `${UPLOADS_BASE_URL}/${imageUrl}`;
+    return `${UPLOADS_BASE_URL}/uploads/equipment/${imageUrl}`;
   };
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>, item: Equipment) => {
@@ -95,7 +98,7 @@ const Browse = () => {
       setLoading(true)
       setError(null)
       
-      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php', {
+      const response = await fetch(`${API_BASE_URL}/equipment.php`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -174,26 +177,20 @@ const Browse = () => {
     setEquipment(allEquipment)
   }
 
-  // ✅ UPDATE handleAddToCart
   const handleAddToCart = (item: Equipment) => {
     if (!user) {
-      setLoginDialogOpen(true) // ✅ BUKA DIALOG CANTIK
+      setLoginDialogOpen(true)
       return
     }
 
     addToCart(item, 1)
     
-    // ✅ GANTI ALERT INI:
-    // alert(`✅ ${item.name} ditambahkan ke keranjang!\n💰 Rp ${item.price_per_day.toLocaleString('id-ID')}/hari`)
-    
-    // ✅ DENGAN TOAST INI:
     toast.success(`${item.name} ditambahkan ke keranjang!`, {
       description: `Rp ${item.price_per_day.toLocaleString('id-ID')}/hari`,
       duration: 3000,
     })
   }
 
-  // ✅ TAMBAHKAN FUNGSI INI
   const handleLoginConfirm = () => {
     sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
     navigate('/auth')
@@ -471,7 +468,6 @@ const Browse = () => {
                       </Button>
                     </Link>
                     
-                    {/* ✅ TOMBOL ADD TO CART DENGAN VALIDASI LOGIN */}
                     <Button 
                       onClick={() => handleAddToCart(item)}
                       variant="outline"
@@ -516,7 +512,6 @@ const Browse = () => {
         )}
       </div>
 
-      {/* ✅ TAMBAHKAN DIALOG SEBELUM </div> TERAKHIR */}
       <LoginRequiredDialog
         open={loginDialogOpen}
         onOpenChange={setLoginDialogOpen}

@@ -75,6 +75,10 @@ interface Equipment {
   created_at: string;
 }
 
+// ✅ API Base URL for production deployment
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/PBL-KELANA-OUTDOOR/api';
+const UPLOADS_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost/PBL-KELANA-OUTDOOR';
+
 const EquipmentManagement = () => {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
   const [filteredEquipments, setFilteredEquipments] = useState<Equipment[]>([]);
@@ -133,7 +137,7 @@ const EquipmentManagement = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php');
+      const response = await fetch(`${API_BASE_URL}/admin/equipment.php`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -287,7 +291,7 @@ const EquipmentManagement = () => {
 
       console.log('📤 Uploading', imageFiles.length, 'image(s) for equipment_id:', equipmentId);
 
-      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/upload/multi_image.php', {
+      const response = await fetch(`${API_BASE_URL}/upload/multi_image.php`, {
         method: 'POST',
         body: uploadFormData
       });
@@ -323,7 +327,7 @@ const EquipmentManagement = () => {
     if (!confirm('Yakin ingin menghapus gambar ini?')) return;
 
     try {
-      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/upload/multi_image.php', {
+      const response = await fetch(`${API_BASE_URL}/upload/multi_image.php`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image_id: imageId })
@@ -350,7 +354,7 @@ const EquipmentManagement = () => {
 
   // ✅ FETCH SINGLE EQUIPMENT (untuk refresh setelah edit)
   const fetchSingleEquipment = async (equipmentId: number): Promise<Equipment> => {
-    const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php?id=${equipmentId}`);
+    const response = await fetch(`${API_BASE_URL}/admin/equipment.php?id=${equipmentId}`);
     if (!response.ok) throw new Error('Failed to fetch equipment');
     return await response.json();
   };
@@ -494,7 +498,7 @@ const EquipmentManagement = () => {
         console.log('📖 Saving usage guide steps for equipment_id:', equipmentId);
         console.log('📖 Steps data:', JSON.stringify(usageGuideSteps, null, 2));
         try {
-          const guideResponse = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/usage_guide.php', {
+          const guideResponse = await fetch(`${API_BASE_URL}/admin/usage_guide.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -522,7 +526,7 @@ const EquipmentManagement = () => {
         console.log('📜 Saving rental terms for equipment_id:', equipmentId);
         console.log('📜 Terms data:', JSON.stringify(rentalTerms, null, 2));
         try {
-          const termsResponse = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/rental_terms.php', {
+          const termsResponse = await fetch(`${API_BASE_URL}/admin/rental_terms.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

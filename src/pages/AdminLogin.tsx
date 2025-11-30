@@ -7,6 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Lock, User, Shield } from "lucide-react";
 
+// ✅ API Base URL for production deployment
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/PBL-KELANA-OUTDOOR/api';
+const UPLOADS_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost/PBL-KELANA-OUTDOOR';
+
 const AdminLogin = () => {
   const [credentials, setCredentials] = useState({
     username: "",
@@ -25,7 +29,7 @@ const AdminLogin = () => {
 
     try {
       // 🔥 CONNECT KE API REAL
-      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/admin/login.php', {
+      const response = await fetch(`${API_BASE_URL}/admin/login.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -20,6 +20,10 @@ import { useContact } from '@/contexts/ContactContext'
 import { useToast } from '@/hooks/use-toast'
 import { BookingSuccessDialog } from '@/components/BookingSuccessDialog';
 
+// ✅ API Base URL for production deployment
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/PBL-KELANA-OUTDOOR/api';
+const UPLOADS_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost/PBL-KELANA-OUTDOOR';
+
 const BookingForm = () => {
   const location = useLocation()
   const navigate = useNavigate()
@@ -282,7 +286,7 @@ Mohon konfirmasi ketersediaan dan detail pembayaran. Terima kasih!
 
       console.log('🚀 Payload:', JSON.stringify(payload, null, 2))
 
-      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/api/public/booking.php', {
+      const response = await fetch(`${API_BASE_URL}/public/booking.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

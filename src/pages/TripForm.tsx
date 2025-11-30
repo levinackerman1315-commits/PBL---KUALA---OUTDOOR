@@ -38,6 +38,10 @@ const emptyForm: TripFormData = {
   rules: ""
 };
 
+// ✅ API Base URL for production deployment
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/PBL-KELANA-OUTDOOR/api';
+const UPLOADS_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost/PBL-KELANA-OUTDOOR';
+
 export default function TripForm() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -123,7 +127,7 @@ export default function TripForm() {
     formDataImg.append('image', file);
 
     try {
-      const response = await fetch('http://localhost/PBL-KELANA-OUTDOOR/uploads/trips/trips.php', {
+      const response = await fetch(`${API_BASE_URL}/trips.php`, {
         method: 'POST',
         body: formDataImg
       });

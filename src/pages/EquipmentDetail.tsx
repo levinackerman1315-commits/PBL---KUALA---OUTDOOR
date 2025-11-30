@@ -46,6 +46,10 @@ interface EquipmentWithGuides extends Equipment {
   rental_terms?: RentalTerm[];
 }
 
+// ✅ API Base URL for production deployment
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/PBL-KELANA-OUTDOOR/api';
+const UPLOADS_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost/PBL-KELANA-OUTDOOR';
+
 const EquipmentDetailV2 = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -75,7 +79,7 @@ const EquipmentDetailV2 = () => {
       
       console.log('🔍 Fetching equipment detail for ID:', equipmentId)
       
-      const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/public/equipment.php?id=${equipmentId}`)
+      const response = await fetch(`${API_BASE_URL}/public/equipment.php?id=${equipmentId}`)
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)

@@ -109,6 +109,10 @@ function normalizeTrip(data: any): TripMock {
   }
 }
 
+// ✅ API Base URL for production deployment
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/PBL-KELANA-OUTDOOR/api';
+const UPLOADS_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost/PBL-KELANA-OUTDOOR';
+
 export default function TripDetailPage() {
   const { id } = useParams()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -124,7 +128,7 @@ export default function TripDetailPage() {
         setLoading(true)
         setError('')
         
-        const response = await fetch(`http://localhost/PBL-KELANA-OUTDOOR/api/public/trips.php?id=${id}`)
+        const response = await fetch(`${API_BASE_URL}/public/trips.php?id=${id}`)
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
