@@ -40,10 +40,8 @@ interface Equipment {
   created_at: string;
 }
 
-// ✅ FIXED: API Base URL untuk production deployment
 const API_BASE_URL = import.meta.env.NEXT_PUBLIC_API_URL || 'https://kualaoutdoor.free.nf/api/public';
 const UPLOADS_BASE_URL = 'https://kualaoutdoor.free.nf';
-
 const Browse = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
