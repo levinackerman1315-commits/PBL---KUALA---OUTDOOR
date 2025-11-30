@@ -12,7 +12,7 @@ import { ContactProvider } from "./contexts/ContactContext";
 // ✅ PUBLIC PAGES
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Browse from "./pages/Browse";
+import Browse from "./pages/browse";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import EquipmentDetail from "./pages/EquipmentDetail";
