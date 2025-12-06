@@ -486,7 +486,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // ✅ LOAD PACKAGE CART (HANYA UNTUK COUNT BADGE)
       try {
         const packageResponse = await fetch(
-          `http://localhost/PBL-KELANA-OUTDOOR/api/customer/package-cart.php?customer_id=${user.id}`
+          `${API_BASE}/customer/package-cart.php?customer_id=${user.id}`
         );
         
         if (packageResponse.ok) {

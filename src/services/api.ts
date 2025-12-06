@@ -1,4 +1,5 @@
-export const API_BASE_URL = "http://localhost/PBL-KELANA-OUTDOOR/api";
+// Use environment variable for API URL (supports local and production)
+export const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/public', '') || "http://localhost/PBL-KELANA-OUTDOOR/api";
 
 export const handleApiResponse = async (response: Response) => {
   const data = await response.json();

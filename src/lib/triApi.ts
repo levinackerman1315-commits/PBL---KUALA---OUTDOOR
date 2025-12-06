@@ -1,7 +1,5 @@
-const API_BASE = 'http://localhost/PBL-KELANA-OUTDOOR/api'; // ✅ SESUAIKAN DENGAN XAMPP ANDA
-
-// Atau bisa relatif jika React dan PHP di folder yang sama
-// const API_BASE = '/api';
+// Use environment variable for API URL (supports local and production)
+const API_BASE = import.meta.env.VITE_API_URL?.replace('/public', '') || 'http://localhost/PBL-KELANA-OUTDOOR/api';
 
 async function handleResponse(response: Response) {
   const contentType = response.headers.get("content-type");

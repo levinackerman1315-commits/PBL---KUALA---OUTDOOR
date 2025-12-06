@@ -64,7 +64,7 @@ const BookingForm = () => {
         console.log('🔄 Fetching profile for customer_id:', user.id)
 
         const response = await fetch(
-          `http://localhost/PBL-KELANA-OUTDOOR/api/customer/profile.php?id=${user.id}`,
+          `${API_BASE_URL}/customer/profile.php?id=${user.id}`,
           {
             method: 'GET',
             headers: {

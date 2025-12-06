@@ -56,7 +56,7 @@ const AdminLogin = () => {
       }
     } catch (error) {
       console.error("❌ Login error:", error);
-      setError('❌ Koneksi ke server gagal. Pastikan XAMPP running!');
+      setError('❌ Koneksi ke server gagal. Pastikan server backend aktif!');
       
       // 🔧 FALLBACK MODE - Jika API gagal, coba test mode
       console.log("🔄 Trying fallback test mode...");
