@@ -5,10 +5,16 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
     exit(0);
 }
 
-require_once __DIR__ . '/database.php';
+// ✅ Use shared config
+require_once __DIR__ . '/config/database.php';
+
+// ✅ Connect to database
+$database = new Database();
+$pdo = $database->connect();
 
 try {
     if (isset($_GET['id'])) {

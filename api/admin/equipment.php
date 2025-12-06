@@ -402,6 +402,20 @@ try {
                 throw new Exception("Equipment ID is required for deletion");
             }
             
+            // ✅ CHECK IF EQUIPMENT EXISTS
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM equipment WHERE equipment_id = ?");
+            $stmt->execute([$id]);
+            $equipmentExists = $stmt->fetchColumn() > 0;
+            
+            if (!$equipmentExists) {
+                http_response_code(404);
+                echo json_encode([
+                    "error" => true,
+                    "message" => "Equipment dengan ID $id tidak ditemukan"
+                ]);
+                break;
+            }
+            
             // ✅ DELETE ALL IMAGES dari equipment_images table
             $stmt = $pdo->prepare("SELECT image_url FROM equipment_images WHERE equipment_id = ?");
             $stmt->execute([$id]);
@@ -424,7 +438,7 @@ try {
             $stmt = $pdo->prepare("DELETE FROM equipment WHERE equipment_id = ?");
             $result = $stmt->execute([$id]);
             
-            if ($result) {
+            if ($result && $stmt->rowCount() > 0) {
                 error_log("✅ Equipment deleted successfully: " . $id);
                 
                 echo json_encode([
