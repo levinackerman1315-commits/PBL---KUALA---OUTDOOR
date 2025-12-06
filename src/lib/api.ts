@@ -68,45 +68,45 @@ export const api = axios.create({
 // Equipment API functions
 export const equipmentAPI = {
   // Get all equipment
-  getAll: () => api.get('/equipment.php?action=list'),
+  getAll: () => api.get('/public/equipment.php?action=list'),
   
   // Get equipment by ID
-  getById: (id: number) => api.get(`/equipment.php?action=detail&id=${id}`),
+  getById: (id: number) => api.get(`/public/equipment.php?action=detail&id=${id}`),
   
   // Get equipment by category
-  getByCategory: (category: string) => api.get(`/equipment.php?action=by_category&category=${category}`),
+  getByCategory: (category: string) => api.get(`/public/equipment.php?action=by_category&category=${category}`),
   
   // Get all categories
-  getCategories: () => api.get('/equipment.php?action=categories'),
+  getCategories: () => api.get('/public/equipment.php?action=categories'),
   
   // Search equipment
-  search: (keyword: string) => api.get(`/equipment.php?action=search&q=${keyword}`)
+  search: (keyword: string) => api.get(`/public/equipment.php?action=search&q=${keyword}`)
 }
 
 // Customer/Auth API functions
 export const authAPI = {
   // Login customer
   login: (email: string, password: string) => 
-    api.post('/auth.php?action=login', { email, password }),
+    api.post('/public/login.php', { email, password }),
   
   // Register customer
   register: (data: RegisterData) => 
-    api.post('/auth.php?action=register', data),
+    api.post('/public/register.php', data),
   
   // Get customer profile
   getProfile: (customerId: number) => 
-    api.get(`/customers.php?action=profile&id=${customerId}`)
+    api.get(`/customer/profile.php?id=${customerId}`)
 }
 
 // Booking API functions (untuk nanti)
 export const bookingAPI = {
   // Create booking
   create: (bookingData: BookingData) => 
-    api.post('/bookings.php?action=create', bookingData),
+    api.post('/public/booking.php', bookingData),
   
   // Get customer bookings
   getByCustomer: (customerId: number) => 
-    api.get(`/bookings.php?action=by_customer&customer_id=${customerId}`)
+    api.get(`/public/bookings.php?customer_id=${customerId}`)
 }
 
 // Type definitions sesuai dengan database structure
