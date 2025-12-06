@@ -299,39 +299,98 @@ try {
                 throw new Exception("Kode equipment '{$data['code']}' sudah digunakan");
             }
             
-            // ✅ UPDATE EQUIPMENT
-            $sql = "UPDATE equipment SET 
-                name=?, code=?, description=?, category=?, size_capacity=?, 
-                dimensions=?, weight=?, material=?, stock_quantity=?, 
-                price_per_day=?, condition_item=?, image_url=?
-                WHERE equipment_id=?";
+            // ✅ START TRANSACTION untuk handle complex update
+            $pdo->beginTransaction();
             
-            $stmt = $pdo->prepare($sql);
-            $result = $stmt->execute([
-                $data['name'],
-                $data['code'],
-                $data['description'] ?? '',
-                $data['category'],
-                $data['size_capacity'] ?? '',
-                $data['dimensions'] ?? '',
-                isset($data['weight']) && $data['weight'] !== '' ? (float)$data['weight'] : null,
-                $data['material'] ?? '',
-                (int)($data['stock_quantity'] ?? 0),
-                (float)($data['price_per_day'] ?? 0),
-                $data['condition'] ?? 'baik',
-                $data['image_url'] ?? null,
-                (int)$data['equipment_id']
-            ]);
-            
-            if ($result) {
+            try {
+                // ✅ UPDATE EQUIPMENT (BASIC INFO ONLY)
+                $sql = "UPDATE equipment SET 
+                    name=?, code=?, description=?, category=?, size_capacity=?, 
+                    dimensions=?, weight=?, material=?, stock_quantity=?, 
+                    price_per_day=?, condition_item=?, image_url=?
+                    WHERE equipment_id=?";
+                
+                $stmt = $pdo->prepare($sql);
+                $result = $stmt->execute([
+                    $data['name'],
+                    $data['code'],
+                    $data['description'] ?? '',
+                    $data['category'],
+                    $data['size_capacity'] ?? '',
+                    $data['dimensions'] ?? '',
+                    isset($data['weight']) && $data['weight'] !== '' ? (float)$data['weight'] : null,
+                    $data['material'] ?? '',
+                    (int)($data['stock_quantity'] ?? 0),
+                    (float)($data['price_per_day'] ?? 0),
+                    $data['condition'] ?? 'baik',
+                    $data['image_url'] ?? null,
+                    (int)$data['equipment_id']
+                ]);
+                
+                if (!$result) {
+                    throw new Exception("Failed to update equipment basic info");
+                }
+                
+                // ✅ UPDATE USAGE GUIDE (if provided)
+                if (isset($data['usage_guide']) && is_array($data['usage_guide'])) {
+                    // Delete existing usage guide steps
+                    $stmt = $pdo->prepare("DELETE FROM equipment_usage_guides WHERE equipment_id = ?");
+                    $stmt->execute([$data['equipment_id']]);
+                    
+                    // Insert new usage guide steps
+                    foreach ($data['usage_guide'] as $step) {
+                        if (!empty($step['title']) && !empty($step['description'])) {
+                            $stmt = $pdo->prepare("
+                                INSERT INTO equipment_usage_guides (equipment_id, step_number, title, description)
+                                VALUES (?, ?, ?, ?)
+                            ");
+                            $stmt->execute([
+                                $data['equipment_id'],
+                                $step['step_number'] ?? 1,
+                                $step['title'],
+                                $step['description']
+                            ]);
+                        }
+                    }
+                }
+                
+                // ✅ UPDATE RENTAL TERMS (if provided)
+                if (isset($data['rental_terms']) && is_array($data['rental_terms'])) {
+                    // Delete existing rental terms
+                    $stmt = $pdo->prepare("DELETE FROM equipment_rental_terms WHERE equipment_id = ?");
+                    $stmt->execute([$data['equipment_id']]);
+                    
+                    // Insert new rental terms
+                    foreach ($data['rental_terms'] as $term) {
+                        if (!empty($term['term_text'])) {
+                            $stmt = $pdo->prepare("
+                                INSERT INTO equipment_rental_terms (equipment_id, category, term_text, display_order)
+                                VALUES (?, ?, ?, ?)
+                            ");
+                            $stmt->execute([
+                                $data['equipment_id'],
+                                $term['category'] ?? 'general',
+                                $term['term_text'],
+                                $term['display_order'] ?? 1
+                            ]);
+                        }
+                    }
+                }
+                
+                // ✅ COMMIT TRANSACTION
+                $pdo->commit();
+                
                 error_log("✅ Equipment updated successfully: " . $data['equipment_id']);
                 
                 echo json_encode([
                     "success" => true,
                     "message" => "Equipment berhasil diupdate"
                 ]);
-            } else {
-                throw new Exception("Failed to update equipment");
+                
+            } catch (Exception $e) {
+                // ✅ ROLLBACK on error
+                $pdo->rollBack();
+                throw new Exception("Update failed: " . $e->getMessage());
             }
             break;
             
