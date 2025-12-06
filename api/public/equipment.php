@@ -34,9 +34,14 @@ try {
         
         $images = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            // ✅ Dynamic base URL: Railway in production, fallback to InfinityFree
+            $baseUrl = getenv('RAILWAY_PUBLIC_DOMAIN') 
+                ? 'https://' . getenv('RAILWAY_PUBLIC_DOMAIN')
+                : 'https://pbl-kuala-outdoor-production.up.railway.app';
+            
             $images[] = [
                 'image_id' => (int)$row['image_id'],
-                'image_url' => 'https://kualaoutdoor.free.nf' . $row['image_url'],
+                'image_url' => $baseUrl . $row['image_url'],
                 'is_primary' => (bool)$row['is_primary'],
                 'display_order' => (int)$row['display_order']
             ];
