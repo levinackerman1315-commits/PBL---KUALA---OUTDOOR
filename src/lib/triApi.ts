@@ -1,5 +1,5 @@
 // Use environment variable for API URL (supports local and production)
-// VITE_API_URL should be: https://kualaoutdoor.free.nf/api (without /public)
+// VITE_API_URL should be: https://pbl-kuala-outdoor-production.up.railway.app/api (without /public)
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost/PBL-KELANA-OUTDOOR/api';
 
 async function handleResponse(response: Response) {

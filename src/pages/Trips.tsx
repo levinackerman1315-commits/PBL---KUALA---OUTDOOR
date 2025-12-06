@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 import TripCard from '../components/trips/TripCard'
 
 // ✅ API BASE URL untuk production
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://kualaoutdoor.free.nf/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://pbl-kuala-outdoor-production.up.railway.app/api';
 
 export interface TripMock {
   id: string

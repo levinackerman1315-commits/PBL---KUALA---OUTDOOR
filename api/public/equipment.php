@@ -109,6 +109,11 @@ try {
                 $equipment = $stmt->fetch(PDO::FETCH_ASSOC);
                 
                 if ($equipment) {
+                    // ✅ Dynamic base URL for Railway
+                    $baseUrl = getenv('RAILWAY_PUBLIC_DOMAIN') 
+                        ? 'https://' . getenv('RAILWAY_PUBLIC_DOMAIN')
+                        : 'https://pbl-kuala-outdoor-production.up.railway.app';
+                    
                     $response = [
                         "equipment_id" => (int)$equipment['equipment_id'],
                         "name" => $equipment['name'],
@@ -126,7 +131,7 @@ try {
                         "price_per_day" => (float)$equipment['price_per_day'],
                         "condition" => $equipment['condition_item'] ?? 'baik',
                         "equipment_type" => $equipment['equipment_type'] ?? 'single',
-                        "image_url" => $equipment['image_url'] ? 'https://kualaoutdoor.free.nf' . $equipment['image_url'] : null,
+                        "image_url" => $equipment['image_url'] ? $baseUrl . $equipment['image_url'] : null,
                         "images" => getEquipmentImages($pdo, $equipment['equipment_id']),
                         "usage_guide" => getUsageGuide($pdo, $equipment['equipment_id']), // ✅ TAMBAH INI
                         "rental_terms" => getRentalTerms($pdo, $equipment['equipment_id']), // ✅ TAMBAH INI
@@ -143,6 +148,11 @@ try {
                 $stmt = $pdo->prepare("SELECT * FROM equipment WHERE stock_quantity > 0 ORDER BY created_at DESC");
                 $stmt->execute();
                 $equipments = [];
+                
+                // ✅ Dynamic base URL for Railway
+                $baseUrl = getenv('RAILWAY_PUBLIC_DOMAIN') 
+                    ? 'https://' . getenv('RAILWAY_PUBLIC_DOMAIN')
+                    : 'https://pbl-kuala-outdoor-production.up.railway.app';
                 
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                     $item = [
@@ -162,7 +172,7 @@ try {
                         "price_per_day" => (float)$row['price_per_day'],
                         "condition" => $row['condition_item'] ?? 'baik',
                         "equipment_type" => $row['equipment_type'] ?? 'single',
-                        "image_url" => $row['image_url'] ? 'https://kualaoutdoor.free.nf' . $row['image_url'] : null,
+                        "image_url" => $row['image_url'] ? $baseUrl . $row['image_url'] : null,
                         "images" => getEquipmentImages($pdo, $row['equipment_id']),
                         "created_at" => $row['created_at']
                     ];

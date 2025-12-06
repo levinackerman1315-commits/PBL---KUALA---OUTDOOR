@@ -1,0 +1,18 @@
+# WinSCP FTP Upload Script
+# Download WinSCP: https://winscp.net/eng/download.php
+# Run: "C:\Program Files (x86)\WinSCP\WinSCP.com" /script=winscp-upload.txt
+
+option batch on
+option confirm off
+
+# Connect to FTP
+open ftp://if0_40557727:YOUR_FTP_PASSWORD@ftpupload.net
+
+# Synchronize local folder to remote
+synchronize remote "c:\xampp\htdocs\PBL-KELANA-OUTDOOR\api" "/htdocs/api"
+
+# Close connection
+close
+
+# Exit
+exit

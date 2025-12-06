@@ -52,7 +52,12 @@ try {
     $filepath = $upload_dir . $filename;
     
     if (move_uploaded_file($file['tmp_name'], $filepath)) {
-        $url = 'https://kualaoutdoor.free.nf/upload/profiles/' . $filename;
+        // ✅ Dynamic base URL for Railway
+        $baseUrl = getenv('RAILWAY_PUBLIC_DOMAIN') 
+            ? 'https://' . getenv('RAILWAY_PUBLIC_DOMAIN')
+            : 'https://pbl-kuala-outdoor-production.up.railway.app';
+        
+        $url = $baseUrl . '/upload/profiles/' . $filename;
         echo json_encode(['success' => true, 'url' => $url]);
     } else {
         throw new Exception('Failed to save file');

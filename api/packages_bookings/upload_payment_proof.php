@@ -71,7 +71,12 @@ try {
     
     // ✅ MOVE FILE
     if (move_uploaded_file($file['tmp_name'], $filepath)) {
-        $url = 'https://kualaoutdoor.free.nf/upload/payment_proofs/' . $filename;
+        // ✅ Dynamic base URL for Railway
+        $baseUrl = getenv('RAILWAY_PUBLIC_DOMAIN') 
+            ? 'https://' . getenv('RAILWAY_PUBLIC_DOMAIN')
+            : 'https://pbl-kuala-outdoor-production.up.railway.app';
+        
+        $url = $baseUrl . '/upload/payment_proofs/' . $filename;
         
         // ✅ UPDATE BOOKING
         $update_sql = "UPDATE package_bookings 

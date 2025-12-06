@@ -28,7 +28,7 @@
 // // }
 
 // // // ✅ API Base URL for production deployment
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://kualaoutdoor.free.nf/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://pbl-kuala-outdoor-production.up.railway.app/api';
 const UPLOADS_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost/PBL-KELANA-OUTDOOR';
 
 const TambahEquipment = () => {

@@ -1,6 +1,6 @@
 // Use environment variable for API URL (supports local and production)
-// VITE_API_URL should be: https://kualaoutdoor.free.nf/api (without /public)
-export const API_BASE_URL = import.meta.env.VITE_API_URL || "https://kualaoutdoor.free.nf/api";
+// VITE_API_URL should be: https://pbl-kuala-outdoor-production.up.railway.app/api (without /public)
+export const API_BASE_URL = import.meta.env.VITE_API_URL || "https://pbl-kuala-outdoor-production.up.railway.app/api";
 
 export const handleApiResponse = async (response: Response) => {
   const data = await response.json();

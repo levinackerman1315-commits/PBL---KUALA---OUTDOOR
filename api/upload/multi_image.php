@@ -160,11 +160,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $imageId = (int)$pdo->lastInsertId();
                 
+                // ✅ Dynamic base URL for Railway
+                $baseUrl = getenv('RAILWAY_PUBLIC_DOMAIN') 
+                    ? 'https://' . getenv('RAILWAY_PUBLIC_DOMAIN')
+                    : 'https://pbl-kuala-outdoor-production.up.railway.app';
+                
                 $uploadedImages[] = [
                     'image_id' => $imageId,
                     'filename' => $newFilename,
                     'image_url' => $imageUrl,
-                    'full_url' => 'https://kualaoutdoor.free.nf' . $imageUrl,
+                    'full_url' => $baseUrl . $imageUrl,
                     'is_primary' => $isPrimary,
                     'display_order' => $displayOrder,
                     'size' => $fileSize,

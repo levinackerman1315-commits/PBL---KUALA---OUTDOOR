@@ -40,8 +40,10 @@ interface Equipment {
   created_at: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://kualaoutdoor.free.nf/api';
-const UPLOADS_BASE_URL = 'https://kualaoutdoor.free.nf';
+// ✅ USE RAILWAY BACKEND
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://pbl-kuala-outdoor-production.up.railway.app/api';
+const UPLOADS_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'https://pbl-kuala-outdoor-production.up.railway.app';
+
 const Browse = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
