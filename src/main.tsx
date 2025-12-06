@@ -10,9 +10,12 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 import App from './App.tsx'
 import './index.css'
 
+// ✅ CORRECT Google Client ID (fixed typo: 945545 → 949545)
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "674921949545-ked4b0t7aml2tc3adqa6h0dlsmnh8g2n.apps.googleusercontent.com";
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId="674921945545-ked4bb7am12ic3adqachl0dlsmnh8g2n.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <App />
     </GoogleOAuthProvider>
   </React.StrictMode>,
