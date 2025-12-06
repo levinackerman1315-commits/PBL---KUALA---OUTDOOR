@@ -40,7 +40,7 @@ interface Equipment {
   created_at: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://kualaoutdoor.free.nf/api/public';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://kualaoutdoor.free.nf/api';
 const UPLOADS_BASE_URL = 'https://kualaoutdoor.free.nf';
 const Browse = () => {
   const navigate = useNavigate();
@@ -96,7 +96,7 @@ const Browse = () => {
       setLoading(true)
       setError(null)
       
-      const response = await fetch(`${API_BASE_URL}/equipment.php`, {
+      const response = await fetch(`${API_BASE_URL}/public/equipment.php`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
