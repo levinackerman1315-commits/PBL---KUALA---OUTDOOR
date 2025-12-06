@@ -13,8 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 }
 
 // Include dependencies
-include_once __DIR__ . '/config/database.php';
-include_once __DIR__ . '/models/Equipment.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../models/Equipment.php';
 
 try {
     $database = new Database();
@@ -47,17 +47,17 @@ try {
                         "equipment_id" => (int)$equipment_id,
                         "name" => $name,
                         "code" => $code,
-                        "description" => $description,
+                        "description" => $description ?? '',
                         "category" => $category,
-                        "size_capacity" => $size_capacity,
-                        "dimensions" => $dimensions,
-                        "weight" => $weight ? (float)$weight : null,
-                        "material" => $material,
+                        "size_capacity" => $size_capacity ?? '',
+                        "dimensions" => $dimensions ?? '',
+                        "weight" => isset($weight) ? (float)$weight : 0,
+                        "material" => $material ?? '',
                         "stock_quantity" => (int)$stock_quantity,
                         "price_per_day" => (float)$price_per_day,
-                        "condition" => $condition,
-                        "equipment_type" => $equipment_type,
-                        "image_url" => $image_url,
+                        "condition" => $condition_item ?? 'baik',
+                        "equipment_type" => $equipment_type ?? 'single',
+                        "image_url" => $image_url ?? null,
                         "created_at" => $created_at
                     );
                     array_push($equipment_arr["data"], $equipment_item);
@@ -90,17 +90,17 @@ try {
                     "equipment_id" => (int)$id,
                     "name" => $equipment->name,
                     "code" => $equipment->code,
-                    "description" => $equipment->description,
+                    "description" => $equipment->description ?? '',
                     "category" => $equipment->category,
-                    "size_capacity" => $equipment->size_capacity,
-                    "dimensions" => $equipment->dimensions,
-                    "weight" => $equipment->weight ? (float)$equipment->weight : null,
-                    "material" => $equipment->material,
+                    "size_capacity" => $equipment->size_capacity ?? '',
+                    "dimensions" => $equipment->dimensions ?? '',
+                    "weight" => isset($equipment->weight) ? (float)$equipment->weight : 0,
+                    "material" => $equipment->material ?? '',
                     "stock_quantity" => (int)$equipment->stock_quantity,
                     "price_per_day" => (float)$equipment->price_per_day,
-                    "condition" => $equipment->condition,
-                    "equipment_type" => $equipment->equipment_type,
-                    "image_url" => $equipment->image_url,
+                    "condition" => $equipment->condition_item ?? 'baik',
+                    "equipment_type" => $equipment->equipment_type ?? 'single',
+                    "image_url" => $equipment->image_url ?? null,
                     "created_at" => $equipment->created_at,
                     "status" => "success"
                 );

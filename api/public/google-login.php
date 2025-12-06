@@ -39,7 +39,10 @@ $name = $payload['name'] ?? '';
 $picture = $payload['picture'] ?? '';
 
 // Koneksi database
-$conn = new mysqli('localhost', 'root', '', 'kuala_outdoor');
+// ✅ Use shared database config
+require_once __DIR__ . '/../config/database_mysqli.php';
+$database = new DatabaseMySQLi();
+$conn = $database->connect();
 if ($conn->connect_error) {
     echo json_encode(['success' => false, 'message' => 'Database error']);
     exit;

@@ -10,10 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-$host = "localhost";
-$db_name = "kuala_outdoor";
-$username = "root";
-$password = "";
+// ✅ Use shared database config
+require_once __DIR__ . '/../config/database.php';
+$database = new Database();
+$pdo = $database->connect();
 
 try {
     if (!isset($_FILES['file']) || !isset($_POST['booking_id']) || !isset($_POST['customer_id'])) {
@@ -71,7 +71,7 @@ try {
     
     // ✅ MOVE FILE
     if (move_uploaded_file($file['tmp_name'], $filepath)) {
-        $url = 'http://localhost/PBL-KELANA-OUTDOOR/upload/payment_proofs/' . $filename;
+        $url = 'https://kualaoutdoor.free.nf/upload/payment_proofs/' . $filename;
         
         // ✅ UPDATE BOOKING
         $update_sql = "UPDATE package_bookings 

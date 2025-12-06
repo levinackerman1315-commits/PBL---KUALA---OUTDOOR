@@ -11,16 +11,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 }
 
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0); // Production
 
-$host = "localhost";
-$db_name = "kuala_outdoor";
-$username = "root";
-$password = "";
+// ✅ Use shared database config
+require_once __DIR__ . '/../config/database.php';
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $database = new Database();
+    $pdo = $database->connect();
     
     // ✅ HELPER FUNCTION: Get equipment images dari tabel equipment_images
     function getEquipmentImages($pdo, $equipment_id) {
@@ -36,7 +34,7 @@ try {
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $images[] = [
                 'image_id' => (int)$row['image_id'],
-                'image_url' => 'http://localhost/PBL-KELANA-OUTDOOR' . $row['image_url'],
+                'image_url' => 'https://kualaoutdoor.free.nf' . $row['image_url'],
                 'is_primary' => (bool)$row['is_primary'],
                 'display_order' => (int)$row['display_order']
             ];

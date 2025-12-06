@@ -52,7 +52,7 @@ try {
     $filepath = $upload_dir . $filename;
     
     if (move_uploaded_file($file['tmp_name'], $filepath)) {
-        $url = 'http://localhost/PBL-KELANA-OUTDOOR/upload/profiles/' . $filename;
+        $url = 'https://kualaoutdoor.free.nf/upload/profiles/' . $filename;
         echo json_encode(['success' => true, 'url' => $url]);
     } else {
         throw new Exception('Failed to save file');

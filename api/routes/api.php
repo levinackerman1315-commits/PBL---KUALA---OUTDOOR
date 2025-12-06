@@ -4,7 +4,10 @@ header("Content-Type: application/json");
 header("Access-Control-Allow-Methods: GET");
 
 try {
-    $pdo = new PDO("mysql:host=localhost;dbname=kuala_outdoor", "root", "");
+    // ✅ Use shared database config
+require_once __DIR__ . '/../config/database.php';
+$database = new Database();
+$pdo = $database->connect();
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     $stmt = $pdo->query("SELECT * FROM equipment ORDER BY equipment_id ASC");

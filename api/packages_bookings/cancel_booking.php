@@ -10,10 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-$host = "localhost";
-$db_name = "kuala_outdoor";
-$username = "root";
-$password = "";
+// ✅ Use shared database config
+require_once __DIR__ . '/../config/database.php';
+$database = new Database();
+$pdo = $database->connect();
 
 try {
     $conn = new mysqli($host, $username, $password, $db_name);

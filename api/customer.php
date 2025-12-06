@@ -11,7 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 }
 
 try {
-    $pdo = new PDO("mysql:host=localhost;dbname=kelana_outdoor", "root", "");
+    // ✅ Use shared database config
+require_once __DIR__ . '/../config/database.php';
+$database = new Database();
+$pdo = $database->connect();
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     $action = isset($_GET['action']) ? $_GET['action'] : '';

@@ -11,13 +11,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 }
 
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0); // Production
 
 // ✅ DATABASE CONNECTION (INI YANG KURANG!)
-$host = "localhost";
-$db_name = "kuala_outdoor";
-$username = "root";
-$password = "";
+// ✅ Use shared database config
+require_once __DIR__ . '/../config/database.php';
+$database = new Database();
+$pdo = $database->connect();
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8", $username, $password);
@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'image_id' => $imageId,
                     'filename' => $newFilename,
                     'image_url' => $imageUrl,
-                    'full_url' => 'http://localhost/PBL-KELANA-OUTDOOR' . $imageUrl,
+                    'full_url' => 'https://kualaoutdoor.free.nf' . $imageUrl,
                     'is_primary' => $isPrimary,
                     'display_order' => $displayOrder,
                     'size' => $fileSize,

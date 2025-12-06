@@ -1,5 +1,5 @@
 <?php
-// filepath: PBL-KELANA-OUTDOOR/api/public/equipment.php
+// filepath: api/public/equipment.php
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
@@ -10,19 +10,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit();
 }
 
+// ✅ Production error handling
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0); // Off for production
+ini_set('log_errors', 1);
 
-$host = "localhost";
-$db_name = "kuala_outdoor";
-$username = "root";
-$password = "";
+// ✅ Use database.php for InfinityFree compatibility
+require_once __DIR__ . '/../config/database.php';
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_TIMEOUT, 30);
-    $pdo->setAttribute(PDO::ATTR_PERSISTENT, false);
+    $database = new Database();
+    $pdo = $database->connect();
     
     // ✅ HELPER FUNCTION: Get equipment images
     function getEquipmentImages($pdo, $equipment_id) {
@@ -38,7 +36,7 @@ try {
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $images[] = [
                 'image_id' => (int)$row['image_id'],
-                'image_url' => 'http://localhost/PBL-KELANA-OUTDOOR' . $row['image_url'],
+                'image_url' => 'https://kualaoutdoor.free.nf' . $row['image_url'],
                 'is_primary' => (bool)$row['is_primary'],
                 'display_order' => (int)$row['display_order']
             ];
@@ -123,7 +121,7 @@ try {
                         "price_per_day" => (float)$equipment['price_per_day'],
                         "condition" => $equipment['condition_item'] ?? 'baik',
                         "equipment_type" => $equipment['equipment_type'] ?? 'single',
-                        "image_url" => $equipment['image_url'] ? 'http://localhost/PBL-KELANA-OUTDOOR' . $equipment['image_url'] : null,
+                        "image_url" => $equipment['image_url'] ? 'https://kualaoutdoor.free.nf' . $equipment['image_url'] : null,
                         "images" => getEquipmentImages($pdo, $equipment['equipment_id']),
                         "usage_guide" => getUsageGuide($pdo, $equipment['equipment_id']), // ✅ TAMBAH INI
                         "rental_terms" => getRentalTerms($pdo, $equipment['equipment_id']), // ✅ TAMBAH INI
@@ -159,7 +157,7 @@ try {
                         "price_per_day" => (float)$row['price_per_day'],
                         "condition" => $row['condition_item'] ?? 'baik',
                         "equipment_type" => $row['equipment_type'] ?? 'single',
-                        "image_url" => $row['image_url'] ? 'http://localhost/PBL-KELANA-OUTDOOR' . $row['image_url'] : null,
+                        "image_url" => $row['image_url'] ? 'https://kualaoutdoor.free.nf' . $row['image_url'] : null,
                         "images" => getEquipmentImages($pdo, $row['equipment_id']),
                         "created_at" => $row['created_at']
                     ];

@@ -22,7 +22,10 @@ if (!$email || !$password) {
 }
 
 // Koneksi ke database
-$conn = new mysqli('localhost', 'root', '', 'kuala_outdoor');
+// ✅ Use shared database config
+require_once __DIR__ . '/../config/database_mysqli.php';
+$database = new DatabaseMySQLi();
+$conn = $database->connect();
 if ($conn->connect_error) {
     echo json_encode(['success' => false, 'message' => 'Database error: ' . $conn->connect_error]);
     exit;
