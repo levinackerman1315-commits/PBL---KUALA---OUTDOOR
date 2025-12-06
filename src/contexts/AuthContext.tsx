@@ -304,7 +304,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // VITE_API_URL should be: https://kualaoutdoor.free.nf/api (without /public)
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost/PBL-KELANA-OUTDOOR/api'
+const API_BASE = import.meta.env.VITE_API_URL || 'https://kualaoutdoor.free.nf/api'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
