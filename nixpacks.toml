@@ -2,7 +2,11 @@
 nixPkgs = ['php82', 'php82Extensions.pdo', 'php82Extensions.pdo_mysql', 'php82Extensions.mysqli', 'php82Extensions.mbstring', 'php82Extensions.curl']
 
 [phases.install]
-cmds = ['echo "PHP environment ready"']
+cmds = ['echo "✅ PHP environment ready"']
+
+[phases.build]
+# Disable build phase - this is a PHP backend, not a Node.js app
+cmds = ['echo "✅ No build step needed for PHP"']
 
 [start]
-cmd = 'php -S 0.0.0.0:$PORT -t .'
+cmd = 'php -S 0.0.0.0:$PORT'

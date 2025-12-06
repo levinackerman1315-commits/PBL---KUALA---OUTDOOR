@@ -1,0 +1,35 @@
+# Ignore frontend files - only deploy backend
+node_modules/
+src/
+public/
+components.json
+vite.config.ts
+tsconfig.json
+tsconfig.app.json
+tsconfig.node.json
+eslint.config.js
+tailwind.config.ts
+postcss.config.js
+package.json
+package-lock.json
+bun.lockb
+
+# Ignore docs
+*.md
+!README.md
+
+# Ignore git
+.git/
+.github/
+
+# Ignore local dev
+.vscode/
+.idea/
+*.log
+
+# Ignore deployment files for other platforms
+vercel.json
+.vercel/
+
+# Keep only API folder
+!api/
