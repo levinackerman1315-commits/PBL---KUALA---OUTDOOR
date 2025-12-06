@@ -177,8 +177,8 @@ const EquipmentManagement = () => {
 
       try {
         const url = excludeId 
-          ? `http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php?check_code=${encodeURIComponent(code)}&exclude_id=${excludeId}`
-          : `http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php?check_code=${encodeURIComponent(code)}`;
+          ? `${API_BASE_URL}/admin/equipment.php?check_code=${encodeURIComponent(code)}&exclude_id=${excludeId}`
+          : `${API_BASE_URL}/admin/equipment.php?check_code=${encodeURIComponent(code)}`;
         
         const response = await fetch(url);
         const result = await response.json();
@@ -436,7 +436,7 @@ const EquipmentManagement = () => {
 
       console.log('📤 Sending equipment data:', equipmentData);
 
-      const apiUrl = 'http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php';
+      const apiUrl = `${API_BASE_URL}/admin/equipment.php`;
       let response;
       let equipmentId: number;
       
@@ -570,7 +570,7 @@ const EquipmentManagement = () => {
       setLoading(true);
       
       const response = await fetch(
-        `http://localhost/PBL-KELANA-OUTDOOR/api/admin/equipment.php?id=${equipment.equipment_id}`,
+        `${API_BASE_URL}/admin/equipment.php?id=${equipment.equipment_id}`,
         {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' }

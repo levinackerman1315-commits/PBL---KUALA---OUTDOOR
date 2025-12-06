@@ -112,8 +112,8 @@ const CartPage = () => {
   const buildImageUrl = (imageUrl?: string | null): string | null => {
     if (!imageUrl) return null
     if (imageUrl.startsWith('http')) return imageUrl
-    if (imageUrl.startsWith('/uploads/')) return `http://localhost/PBL-KELANA-OUTDOOR${imageUrl}`
-    if (imageUrl.startsWith('uploads/')) return `http://localhost/PBL-KELANA-OUTDOOR/${imageUrl}`
+    if (imageUrl.startsWith('/uploads/')) return `${UPLOADS_BASE_URL}${imageUrl}`
+    if (imageUrl.startsWith('uploads/')) return `${UPLOADS_BASE_URL}/${imageUrl}`
     return `${UPLOADS_BASE_URL}/uploads/equipment/${imageUrl}`
   }
 
@@ -151,7 +151,7 @@ const CartPage = () => {
         }))
 
         const packageResponse = await fetch(
-          `http://localhost/PBL-KELANA-OUTDOOR/api/customer/package-cart.php?customer_id=${user.id}`
+          `${API_BASE_URL}/customer/package-cart.php?customer_id=${user.id}`
         )
         const packageData = await packageResponse.json()
 
@@ -232,7 +232,7 @@ const CartPage = () => {
         const newTotalPrice = item.price_per_day * newQuantity
 
         const response = await fetch(
-          'http://localhost/PBL-KELANA-OUTDOOR/api/customer/package-cart.php',
+          `${API_BASE_URL}/customer/package-cart.php`,
           {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -279,7 +279,7 @@ const CartPage = () => {
 
       if (item.cart_type === 'package') {
         const response = await fetch(
-          `http://localhost/PBL-KELANA-OUTDOOR/api/customer/package-cart.php?cart_id=${item.cart_id}`,
+          `${API_BASE_URL}/customer/package-cart.php?cart_id=${item.cart_id}`,
           { method: 'DELETE' }
         )
         const data = await response.json()
@@ -321,7 +321,7 @@ const CartPage = () => {
 
       for (const item of allCartItems.filter(i => i.cart_type === 'package')) {
         await fetch(
-          `http://localhost/PBL-KELANA-OUTDOOR/api/customer/package-cart.php?cart_id=${item.cart_id}`,
+          `${API_BASE_URL}/customer/package-cart.php?cart_id=${item.cart_id}`,
           { method: 'DELETE' }
         )
       }

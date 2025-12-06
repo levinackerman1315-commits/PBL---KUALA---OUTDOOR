@@ -119,7 +119,7 @@ const Packages = () => {
       const total_price = pkg.price * rental_days
 
       const response = await fetch(
-        'http://localhost/PBL-KELANA-OUTDOOR/api/customer/package-cart.php',
+        `${API_BASE_URL}/customer/package-cart.php`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

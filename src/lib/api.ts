@@ -56,7 +56,7 @@ import axios from 'axios'
 
 // Use environment variable for API URL (supports local and production)
 // VITE_API_URL should be: https://pbl-kuala-outdoor-production.up.railway.app/api (without /public)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost/PBL-KELANA-OUTDOOR/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://pbl-kuala-outdoor-production.up.railway.app/api'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
