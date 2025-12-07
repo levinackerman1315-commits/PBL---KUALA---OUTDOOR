@@ -318,7 +318,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Login biasa (email/password)
   const signIn = async (email: string, password: string) => {
     try {
-      const res = await fetch(`${API_BASE}/login.php`, {
+      const res = await fetch(`${API_BASE}/public/login.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -353,7 +353,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Register biasa
   const signUp = async (name: string, email: string, password: string, phone: string) => {
     try {
-      const res = await fetch(`${API_BASE}/register.php`, {
+      const res = await fetch(`${API_BASE}/public/register.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, phone })
@@ -379,7 +379,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Login Google
   const signInWithGoogle = async (credential: string) => {
     try {
-      const res = await fetch(`${API_BASE}/google-login.php`, {
+      const res = await fetch(`${API_BASE}/public/google-login.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential })
