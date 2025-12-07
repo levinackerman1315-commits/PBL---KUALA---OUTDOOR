@@ -130,20 +130,20 @@ try {
             // ✅ INSERT EQUIPMENT ITEMS
             if ($hasEquipment) {
                 foreach ($input['equipment_items'] as $item) {
-                    $insertQuery = "INSERT INTO booking_items (booking_id, equipment_id, quantity)
-                                    VALUES (?, ?, ?)";
+                    $insertQuery = "INSERT INTO booking_items (booking_id, equipment_id, quantity, unit_price)
+                                    VALUES (?, ?, ?, ?)";
                     $stmt = $pdo->prepare($insertQuery);
-                    $stmt->execute([$booking_id, $item['equipment_id'], $item['quantity']]);
+                    $stmt->execute([$booking_id, $item['equipment_id'], $item['quantity'], $item['price_per_day']]);
                 }
             }
 
             // ✅ INSERT PACKAGE ITEMS
             if ($hasPackage) {
                 foreach ($input['package_items'] as $item) {
-                    $insertQuery = "INSERT INTO booking_items (booking_id, package_id, quantity)
-                                    VALUES (?, ?, ?)";
+                    $insertQuery = "INSERT INTO booking_items (booking_id, package_id, quantity, unit_price)
+                                    VALUES (?, ?, ?, ?)";
                     $stmt = $pdo->prepare($insertQuery);
-                    $stmt->execute([$booking_id, $item['package_id'], $item['quantity']]);
+                    $stmt->execute([$booking_id, $item['package_id'], $item['quantity'], $item['price_per_day']]);
                 }
             }
 
