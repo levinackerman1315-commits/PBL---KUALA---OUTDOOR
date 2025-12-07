@@ -39,8 +39,6 @@ import PackageManagement from "./pages/PackageManagement";
 import MerchandiseManagement from "./pages/MerchandiseManagement"; // ✅ TAMBAH IMPORT INI
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
-import { GoogleOAuthProvider } from '@react-oauth/google';
-
 // ✅ TEMPORARY BOOKINGS COMPONENT
 const Bookings = () => (
   <div className="min-h-screen bg-gray-50">
@@ -56,12 +54,8 @@ const Bookings = () => (
 
 const queryClient = new QueryClient();
 
-// ✅ GOOGLE CLIENT ID - Pastikan ini benar
-const GOOGLE_CLIENT_ID = "674921949545-ked4b0t7aml2tc3adqa6h0dlsmnh8g2n.apps.googleusercontent.com";
-
 const App = () => (
-  <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-    <QueryClientProvider client={queryClient}>
+  <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -192,7 +186,6 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
-  </GoogleOAuthProvider>
 );
 
 export default App;
