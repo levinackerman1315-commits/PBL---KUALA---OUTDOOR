@@ -83,10 +83,10 @@ try {
             'google_id' => $google_id
         ]);
     } else {
-        // User baru, insert ke database
-        $stmt = $pdo->prepare("INSERT INTO customers (name, email, google_id) VALUES (?, ?, ?)");
+        // User baru, insert ke database (phone = empty string untuk Google OAuth users)
+        $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, google_id) VALUES (?, ?, ?, ?)");
         
-        if ($stmt->execute([$name, $email, $google_id])) {
+        if ($stmt->execute([$name, $email, '', $google_id])) {
             echo json_encode([
                 'success' => true,
                 'customer_id' => $pdo->lastInsertId(),
