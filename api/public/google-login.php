@@ -1,5 +1,10 @@
 <?php
-// ✅ CORS Headers
+// ✅ Error handling - prevent HTML output
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
+// ✅ CORS Headers - MUST be first
 header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
@@ -11,47 +16,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-$data = json_decode(file_get_contents('php://input'), true);
-$credential = $data['credential'] ?? '';
-
-if (!$credential) {
-    echo json_encode(['success' => false, 'message' => 'Invalid credential']);
+// ✅ Global exception handler to ensure JSON output
+set_exception_handler(function($exception) {
+    error_log('Uncaught exception: ' . $exception->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Server error occurred',
+        'error' => $exception->getMessage()
+    ]);
     exit;
-}
-
-// Decode JWT token dari Google
-$parts = explode('.', $credential);
-if (count($parts) !== 3) {
-    echo json_encode(['success' => false, 'message' => 'Invalid token format']);
-    exit;
-}
-
-$payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
-
-if (!$payload || !isset($payload['email'])) {
-    echo json_encode(['success' => false, 'message' => 'Invalid token payload']);
-    exit;
-}
-
-$google_id = $payload['sub'] ?? '';
-$email = $payload['email'] ?? '';
-$name = $payload['name'] ?? '';
-$picture = $payload['picture'] ?? '';
-
-// Koneksi database - ✅ Use PDO for Railway compatibility
-require_once __DIR__ . '/../config/database.php';
+});
 
 try {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $credential = $data['credential'] ?? '';
+
+    if (!$credential) {
+        echo json_encode(['success' => false, 'message' => 'Invalid credential']);
+        exit;
+    }
+
+    // Decode JWT token dari Google
+    $parts = explode('.', $credential);
+    if (count($parts) !== 3) {
+        echo json_encode(['success' => false, 'message' => 'Invalid token format']);
+        exit;
+    }
+
+    $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
+
+    if (!$payload || !isset($payload['email'])) {
+        echo json_encode(['success' => false, 'message' => 'Invalid token payload']);
+        exit;
+    }
+
+    $google_id = $payload['sub'] ?? '';
+    $email = $payload['email'] ?? '';
+    $name = $payload['name'] ?? '';
+    $picture = $payload['picture'] ?? '';
+
+    // Koneksi database - ✅ Use PDO for Railway compatibility
+    require_once __DIR__ . '/../config/database.php';
+
     $database = new Database();
     $pdo = $database->connect();
-} catch (Exception $e) {
-    error_log('Database connection error: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
-    exit;
-}
 
-// Cek apakah user sudah ada (berdasarkan email atau google_id)
-try {
+    // Cek apakah user sudah ada (berdasarkan email atau google_id)
     $stmt = $pdo->prepare("SELECT customer_id, name, email, phone, google_id FROM customers WHERE email = ? OR google_id = ?");
     $stmt->execute([$email, $google_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -88,8 +99,12 @@ try {
             echo json_encode(['success' => false, 'message' => 'Failed to create user']);
         }
     }
-} catch (PDOException $e) {
-    error_log('Database query error: ' . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Database error']);
+} catch (Exception $e) {
+    error_log('Error in google-login: ' . $e->getMessage());
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error processing login',
+        'error' => $e->getMessage()
+    ]);
 }
 ?>
