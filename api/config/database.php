@@ -11,13 +11,16 @@ class Database {
     public $conn;
 
     public function __construct() {
-        // Railway environment variables (production)
-        // Falls back to InfinityFree or local if not set
-        $this->host = getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: 'sql207.infinityfree.com';
-        $this->port = getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: '3306';
-        $this->db_name = getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: 'if0_40557727_kuala_outdoor';
-        $this->username = getenv('MYSQLUSER') ?: getenv('DB_USER') ?: 'if0_40557727';
-        $this->password = getenv('MYSQLPASSWORD') ?: getenv('DB_PASSWORD') ?: 'kuala1234567890';
+        // ✅ Railway environment variables (check $_ENV and $_SERVER too)
+        // Priority: $_ENV > $_SERVER > getenv() > fallback
+        $this->host = $_ENV['MYSQLHOST'] ?? $_SERVER['MYSQLHOST'] ?? getenv('MYSQLHOST') ?: 'localhost';
+        $this->port = $_ENV['MYSQLPORT'] ?? $_SERVER['MYSQLPORT'] ?? getenv('MYSQLPORT') ?: '3306';
+        $this->db_name = $_ENV['MYSQLDATABASE'] ?? $_SERVER['MYSQLDATABASE'] ?? getenv('MYSQLDATABASE') ?: 'railway';
+        $this->username = $_ENV['MYSQLUSER'] ?? $_SERVER['MYSQLUSER'] ?? getenv('MYSQLUSER') ?: 'root';
+        $this->password = $_ENV['MYSQLPASSWORD'] ?? $_SERVER['MYSQLPASSWORD'] ?? getenv('MYSQLPASSWORD') ?: '';
+        
+        // Debug logging untuk Railway
+        error_log("Database config - Host: {$this->host}, DB: {$this->db_name}, User: {$this->username}");
     }
 
     // ✅ METHOD connect() with environment support
