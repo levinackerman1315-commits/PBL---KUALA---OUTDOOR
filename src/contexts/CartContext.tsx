@@ -436,7 +436,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       
       // ✅ LOAD EQUIPMENT CART (LOGIC EXISTING - TIDAK BERUBAH)
-      const response = await fetch(`${API_BASE}/cart/get.php?customer_id=${user.id}`);
+      const response = await fetch(`${API_BASE}/public/cart/get.php?customer_id=${user.id}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -542,7 +542,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🛒 Adding to cart via API:', equipment.name, 'qty:', quantity);
       
-      const response = await fetch(`${API_BASE}/cart/add.php`, {
+      const response = await fetch(`${API_BASE}/public/cart/add.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -580,7 +580,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🗑️ Removing from cart via API:', equipmentId);
       
-      const response = await fetch(`${API_BASE}/cart/delete.php`, {
+      const response = await fetch(`${API_BASE}/public/cart/delete.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -615,15 +615,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      console.log('🔢 Updating quantity via API:', equipmentId, 'to', quantity);
+      console.log('🔄 Updating cart quantity via API:', equipmentId, 'qty:', newQuantity);
       
-      const response = await fetch(`${API_BASE}/cart/update.php`, {
+      const response = await fetch(`${API_BASE}/public/cart/update.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customer_id: parseInt(user.id),
           equipment_id: equipmentId,
-          quantity: quantity
+          quantity: newQuantity
         })
       });
       
@@ -656,7 +656,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       console.log('🧹 Clearing cart via API');
       
       const deletePromises = cartItems.map(item =>
-        fetch(`${API_BASE}/cart/delete.php`, {
+        fetch(`${API_BASE}/public/cart/delete.php`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
