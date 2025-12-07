@@ -27,41 +27,43 @@ if (!$name || !$email || !$password) {
     exit;
 }
 
-// Koneksi ke database
-// ✅ Use shared database config
-require_once __DIR__ . '/../config/database_mysqli.php';
-$database = new DatabaseMySQLi();
-$conn = $database->connect();
-if ($conn->connect_error) {
-    echo json_encode(['success' => false, 'message' => 'Database error']);
+// Koneksi ke database - ✅ PDO for Railway
+require_once __DIR__ . '/../config/database.php';
+
+try {
+    $database = new Database();
+    $pdo = $database->connect();
+} catch (Exception $e) {
+    error_log('Database connection error: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
     exit;
 }
 
 // Cek email sudah terdaftar
-$stmt = $conn->prepare("SELECT customer_id FROM customers WHERE email = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$stmt->store_result();
-if ($stmt->num_rows > 0) {
-    echo json_encode(['success' => false, 'message' => 'Email sudah terdaftar']);
-    exit;
-}
-$stmt->close();
+try {
+    $stmt = $pdo->prepare("SELECT customer_id FROM customers WHERE email = ?");
+    $stmt->execute([$email]);
+    if ($stmt->fetch()) {
+        echo json_encode(['success' => false, 'message' => 'Email sudah terdaftar']);
+        exit;
+    }
 
-// Simpan user baru
-$hashed = password_hash($password, PASSWORD_DEFAULT); // ✅ Hash password
-$stmt = $conn->prepare("INSERT INTO customers (name, email, password_hash, phone) VALUES (?, ?, ?, ?)"); // ✅ Simpan ke kolom password_hash
-$stmt->bind_param("ssss", $name, $email, $hashed, $phone);
-if ($stmt->execute()) {
-    echo json_encode([
-        'success' => true,
-        'customer_id' => $stmt->insert_id,
-        'name' => $name,
-        'email' => $email,
-        'phone' => $phone
-    ]);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Registrasi gagal']);
+    // Simpan user baru
+    $hashed = password_hash($password, PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare("INSERT INTO customers (name, email, password_hash, phone) VALUES (?, ?, ?, ?)");
+    
+    if ($stmt->execute([$name, $email, $hashed, $phone])) {
+        echo json_encode([
+            'success' => true,
+            'customer_id' => $pdo->lastInsertId(),
+            'name' => $name,
+            'email' => $email,
+            'phone' => $phone
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Registrasi gagal']);
+    }
+} catch (PDOException $e) {
+    error_log('Database error: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Registration failed']);
 }
-$stmt->close();
-$conn->close();

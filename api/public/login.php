@@ -21,34 +21,37 @@ if (!$email || !$password) {
     exit;
 }
 
-// Koneksi ke database
-// ✅ Use shared database config
-require_once __DIR__ . '/../config/database_mysqli.php';
-$database = new DatabaseMySQLi();
-$conn = $database->connect();
-if ($conn->connect_error) {
-    echo json_encode(['success' => false, 'message' => 'Database error: ' . $conn->connect_error]);
+// Koneksi ke database - ✅ PDO for Railway
+require_once __DIR__ . '/../config/database.php';
+
+try {
+    $database = new Database();
+    $pdo = $database->connect();
+} catch (Exception $e) {
+    error_log('Database connection error: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
     exit;
 }
 
 // Cari user
-$stmt = $conn->prepare("SELECT customer_id, name, email, password_hash, phone FROM customers WHERE email = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
+try {
+    $stmt = $pdo->prepare("SELECT customer_id, name, email, password_hash, phone FROM customers WHERE email = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if ($user && password_verify($password, $user['password_hash'])) {
-    echo json_encode([
-        'success' => true,
-        'customer_id' => $user['customer_id'],
-        'name' => $user['name'],
-        'email' => $user['email'],
-        'phone' => $user['phone']
-    ]);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Email atau password salah']);
+    if ($user && password_verify($password, $user['password_hash'])) {
+        echo json_encode([
+            'success' => true,
+            'customer_id' => $user['customer_id'],
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'phone' => $user['phone']
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Email atau password salah']);
+    }
+} catch (PDOException $e) {
+    error_log('Database query error: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Login failed']);
 }
-$stmt->close();
-$conn->close();
 ?>
