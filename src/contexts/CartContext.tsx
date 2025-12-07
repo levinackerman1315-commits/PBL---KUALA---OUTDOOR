@@ -615,7 +615,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      console.log('🔄 Updating cart quantity via API:', equipmentId, 'qty:', newQuantity);
+      console.log('🔄 Updating cart quantity via API:', equipmentId, 'qty:', quantity);
       
       const response = await fetch(`${API_BASE}/public/cart/update.php`, {
         method: 'POST',
@@ -623,7 +623,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           customer_id: parseInt(user.id),
           equipment_id: equipmentId,
-          quantity: newQuantity
+          quantity: quantity
         })
       });
       
