@@ -121,6 +121,13 @@ const Auth = () => {
     }
   };
 
+  // 🔍 Check if running on production domain (not preview)
+  const isProductionDomain = window.location.hostname === 'pbl-kuala-outdoor.vercel.app' || 
+                             window.location.hostname === 'localhost' ||
+                             window.location.hostname === '127.0.0.1';
+  
+  const showGoogleLogin = isProductionDomain;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -328,13 +335,20 @@ const Auth = () => {
               <div className="flex-1 border-t border-gray-300"></div>
             </div>
             
-            <div className="mb-6 flex justify-center">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setError('Login Google gagal. Silakan coba lagi.')}
-                useOneTap
-              />
-            </div>
+            {showGoogleLogin ? (
+              <div className="mb-6 flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError('Login Google gagal. Silakan coba lagi.')}
+                  useOneTap
+                />
+              </div>
+            ) : (
+              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                ⚠️ Google Login hanya tersedia di production domain.<br />
+                Gunakan <strong>pbl-kuala-outdoor.vercel.app</strong> untuk Google OAuth.
+              </div>
+            )}
             
             <div className="space-y-3">
               <a 
