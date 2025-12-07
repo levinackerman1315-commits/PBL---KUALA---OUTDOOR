@@ -38,59 +38,58 @@ $email = $payload['email'] ?? '';
 $name = $payload['name'] ?? '';
 $picture = $payload['picture'] ?? '';
 
-// Koneksi database
-// ✅ Use shared database config
-require_once __DIR__ . '/../config/database_mysqli.php';
-$database = new DatabaseMySQLi();
-$conn = $database->connect();
-if ($conn->connect_error) {
-    echo json_encode(['success' => false, 'message' => 'Database error']);
+// Koneksi database - ✅ Use PDO for Railway compatibility
+require_once __DIR__ . '/../config/database.php';
+
+try {
+    $database = new Database();
+    $pdo = $database->connect();
+} catch (Exception $e) {
+    error_log('Database connection error: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
     exit;
 }
 
 // Cek apakah user sudah ada (berdasarkan email atau google_id)
-$stmt = $conn->prepare("SELECT customer_id, name, email, phone, google_id FROM customers WHERE email = ? OR google_id = ?");
-$stmt->bind_param("ss", $email, $google_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
+try {
+    $stmt = $pdo->prepare("SELECT customer_id, name, email, phone, google_id FROM customers WHERE email = ? OR google_id = ?");
+    $stmt->execute([$email, $google_id]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if ($user) {
-    // User sudah ada, update google_id jika belum ada
-    if (empty($user['google_id'])) {
-        $updateStmt = $conn->prepare("UPDATE customers SET google_id = ? WHERE customer_id = ?");
-        $updateStmt->bind_param("si", $google_id, $user['customer_id']);
-        $updateStmt->execute();
-        $updateStmt->close();
-    }
-    
-    echo json_encode([
-        'success' => true,
-        'customer_id' => $user['customer_id'],
-        'name' => $user['name'],
-        'email' => $user['email'],
-        'phone' => $user['phone'] ?? '',
-        'google_id' => $google_id
-    ]);
-} else {
-    // User baru, insert ke database
-    $stmt = $conn->prepare("INSERT INTO customers (name, email, google_id) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $name, $email, $google_id);
-    
-    if ($stmt->execute()) {
+    if ($user) {
+        // User sudah ada, update google_id jika belum ada
+        if (empty($user['google_id'])) {
+            $updateStmt = $pdo->prepare("UPDATE customers SET google_id = ? WHERE customer_id = ?");
+            $updateStmt->execute([$google_id, $user['customer_id']]);
+        }
+        
         echo json_encode([
             'success' => true,
-            'customer_id' => $stmt->insert_id,
-            'name' => $name,
-            'email' => $email,
-            'phone' => '',
+            'customer_id' => $user['customer_id'],
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'phone' => $user['phone'] ?? '',
             'google_id' => $google_id
         ]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to create user']);
+        // User baru, insert ke database
+        $stmt = $pdo->prepare("INSERT INTO customers (name, email, google_id) VALUES (?, ?, ?)");
+        
+        if ($stmt->execute([$name, $email, $google_id])) {
+            echo json_encode([
+                'success' => true,
+                'customer_id' => $pdo->lastInsertId(),
+                'name' => $name,
+                'email' => $email,
+                'phone' => '',
+                'google_id' => $google_id
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to create user']);
+        }
     }
+} catch (PDOException $e) {
+    error_log('Database query error: ' . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Database error']);
 }
-
-$stmt->close();
-$conn->close();
 ?>

@@ -379,17 +379,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Login Google
   const signInWithGoogle = async (credential: string) => {
     try {
+      console.log('🔐 Attempting Google login...');
+      console.log('📡 API endpoint:', `${API_BASE}/public/google-login.php`);
+      
       const res = await fetch(`${API_BASE}/public/google-login.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential })
       })
       
+      console.log('📥 Response status:', res.status);
+      console.log('📥 Response headers:', res.headers.get('content-type'));
+      
+      // Check if response is JSON
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await res.text();
+        console.error('❌ Response is not JSON:', textResponse.substring(0, 500));
+        throw new Error('Server mengembalikan error. Silakan hubungi administrator.');
+      }
+      
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`)
+        const errorData = await res.json();
+        throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
       }
       
       const data = await res.json()
+      console.log('✅ Login response:', data);
       
       if (data.success) {
         const userData = {
@@ -404,8 +420,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error(data.message || 'Login Google gagal')
       }
     } catch (error: any) {
+      console.error('❌ Google login error:', error);
       if (error.message.includes('Failed to fetch')) {
-        throw new Error('Tidak dapat terhubung ke server. Pastikan PHP server berjalan')
+        throw new Error('Tidak dapat terhubung ke server')
       }
       throw error
     }
