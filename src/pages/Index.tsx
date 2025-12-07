@@ -75,26 +75,30 @@ const Index = () => {
           </div>
         </div>
       </section>
-<br /> <br />
+
       {/* Stats Section */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-        <div>
-          <div className="text-3xl font-bold text-green-600 mb-2">Kubu Raya</div>
-          <div className="text-gray-600">Lokasi Strategis</div>
+      <section className="py-16 px-4 bg-white">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-3xl font-bold text-green-600 mb-2">Kubu Raya</div>
+              <div className="text-gray-600">Lokasi Strategis</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">24 Jam</div>
+              <div className="text-gray-600">Fast Response</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-purple-600 mb-2">100%</div>
+              <div className="text-gray-600">Peralatan Terawat</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-orange-600 mb-2">Terjangkau</div>
+              <div className="text-gray-600">Harga Rental</div>
+            </div>
+          </div>
         </div>
-        <div>
-          <div className="text-3xl font-bold text-blue-600 mb-2">24 Jam</div>
-          <div className="text-gray-600">Fast Response</div>
-        </div>
-        <div>
-          <div className="text-3xl font-bold text-purple-600 mb-2">100%</div>
-          <div className="text-gray-600">Peralatan Terawat</div>
-        </div>
-        <div>
-          <div className="text-3xl font-bold text-orange-600 mb-2">Terjangkau</div>
-          <div className="text-gray-600">Harga Rental</div>
-        </div>
-      </div>
+      </section>
 
       {/* How It Works */}
       <section className="py-20 px-4">

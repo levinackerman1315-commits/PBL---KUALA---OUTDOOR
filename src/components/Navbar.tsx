@@ -192,17 +192,7 @@ export const Navbar = () => {
               Tentang Kami
             </Button>
           </Link>
-          {/* ADMIN LINK */}
-          <Link to="/admin/login">
-            <Button
-              variant="ghost"
-              className="hover:text-red-600 text-red-500 font-medium transition-colors"
-              title="Admin Portal"
-            >
-              <Shield className="h-4 w-4 mr-1" />
-              Admin
-            </Button>
-          </Link>
+          {/* ADMIN LINK - HIDDEN (Access via /admin-secret-login) */}
         </div>
 
         {/* USER ACTIONS */}
@@ -292,11 +282,7 @@ export const Navbar = () => {
                 Menu
               </Button>
             </Link>
-            <Link to="/admin/login">
-              <Button variant="outline" size="sm" className="text-red-600">
-                <Shield className="h-3 w-3" />
-              </Button>
-            </Link>
+            {/* ADMIN LINK HIDDEN - Access via /admin-secret-login */}
           </div>
         </div>
       </div>

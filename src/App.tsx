@@ -80,7 +80,8 @@ const App = () => (
                   <Route path="/tambah-equipment" element={<TambahEquipment />} />
                   <Route path="/merchandise" element={<Merchandise />} />
 
-                  {/* ✅ ADMIN ROUTES */}
+                  {/* ✅ ADMIN ROUTES - SECRET ACCESS */}
+                  <Route path="/admin-secret-login" element={<AdminLogin />} />
                   <Route path="/admin/login" element={<AdminLogin />} />
                   
                   <Route 
