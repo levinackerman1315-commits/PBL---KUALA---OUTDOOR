@@ -28,12 +28,12 @@ const Auth = () => {
     }
   };
 
-  // 🔍 Check if running on production domain (not preview)
-  const isProductionDomain = window.location.hostname === 'pbl-kuala-outdoor-mb1j.vercel.app' || 
-                             window.location.hostname === 'localhost' ||
-                             window.location.hostname === '127.0.0.1';
+  // 🔍 Check if running on Vercel or localhost (show Google Login everywhere)
+  const isVercelOrLocal = window.location.hostname.includes('vercel.app') || 
+                          window.location.hostname === 'localhost' ||
+                          window.location.hostname === '127.0.0.1';
   
-  const showGoogleLogin = isProductionDomain;
+  const showGoogleLogin = isVercelOrLocal;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-blue-50 flex items-center justify-center p-4">
@@ -127,18 +127,16 @@ const Auth = () => {
                     </ul>
                   </div>
                 </>
-              ) : (
-                <div className="p-6 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-lg">
-                  <p className="text-yellow-800 text-sm font-medium mb-2">
-                    ⚠️ Google Login tidak tersedia di preview deployment
-                  </p>
-                  <p className="text-yellow-700 text-sm">
-                    Gunakan <strong>pbl-kuala-outdoor-mb1j.vercel.app</strong> untuk Google OAuth.
-                  </p>
-                </div>
-              )}
-
-              {/* WhatsApp Alternative */}
+            ) : (
+              <div className="p-6 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-lg">
+                <p className="text-yellow-800 text-sm font-medium mb-2">
+                  ⚠️ Google Login tidak tersedia
+                </p>
+                <p className="text-yellow-700 text-sm">
+                  Gunakan domain <strong>vercel.app</strong> untuk Google OAuth.
+                </p>
+              </div>
+            )}              {/* WhatsApp Alternative */}
               <div className="mt-6 text-center">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
